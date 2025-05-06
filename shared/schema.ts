@@ -6,6 +6,10 @@ import { z } from "zod";
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  address: text("address"),
+  mobile: text("mobile").notNull(),
+  email: text("email").notNull(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -13,6 +17,9 @@ export const users = pgTable("users", {
 });
 
 export const insertUserSchema = createInsertSchema(users, {
+  fullName: (schema) => schema.min(2, "Full name is required"),
+  mobile: (schema) => schema.regex(/^\+?[0-9\s-]{10,15}$/, "Please enter a valid mobile number"),
+  email: (schema) => schema.email("Please enter a valid email address"),
   username: (schema) => schema.min(3, "Username must be at least 3 characters"),
   password: (schema) => schema.min(6, "Password must be at least 6 characters"),
 });

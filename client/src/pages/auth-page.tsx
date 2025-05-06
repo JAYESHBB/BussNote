@@ -35,6 +35,16 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
+  fullName: z.string().min(2, {
+    message: "Full name is required.",
+  }),
+  address: z.string().optional(),
+  mobile: z.string().regex(/^\+?[0-9\s-]{10,15}$/, {
+    message: "Please enter a valid mobile number.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
   username: z.string().min(3, {
     message: "Username must be at least 3 characters.",
   }),
@@ -62,6 +72,10 @@ export default function AuthPage() {
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      fullName: "",
+      address: "",
+      mobile: "",
+      email: "",
       username: "",
       password: "",
       confirmPassword: "",
@@ -165,10 +179,79 @@ export default function AuthPage() {
                     <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                       <FormField
                         control={registerForm.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your full name"
+                                {...field}
+                                disabled={registerMutation.isPending}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your address"
+                                {...field}
+                                disabled={registerMutation.isPending}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="mobile"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Mobile</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your mobile number"
+                                {...field}
+                                disabled={registerMutation.isPending}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="Enter your email address"
+                                {...field}
+                                disabled={registerMutation.isPending}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>User ID</FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Choose a username"
