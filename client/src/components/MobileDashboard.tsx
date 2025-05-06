@@ -216,10 +216,10 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
         </div>
       </div>
       
-      {/* Recent Invoices */}
+      {/* Recent Notes */}
       <Card className="mb-5 colorful-card">
         <CardHeader className="colorful-header secondary py-3 px-4">
-          <CardTitle className="text-base font-semibold">Recent Invoices</CardTitle>
+          <CardTitle className="text-base font-semibold">Recent Notes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-neutral-100">
@@ -272,7 +272,7 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
           </div>
           <div className="p-3 border-t">
             <Button variant="ghost" size="sm" className="w-full text-sm text-primary-600">
-              View All Invoices
+              Manage Notes
             </Button>
           </div>
         </CardContent>
@@ -292,8 +292,8 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
           href="/parties" 
         />
         <MobileTile 
-          icon={FileText} 
-          title="Invoices" 
+          icon={MessageSquare} 
+          title="Add Note" 
           bgClass="bg-white" 
           textClass="text-primary-700"
           className="shadow-md border border-neutral-100"

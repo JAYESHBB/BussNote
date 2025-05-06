@@ -14,7 +14,8 @@ import {
   UserCog, 
   Settings,
   Search,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from "lucide-react";
 
 interface SidebarProps {
@@ -32,7 +33,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       items: [
         { name: "Dashboard", icon: <LayoutDashboard className="h-5 w-5 mr-3" />, href: "/" },
         { name: "Party Master", icon: <Users className="h-5 w-5 mr-3" />, href: "/parties" },
-        { name: "Invoices", icon: <FileText className="h-5 w-5 mr-3" />, href: "/invoices" },
+        { name: "Add Note", icon: <MessageSquare className="h-5 w-5 mr-3" />, href: "/invoices" },
         { name: "Transactions", icon: <DollarSign className="h-5 w-5 mr-3" />, href: "/transactions" },
       ],
     },
