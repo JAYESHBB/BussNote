@@ -134,13 +134,11 @@ export default function InvoicesPage() {
                   <TableHead>Buyer Name</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Due Date</TableHead>
-                  <TableHead>Currency</TableHead>
                   <TableHead>Subtotal</TableHead>
                   <TableHead>Brokerage</TableHead>
                   <TableHead>Brokerage in INR</TableHead>
                   <TableHead>Received</TableHead>
                   <TableHead>Balance</TableHead>
-                  <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -153,13 +151,11 @@ export default function InvoicesPage() {
                     <TableCell>{invoice.buyerName || '-'}</TableCell>
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                    <TableCell>{invoice.currency || 'INR'}</TableCell>
                     <TableCell>{invoice.subtotal || 0}</TableCell>
                     <TableCell>{invoice.tax || 0}</TableCell>
                     <TableCell>{invoice.brokerageInINR || 0}</TableCell>
                     <TableCell>{invoice.receivedBrokerage || 0}</TableCell>
                     <TableCell>{invoice.balanceBrokerage || 0}</TableCell>
-                    <TableCell>{invoice.total || 0}</TableCell>
                     <TableCell>
                       <StatusBadge status={invoice.status as any} />
                     </TableCell>
@@ -194,7 +190,7 @@ export default function InvoicesPage() {
 
                 {filteredInvoices?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={14} className="text-center py-8 text-neutral-500">
+                    <TableCell colSpan={12} className="text-center py-8 text-neutral-500">
                       No invoices found matching your filters. Try changing your search or create a new invoice.
                     </TableCell>
                   </TableRow>
