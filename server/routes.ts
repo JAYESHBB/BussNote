@@ -42,6 +42,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Party name availability check
+  app.get(`${apiPrefix}/check-party-name`, async (req: Request, res: Response) => {
+    try {
+      const partyName = req.query.name as string;
+      
+      if (!partyName || partyName.length < 2) {
+        return res.status(400).json({ message: "Party name must be at least 2 characters", available: false });
+      }
+      
+      // Check if party name exists in database (case insensitive)
+      const existingParties = await storage.getAllParties();
+      const exists = existingParties.some(party => 
+        party.name.toLowerCase() === partyName.toLowerCase()
+      );
+      
+      // Return result
+      res.json({ available: !exists });
+    } catch (error) {
+      console.error("Error checking party name:", error);
+      res.status(500).json({ message: "Failed to check party name availability", available: false });
+    }
+  });
+
   // Parties (customers/clients)
   app.get(`${apiPrefix}/parties`, async (req, res) => {
     try {

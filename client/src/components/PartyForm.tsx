@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Party } from "@shared/schema";
@@ -43,10 +44,51 @@ interface PartyFormProps {
   party?: Party;
 }
 
+function capitalizeWords(str: string): string {
+  return str
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
   const { toast } = useToast();
   const isEditing = !!party;
+  const [nameChecking, setNameChecking] = useState(false);
+  const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
+  const [mobileValid, setMobileValid] = useState<boolean | null>(null);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
+  const [gstinValid, setGstinValid] = useState<boolean | null>(null);
   
+  const validateMobile = (mobile: string) => {
+    const isValid = /^\+?[0-9\s-]{10,15}$/.test(mobile);
+    setMobileValid(isValid);
+    return isValid;
+  };
+
+  const validateEmail = (email: string) => {
+    // Allow empty email
+    if (email === "") {
+      setEmailValid(null);
+      return true;
+    }
+    const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+    setEmailValid(isValid);
+    return isValid;
+  };
+
+  const validateGSTIN = (gstin: string) => {
+    // Allow empty GSTIN
+    if (gstin === "") {
+      setGstinValid(null);
+      return true;
+    }
+    // GSTIN format: 2 digits, 10 alphanumeric, 1 digit, 1 alphanumeric, 1 check digit
+    const isValid = /^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}$/.test(gstin);
+    setGstinValid(isValid);
+    return isValid;
+  };
+    
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: party ? {
@@ -119,10 +161,64 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Party Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter business name" {...field} />
-                  </FormControl>
+                  <div className="relative">
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter business name" 
+                        {...field} 
+                        value={field.value}
+                        onChange={(e) => {
+                          // Immediately apply capitalization when typing
+                          const value = e.target.value;
+                          field.onChange(capitalizeWords(value));
+                          // Reset party name availability if editing
+                          setNameAvailable(null);
+                        }}
+                        onBlur={async (e) => {
+                          field.onBlur();
+                          if (!isEditing) {
+                            const value = e.target.value;
+                            if (value.length >= 2) {
+                              setNameChecking(true);
+                              try {
+                                const response = await apiRequest('GET', `/api/check-party-name?name=${encodeURIComponent(value)}`);
+                                const data = await response.json();
+                                setNameAvailable(data.available);
+                              } catch (error) {
+                                console.error('Error checking party name:', error);
+                                setNameAvailable(null);
+                              } finally {
+                                setNameChecking(false);
+                              }
+                            }
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    {nameChecking && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="h-4 w-4 rounded-full border-2 border-b-transparent border-primary animate-spin"></div>
+                      </div>
+                    )}
+                    {!nameChecking && nameAvailable === false && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                    {!nameChecking && nameAvailable === true && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                   <FormMessage />
+                  {!nameChecking && nameAvailable === false && (
+                    <p className="text-xs text-red-500 mt-1">This party name already exists. Please choose a different name.</p>
+                  )}
                 </FormItem>
               )}
             />
@@ -135,7 +231,16 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                   <FormItem>
                     <FormLabel>Contact Person</FormLabel>
                     <FormControl>
-                      <Input placeholder="Primary contact" {...field} />
+                      <Input 
+                        placeholder="Primary contact" 
+                        {...field} 
+                        value={field.value}
+                        onChange={(e) => {
+                          // Immediately apply capitalization when typing
+                          const value = e.target.value;
+                          field.onChange(capitalizeWords(value));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -148,10 +253,37 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+91 9876543210" {...field} />
-                    </FormControl>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="+91 9876543210" 
+                          {...field} 
+                          value={field.value}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            validateMobile(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      {mobileValid === false && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                      {mobileValid === true && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
+                    {mobileValid === false && (
+                      <p className="text-xs text-red-500 mt-1">Please enter a valid phone number (10-15 digits)</p>
+                    )}
                   </FormItem>
                 )}
               />
@@ -164,10 +296,38 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="contact@example.com" type="email" {...field} />
-                    </FormControl>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="contact@example.com" 
+                          type="email" 
+                          {...field} 
+                          value={field.value}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            validateEmail(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      {emailValid === false && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                      {emailValid === true && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
+                    {emailValid === false && (
+                      <p className="text-xs text-red-500 mt-1">Please enter a valid email address</p>
+                    )}
                   </FormItem>
                 )}
               />
@@ -178,10 +338,39 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>GSTIN (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="GST Number" {...field} />
-                    </FormControl>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="GST Number" 
+                          {...field} 
+                          value={field.value}
+                          onChange={(e) => {
+                            // Keep GSTIN in uppercase
+                            const value = e.target.value.toUpperCase();
+                            field.onChange(value);
+                            validateGSTIN(value);
+                          }}
+                        />
+                      </FormControl>
+                      {gstinValid === false && field.value && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                      {gstinValid === true && field.value && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
+                    {gstinValid === false && field.value && (
+                      <p className="text-xs text-red-500 mt-1">Please enter a valid GSTIN format</p>
+                    )}
                   </FormItem>
                 )}
               />
