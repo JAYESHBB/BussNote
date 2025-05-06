@@ -161,11 +161,11 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between py-5">
+        <Card className="lg:col-span-2 colorful-card">
+          <CardHeader className="colorful-header flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">Recent Invoices</CardTitle>
             <Link href="/invoices">
-              <a className="text-primary-500 text-sm font-medium hover:text-primary-600 flex items-center">
+              <a className="text-white text-sm font-medium hover:text-white/90 flex items-center">
                 View All
               </a>
             </Link>
@@ -198,8 +198,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="py-5">
+        <Card className="colorful-card">
+          <CardHeader className="colorful-header">
             <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
           </CardHeader>
           <CardContent>
@@ -238,15 +238,15 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader className="flex flex-row items-center justify-between py-5">
+      <Card className="mt-6 colorful-card">
+        <CardHeader className="colorful-header flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-semibold">Party Overview</CardTitle>
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 hover:text-white">
               Export
             </Button>
             <Link href="/parties/new">
-              <Button size="sm">
+              <Button size="sm" className="bg-white text-primary-500 hover:bg-white/90 hover:text-primary-600">
                 Add New Party
               </Button>
             </Link>

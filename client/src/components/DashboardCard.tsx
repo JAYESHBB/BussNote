@@ -23,7 +23,7 @@ export function DashboardCard({
   trend 
 }: DashboardCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden colorful-card">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-neutral-600 font-medium">{title}</h3>
