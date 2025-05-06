@@ -55,6 +55,8 @@ const formSchema = z.object({
   dueDate: z.string().min(1, "Due date is required"),
   currency: z.string().min(1, "Currency is required"),
   brokerageRate: z.coerce.number().min(0, "Brokerage rate must be a positive number").default(0),
+  exchangeRate: z.coerce.number().min(0.01, "Exchange rate must be greater than 0").default(1.00),
+  receivedBrokerage: z.coerce.number().min(0, "Received brokerage cannot be negative").default(0),
   isClosed: z.boolean().default(false),
   remarks: z.string().optional(),
 }).refine(data => data.partyId !== data.buyerId, {
@@ -111,6 +113,8 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       currency: "INR",
       brokerageRate: 0,
+      exchangeRate: 1.00,
+      receivedBrokerage: 0,
       isClosed: false,
       remarks: "",
     },
@@ -161,6 +165,10 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'currency') {
+        // Set exchange rate to 1.00 if currency is INR, otherwise leave it as is
+        if (value.currency === 'INR') {
+          form.setValue('exchangeRate', 1.00);
+        }
         forceUpdate({});
       }
     });
