@@ -79,6 +79,8 @@ export default function AuthPage() {
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(false);
+  const [mobileValid, setMobileValid] = useState<boolean | null>(null);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     hasUppercase: false,
@@ -86,6 +88,18 @@ export default function AuthPage() {
     hasNumber: false,
     hasSpecial: false
   });
+  
+  const validateMobile = (mobile: string) => {
+    const isValid = /^\+?[0-9\s-]{10,15}$/.test(mobile);
+    setMobileValid(isValid);
+    return isValid;
+  };
+
+  const validateEmail = (email: string) => {
+    const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+    setEmailValid(isValid);
+    return isValid;
+  };
   
   const validatePassword = (password: string) => {
     const checks = {
@@ -265,6 +279,12 @@ export default function AuthPage() {
                               <Input
                                 placeholder="Enter your address"
                                 {...field}
+                                value={field.value}
+                                onChange={(e) => {
+                                  // Immediately apply capitalization when typing
+                                  const value = e.target.value;
+                                  field.onChange(capitalizeWords(value));
+                                }}
                                 disabled={registerMutation.isPending}
                                 className="form-input"
                               />
@@ -279,15 +299,38 @@ export default function AuthPage() {
                         render={({ field }) => (
                           <FormItem className="form-field">
                             <FormLabel>Mobile</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter your mobile number"
-                                {...field}
-                                disabled={registerMutation.isPending}
-                                className="form-input"
-                              />
-                            </FormControl>
+                            <div className="relative">
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your mobile number"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    validateMobile(e.target.value);
+                                  }}
+                                  disabled={registerMutation.isPending}
+                                  className="form-input pr-8"
+                                />
+                              </FormControl>
+                              {mobileValid === false && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                              {mobileValid === true && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                             <FormMessage />
+                            {mobileValid === false && (
+                              <p className="text-xs text-red-500 mt-1">Please enter a valid mobile number (10-15 digits)</p>
+                            )}
                           </FormItem>
                         )}
                       />
@@ -297,16 +340,39 @@ export default function AuthPage() {
                         render={({ field }) => (
                           <FormItem className="form-field">
                             <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="Enter your email address"
-                                {...field}
-                                disabled={registerMutation.isPending}
-                                className="form-input"
-                              />
-                            </FormControl>
+                            <div className="relative">
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter your email address"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    validateEmail(e.target.value);
+                                  }}
+                                  disabled={registerMutation.isPending}
+                                  className="form-input pr-8"
+                                />
+                              </FormControl>
+                              {emailValid === false && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                              {emailValid === true && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                             <FormMessage />
+                            {emailValid === false && (
+                              <p className="text-xs text-red-500 mt-1">Please enter a valid email address</p>
+                            )}
                           </FormItem>
                         )}
                       />
