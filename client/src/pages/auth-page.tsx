@@ -37,7 +37,10 @@ const loginSchema = z.object({
 
 // Function to capitalize each word in a string
 function capitalizeWords(str: string): string {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+  return str
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 }
 
 const registerSchema = z.object({
@@ -75,6 +78,27 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState(false);
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecial: false
+  });
+  
+  const validatePassword = (password: string) => {
+    const checks = {
+      length: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[^A-Za-z0-9]/.test(password)
+    };
+    
+    setPasswordChecks(checks);
+    setPasswordStrength(true);
+  };
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -217,6 +241,12 @@ export default function AuthPage() {
                               <Input
                                 placeholder="Enter your proper full name"
                                 {...field}
+                                value={field.value}
+                                onChange={(e) => {
+                                  // Immediately apply capitalization when typing
+                                  const value = e.target.value;
+                                  field.onChange(capitalizeWords(value));
+                                }}
                                 disabled={registerMutation.isPending}
                                 className="form-input"
                               />
@@ -354,15 +384,39 @@ export default function AuthPage() {
                           <FormItem className="form-field">
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="Choose a strong mixed content password"
-                                {...field}
-                                disabled={registerMutation.isPending}
-                                className="form-input"
-                              />
+                              <div className="relative">
+                                <Input
+                                  type="password"
+                                  placeholder="Choose a strong mixed content password"
+                                  {...field}
+                                  disabled={registerMutation.isPending}
+                                  className="form-input"
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    validatePassword(e.target.value);
+                                  }}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
+                            {passwordStrength && (
+                              <div className="text-xs mt-1 space-y-1">
+                                <div className="flex items-center">
+                                  <div className={`h-1 flex-1 rounded-full ${passwordChecks.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1 flex-1 mx-1 rounded-full ${passwordChecks.hasUppercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1 flex-1 mx-1 rounded-full ${passwordChecks.hasLowercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1 flex-1 rounded-full ${passwordChecks.hasNumber ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                  <div className={`h-1 flex-1 ml-1 rounded-full ${passwordChecks.hasSpecial ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                </div>
+                                <ul className="space-y-1 pl-5 list-disc">
+                                  <li className={passwordChecks.length >= 8 ? 'text-green-500' : 'text-gray-500'}>At least 8 characters</li>
+                                  <li className={passwordChecks.hasUppercase ? 'text-green-500' : 'text-gray-500'}>At least one uppercase letter</li>
+                                  <li className={passwordChecks.hasLowercase ? 'text-green-500' : 'text-gray-500'}>At least one lowercase letter</li>
+                                  <li className={passwordChecks.hasNumber ? 'text-green-500' : 'text-gray-500'}>At least one number</li>
+                                  <li className={passwordChecks.hasSpecial ? 'text-green-500' : 'text-gray-500'}>At least one special character</li>
+                                </ul>
+                              </div>
+                            )}
                           </FormItem>
                         )}
                       />
