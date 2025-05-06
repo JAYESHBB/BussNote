@@ -354,42 +354,42 @@ export default function AuthPage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-400/20 rounded-full -mt-20 -mr-20 blur-2xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary-400/30 rounded-full -mb-10 -ml-10 blur-xl pointer-events-none"></div>
           
-          <div className="relative z-10 p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-inner">
-            <h1 className="text-4xl font-bold mb-2">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-amber-300 to-amber-200 drop-shadow-sm">Welcome to </span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white font-bold drop-shadow-sm">Buss</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-br from-secondary-300 to-secondary-600 font-extrabold drop-shadow-sm">Note</span>
+          <div className="relative z-10 p-8 bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 shadow-inner">
+            <h1 className="text-4xl font-bold mb-3">
+              <span className="text-white drop-shadow-md">Welcome to </span>
+              <span className="text-white font-bold drop-shadow-md">Buss</span>
+              <span className="text-secondary-300 font-extrabold drop-shadow-md">Note</span>
             </h1>
-            <p className="mb-10 text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-white max-w-md font-medium drop-shadow-sm">Complete sales invoice management system for your business</p>
+            <p className="mb-10 text-lg text-white max-w-md font-medium drop-shadow-md">Complete sales invoice management system for your business</p>
             
             <div className="space-y-6">
               <div className="flex items-start space-x-4 group">
-                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
-                  <FileText className="h-6 w-6 text-secondary-300" />
+                <div className="bg-black/40 group-hover:bg-secondary-900/50 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/20 backdrop-blur-sm">
+                  <FileText className="h-6 w-6 text-secondary-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-white group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300 drop-shadow-sm">Invoice Management</h3>
-                  <p className="text-white group-hover:text-white transition-colors duration-300">Create and manage sales invoices with ease</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-all duration-300 drop-shadow-md">Invoice Management</h3>
+                  <p className="text-white/90 group-hover:text-white transition-colors duration-300">Create and manage sales invoices with ease</p>
                 </div>
               </div>
               
               <div className="flex items-start space-x-4 group">
-                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
-                  <LucideUsers className="h-6 w-6 text-secondary-300" />
+                <div className="bg-black/40 group-hover:bg-secondary-900/50 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/20 backdrop-blur-sm">
+                  <LucideUsers className="h-6 w-6 text-secondary-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-white group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300 drop-shadow-sm">Party Master</h3>
-                  <p className="text-white group-hover:text-white transition-colors duration-300">Manage all your clients and customers in one place</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-all duration-300 drop-shadow-md">Party Master</h3>
+                  <p className="text-white/90 group-hover:text-white transition-colors duration-300">Manage all your clients and customers in one place</p>
                 </div>
               </div>
               
               <div className="flex items-start space-x-4 group">
-                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
-                  <CreditCard className="h-6 w-6 text-secondary-300" />
+                <div className="bg-black/40 group-hover:bg-secondary-900/50 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/20 backdrop-blur-sm">
+                  <CreditCard className="h-6 w-6 text-secondary-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-white group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300 drop-shadow-sm">Financial Reports</h3>
-                  <p className="text-white group-hover:text-white transition-colors duration-300">Track outstanding dues, closed bills and sales analysis</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-all duration-300 drop-shadow-md">Financial Reports</h3>
+                  <p className="text-white/90 group-hover:text-white transition-colors duration-300">Track outstanding dues, closed bills and sales analysis</p>
                 </div>
               </div>
             </div>
