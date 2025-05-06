@@ -90,7 +90,7 @@ export const invoiceItems = pgTable("invoice_items", {
   id: serial("id").primaryKey(),
   invoiceId: integer("invoice_id").references(() => invoices.id).notNull(),
   description: text("description").notNull(),
-  quantity: integer("quantity").notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
   rate: decimal("rate", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
