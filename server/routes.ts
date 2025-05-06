@@ -216,9 +216,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Request body:', JSON.stringify(req.body, null, 2));
       const { items, ...invoiceData } = req.body;
       
-      // Validate invoice data
-      console.log('Validating with schema:', Object.keys(invoicesInsertSchema.shape));
-      const validatedInvoiceData = invoicesInsertSchema.parse({
+      // Parse date fields - they need to be Date objects for the database
+      // But they might be ISO strings from the frontend
+      let parsedData = {
         ...invoiceData,
         partyId: parseInt(invoiceData.partyId), // Seller
         buyerId: parseInt(invoiceData.buyerId), // Buyer
@@ -227,7 +227,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: invoiceData.currency || 'INR', // Default to INR if not provided
         remarks: invoiceData.remarks || '', // Default to empty string if not provided
         invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}` // Generate invoice number
-      });
+      };
+      
+      // Convert date strings to Date objects
+      try {
+        if (typeof parsedData.invoiceDate === 'string') {
+          parsedData.invoiceDate = new Date(parsedData.invoiceDate);
+        }
+        if (typeof parsedData.dueDate === 'string') {
+          parsedData.dueDate = new Date(parsedData.dueDate);
+        }
+      } catch (e) {
+        console.error('Date parsing error:', e);
+        return res.status(400).json({ message: 'Invalid date format' });
+      }
+      
+      // Validate invoice data
+      console.log('Validating with schema:', Object.keys(invoicesInsertSchema.shape));
+      const validatedInvoiceData = invoicesInsertSchema.parse(parsedData);
       
       // Create invoice and items
       const newInvoice = await storage.createInvoice(validatedInvoiceData, items);
