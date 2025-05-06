@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,12 +46,24 @@ interface InvoiceItem {
 const formSchema = z.object({
   partyId: z.string().min(1, "Seller is required"),
   buyerId: z.string().min(1, "Buyer is required"),
+  invoiceNo: z.string().optional(),
   invoiceDate: z.string().min(1, "Invoice date is required"),
+  dueDays: z.coerce.number().min(0, "Due days must be a positive number"),
+  terms: z.string().min(1, "Terms are required"),
   dueDate: z.string().min(1, "Due date is required"),
   notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+// Terms options for dropdown
+const termsOptions = [
+  "Days",
+  "Days Fix",
+  "Days D/A",
+  "Days B/D",
+  "Days A/D"
+];
 
 interface InvoiceFormProps {
   open: boolean;
@@ -74,11 +86,34 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     defaultValues: {
       partyId: "",
       buyerId: "",
+      invoiceNo: "",
       invoiceDate: new Date().toISOString().split("T")[0],
+      dueDays: 15,
+      terms: "Days",
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       notes: "",
     },
   });
+  
+  // Calculate due date when invoice date or due days change
+  const calculateDueDate = (invoiceDate: string, dueDays: number): string => {
+    if (!invoiceDate) return "";
+    const date = new Date(invoiceDate);
+    date.setDate(date.getDate() + dueDays);
+    return date.toISOString().split("T")[0];
+  };
+  
+  // Watch relevant fields for due date calculation
+  const invoiceDate = form.watch("invoiceDate");
+  const dueDays = form.watch("dueDays");
+  
+  // Update due date when invoice date or due days change
+  React.useEffect(() => {
+    if (invoiceDate && dueDays !== undefined) {
+      const newDueDate = calculateDueDate(invoiceDate, dueDays);
+      form.setValue("dueDate", newDueDate);
+    }
+  }, [invoiceDate, dueDays, form]);
 
   const handleAddItem = () => {
     setItems([
@@ -218,6 +253,20 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
               />
             </div>
             
+            <FormField
+              control={form.control}
+              name="invoiceNo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Invoice No.</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter invoice number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -240,8 +289,58 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                   <FormItem>
                     <FormLabel>Due Date</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} readOnly />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dueDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Days</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="0" 
+                        placeholder="Enter days until due" 
+                        {...field} 
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? "0" : e.target.value;
+                          field.onChange(parseInt(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Terms</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select terms" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {termsOptions.map((term) => (
+                          <SelectItem key={term} value={term}>
+                            {term}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
