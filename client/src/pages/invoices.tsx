@@ -167,11 +167,11 @@ export default function InvoicesPage() {
                     <TableCell>{invoice.buyerName || '-'}</TableCell>
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                    <TableCell>{invoice.subtotal || 0}</TableCell>
-                    <TableCell>{invoice.tax || 0}</TableCell>
-                    <TableCell>{invoice.brokerageInINR || 0}</TableCell>
-                    <TableCell>{invoice.receivedBrokerage || 0}</TableCell>
-                    <TableCell>{invoice.balanceBrokerage || 0}</TableCell>
+                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
+                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.tax || 0).toFixed(2)}</TableCell>
+                    <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
+                    <TableCell>₹ {Number(invoice.receivedBrokerage || 0).toFixed(2)}</TableCell>
+                    <TableCell>₹ {Number(invoice.balanceBrokerage || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <StatusBadge status={invoice.status as any} />
                     </TableCell>
