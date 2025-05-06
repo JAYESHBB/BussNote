@@ -98,7 +98,7 @@ export default function AuthPage() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-neutral-50 p-4">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 colorful-bg-pattern">
       <div className="w-full max-w-5xl grid gap-6 md:grid-cols-2">
         <div className="flex flex-col justify-center">
           <Tabs defaultValue="login" className="w-full">
@@ -336,39 +336,45 @@ export default function AuthPage() {
           </Tabs>
         </div>
         
-        <div className="flex flex-col justify-center p-6 bg-primary-600 text-white rounded-lg hidden md:flex">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Welcome to <span className="text-white">Buss</span><span className="text-secondary-400">Note</span></h1>
-            <p className="mb-8">Complete sales invoice management system for your business</p>
+        <div className="flex flex-col justify-center p-8 bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-lg hidden md:flex shadow-xl relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-400/20 rounded-full -mt-20 -mr-20 blur-2xl pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary-400/30 rounded-full -mb-10 -ml-10 blur-xl pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary-100">
+              Welcome to <span className="text-white">Buss</span><span className="text-secondary-300 font-extrabold">Note</span>
+            </h1>
+            <p className="mb-10 text-lg text-primary-100/90 max-w-md">Complete sales invoice management system for your business</p>
             
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="bg-white/10 p-2 rounded-full">
-                  <FileText className="h-6 w-6" />
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4 group">
+                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                  <FileText className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Invoice Management</h3>
-                  <p className="text-white/80">Create and manage sales invoices with ease</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Invoice Management</h3>
+                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Create and manage sales invoices with ease</p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <div className="bg-white/10 p-2 rounded-full">
-                  <LucideUsers className="h-6 w-6" />
+              <div className="flex items-start space-x-4 group">
+                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                  <LucideUsers className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Party Master</h3>
-                  <p className="text-white/80">Manage all your clients and customers in one place</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Party Master</h3>
+                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Manage all your clients and customers in one place</p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <div className="bg-white/10 p-2 rounded-full">
-                  <CreditCard className="h-6 w-6" />
+              <div className="flex items-start space-x-4 group">
+                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                  <CreditCard className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Financial Reports</h3>
-                  <p className="text-white/80">Track outstanding dues, closed bills and sales analysis</p>
+                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Financial Reports</h3>
+                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Track outstanding dues, closed bills and sales analysis</p>
                 </div>
               </div>
             </div>

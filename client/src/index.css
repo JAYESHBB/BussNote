@@ -117,11 +117,29 @@
 
 @layer components {
   .sidebar-link {
-    @apply flex items-center pl-6 pr-4 py-3 text-neutral-700 hover:bg-neutral-100 transition-colors;
+    @apply flex items-center pl-6 pr-4 py-3 text-neutral-700 hover:bg-neutral-100 transition-all duration-200;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sidebar-link:hover {
+    transform: translateX(3px);
   }
   
   .sidebar-link.active {
     @apply bg-sidebar-accent text-sidebar-primary border-l-4 border-primary;
+    background: linear-gradient(90deg, rgba(231, 236, 253, 1) 0%, rgba(231, 236, 253, 0.5) 100%);
+  }
+  
+  .sidebar-link.active::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.7) 100%);
+    box-shadow: 0 0 8px rgba(79, 94, 197, 0.5);
   }
 
   .stat-card-icon {

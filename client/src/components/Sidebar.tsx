@@ -63,15 +63,15 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     <aside
       className={`w-64 bg-white border-r border-neutral-200 flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out ${
         isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
-      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"}`}
+      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} bg-gradient-to-b from-white to-primary-50`}
     >
       <div className="p-4 flex-shrink-0">
         <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-primary-500" />
           <Input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 text-sm"
+            className="w-full pl-10 text-sm border-primary-100 focus:border-primary-300 focus:ring-primary-200 bg-white/80 backdrop-blur-sm"
           />
         </div>
       </div>
@@ -80,7 +80,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {sidebarItems.map((section, index) => (
           <div key={index}>
             <div className="px-4 py-2">
-              <h3 className="text-xs font-semibold uppercase text-neutral-500 tracking-wider">
+              <h3 className="text-xs font-semibold uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700">
                 {section.title}
               </h3>
             </div>
@@ -101,13 +101,13 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center">
+        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 hover:from-primary-200 hover:to-primary-100 transition-all duration-300 cursor-pointer">
+          <div className="w-10 h-10 bg-white text-primary-600 rounded-full flex items-center justify-center shadow-sm">
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-neutral-800">Need help?</p>
-            <p className="text-xs text-neutral-500">Contact support</p>
+            <p className="text-sm font-medium text-primary-700">Need help?</p>
+            <p className="text-xs text-primary-500">Contact support</p>
           </div>
         </div>
       </div>
