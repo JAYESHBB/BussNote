@@ -364,7 +364,7 @@ export default function AuthPage() {
             
             <div className="space-y-6">
               <div className="flex items-start space-x-4 group">
-                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
                   <FileText className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
@@ -374,7 +374,7 @@ export default function AuthPage() {
               </div>
               
               <div className="flex items-start space-x-4 group">
-                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
                   <LucideUsers className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
@@ -384,7 +384,7 @@ export default function AuthPage() {
               </div>
               
               <div className="flex items-start space-x-4 group">
-                <div className="bg-white/5 group-hover:bg-white/20 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
+                <div className="bg-primary-800/50 group-hover:bg-primary-700/60 p-3 rounded-xl shadow-lg transition-all duration-300 border border-white/10">
                   <CreditCard className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
