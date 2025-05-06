@@ -162,7 +162,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 colorful-card">
-          <CardHeader className="colorful-header flex flex-row items-center justify-between">
+          <CardHeader className="colorful-header secondary flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">Recent Invoices</CardTitle>
             <Link href="/invoices">
               <a className="text-white text-sm font-medium hover:text-white/90 flex items-center">
@@ -199,7 +199,7 @@ export default function Dashboard() {
         </Card>
 
         <Card className="colorful-card">
-          <CardHeader className="colorful-header">
+          <CardHeader className="colorful-header accent">
             <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
           </CardHeader>
           <CardContent>
