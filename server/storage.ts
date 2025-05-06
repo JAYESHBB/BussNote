@@ -231,15 +231,32 @@ class DatabaseStorage implements IStorage {
         paymentDate: invoices.paymentDate,
         userId: invoices.userId,
         partyId: invoices.partyId,
+        buyerId: invoices.buyerId,
         partyName: parties.name,
+        currency: invoices.currency,
+        brokerageInINR: invoices.brokerageInINR,
+        receivedBrokerage: invoices.receivedBrokerage,
+        balanceBrokerage: invoices.balanceBrokerage,
+        isClosed: invoices.isClosed,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt
       })
       .from(invoices)
       .leftJoin(parties, eq(invoices.partyId, parties.id))
       .orderBy(desc(invoices.invoiceDate));
+
+    // Add buyer names to all invoices
+    const invoicesWithBuyerNames = await Promise.all(
+      invoiceList.map(async (invoice) => {
+        const buyer = await this.getPartyById(invoice.buyerId);
+        return {
+          ...invoice,
+          buyerName: buyer?.name || 'Unknown'
+        };
+      })
+    );
       
-    return invoiceList;
+    return invoicesWithBuyerNames;
   }
   
   async getRecentInvoices(limit: number): Promise<Invoice[]> {
@@ -279,6 +296,11 @@ class DatabaseStorage implements IStorage {
         partyId: invoices.partyId,
         buyerId: invoices.buyerId,
         partyName: parties.name,
+        currency: invoices.currency,
+        brokerageInINR: invoices.brokerageInINR,
+        receivedBrokerage: invoices.receivedBrokerage,
+        balanceBrokerage: invoices.balanceBrokerage,
+        isClosed: invoices.isClosed,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt
       })
