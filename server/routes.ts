@@ -213,6 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiPrefix}/invoices`, async (req, res) => {
     try {
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
       const { items, ...invoiceData } = req.body;
       
       // Validate invoice data
@@ -243,6 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newInvoice);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log('Validation error:', JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ errors: error.errors });
       }
       console.error("Error creating invoice:", error);
