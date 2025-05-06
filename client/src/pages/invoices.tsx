@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { 
@@ -42,12 +42,156 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { Invoice } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [showClosed, setShowClosed] = useState(false);
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
+  const { toast } = useToast();
+  
+  // Mutation for updating invoice status
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number, status: string }) => {
+      const res = await apiRequest("PATCH", `/api/invoices/${id}/status`, { status });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      toast({
+        title: "Success",
+        description: "Invoice status updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update invoice status: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Function to handle printing invoice
+  const handlePrint = (invoice: Invoice) => {
+    // Open print dialog with invoice details
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Error",
+        description: "Could not open print window. Please check your popup blocker settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Format invoice data for printing
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice #${invoice.invoiceNumber}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 30px; }
+          .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+          .invoice-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+          .invoice-details { margin-bottom: 20px; }
+          .invoice-details div { margin-bottom: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .amount-row { font-weight: bold; }
+          .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #777; }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-header">
+          <div>
+            <div class="invoice-title">Invoice #${invoice.invoiceNumber}</div>
+            <div>BussNote - Invoice Management System</div>
+          </div>
+          <div>
+            <div>Date: ${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</div>
+            <div>Due Date: ${format(new Date(invoice.dueDate), "MMM dd, yyyy")}</div>
+          </div>
+        </div>
+        
+        <div class="invoice-details">
+          <div><strong>Seller:</strong> ${invoice.partyName || 'N/A'}</div>
+          <div><strong>Buyer:</strong> ${invoice.buyerName || 'N/A'}</div>
+          <div><strong>Status:</strong> ${invoice.status.toUpperCase()}</div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Currency</th>
+              <th>Subtotal</th>
+              <th>Brokerage</th>
+              <th>Brokerage in INR</th>
+              <th>Received</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Invoice ${invoice.invoiceNumber}</td>
+              <td>${invoice.currency || 'INR'}</td>
+              <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.subtotal || 0).toFixed(2)}</td>
+              <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.tax || 0).toFixed(2)}</td>
+              <td>₹ ${Number(invoice.brokerageInINR || 0).toFixed(2)}</td>
+              <td>₹ ${Number(invoice.receivedBrokerage || 0).toFixed(2)}</td>
+              <td>₹ ${Number(invoice.balanceBrokerage || 0).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.open();
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+      printWindow.print();
+      // printWindow.close(); // Optional: close after printing
+    };
+  };
+  
+  // Function to mark invoice as paid
+  const handleMarkAsPaid = (invoice: Invoice) => {
+    updateStatusMutation.mutate({ id: invoice.id, status: 'paid' });
+  };
+  
+  // Function to mark invoice as cancelled
+  const handleCancelInvoice = (invoice: Invoice) => {
+    updateStatusMutation.mutate({ id: invoice.id, status: 'cancelled' });
+  };
+  
+  // Function to duplicate invoice (placeholder for now)
+  const handleDuplicateInvoice = (invoice: Invoice) => {
+    toast({
+      title: "Coming Soon",
+      description: "Duplicate invoice functionality will be available soon.",
+    });
+  };
+  
+  // Function to send reminder (placeholder for now)
+  const handleSendReminder = (invoice: Invoice) => {
+    toast({
+      title: "Coming Soon",
+      description: "Send reminder functionality will be available soon.",
+    });
+  };
   
   const { data: invoices } = useQuery<Invoice[]>({
     queryKey: ["/api/invoices"],
@@ -182,7 +326,12 @@ export default function InvoicesPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handlePrint(invoice)}
+                        >
                           <Printer className="h-4 w-4" />
                         </Button>
                         <DropdownMenu>
@@ -192,11 +341,16 @@ export default function InvoicesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
-                            <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice)}>Mark as Paid</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendReminder(invoice)}>Send Reminder</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicateInvoice(invoice)}>Duplicate</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Cancel Invoice</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleCancelInvoice(invoice)}
+                            >
+                              Cancel Invoice
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
