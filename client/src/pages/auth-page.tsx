@@ -349,12 +349,12 @@ export default function AuthPage() {
           </Tabs>
         </div>
         
-        <div className="flex flex-col justify-center p-8 bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-lg hidden md:flex shadow-xl relative overflow-hidden">
+        <div className="flex flex-col justify-center p-8 bg-gradient-to-br from-primary-800 to-primary-950 text-white rounded-lg hidden md:flex shadow-xl relative overflow-hidden">
           {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-400/20 rounded-full -mt-20 -mr-20 blur-2xl pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-400/20 rounded-full -mt-20 -mr-20 blur-2xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary-400/30 rounded-full -mb-10 -ml-10 blur-xl pointer-events-none"></div>
           
-          <div className="relative z-10">
+          <div className="relative z-10 p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-inner">
             <h1 className="text-4xl font-bold mb-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-amber-300 to-amber-200 drop-shadow-sm">Welcome to </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white font-bold drop-shadow-sm">Buss</span>
