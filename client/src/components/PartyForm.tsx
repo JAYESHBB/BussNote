@@ -112,6 +112,46 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
 
   const onSubmit = async (data: FormData) => {
     try {
+      // Perform validations before submitting
+      if (!isEditing && nameAvailable === false) {
+        toast({
+          title: "Validation Error",
+          description: "This party name already exists. Please choose a different name.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate mobile number
+      if (!validateMobile(data.phone)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid phone number (10-15 digits)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate email if provided
+      if (data.email && !validateEmail(data.email)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate GSTIN if provided
+      if (data.gstin && !validateGSTIN(data.gstin)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid GSTIN format",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (isEditing) {
         await apiRequest("PATCH", `/api/parties/${party.id}`, data);
         queryClient.invalidateQueries({ queryKey: ["/api/parties"] });
@@ -131,6 +171,12 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
       
       onOpenChange(false);
       form.reset();
+      
+      // Reset validation states
+      setNameAvailable(null);
+      setMobileValid(null);
+      setEmailValid(null);
+      setGstinValid(null);
     } catch (error) {
       toast({
         title: "Error",
@@ -387,6 +433,17 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                       placeholder="Business address"
                       className="resize-none"
                       {...field} 
+                      value={field.value}
+                      onChange={(e) => {
+                        // Apply capitalization to address with proper handling for multi-line content
+                        const value = e.target.value;
+                        const lines = value.split('\n');
+                        const capitalizedLines = lines.map(line => {
+                          // Only capitalize the first letter of each line
+                          return line.charAt(0).toUpperCase() + line.slice(1);
+                        });
+                        field.onChange(capitalizedLines.join('\n'));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -405,6 +462,17 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
                       placeholder="Additional information"
                       className="resize-none"
                       {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        // Apply capitalization to notes with proper handling for multi-line content
+                        const value = e.target.value;
+                        const lines = value.split('\n');
+                        const capitalizedLines = lines.map(line => {
+                          // Only capitalize the first letter of each line
+                          return line.charAt(0).toUpperCase() + line.slice(1);
+                        });
+                        field.onChange(capitalizedLines.join('\n'));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
