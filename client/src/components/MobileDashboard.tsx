@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { MobileTile } from '@/components/MobileTile';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Bell,
   Users,
@@ -17,7 +22,9 @@ import {
   DollarSign,
   PlusCircle,
   ActivitySquare,
-  LogOut
+  LogOut,
+  MessageSquare,
+  Edit
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Invoice } from '@shared/schema';
@@ -30,6 +37,61 @@ interface MobileDashboardProps {
 
 export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: MobileDashboardProps) {
   const { user, logoutMutation } = useAuth();
+  const { toast } = useToast();
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [noteText, setNoteText] = useState("");
+  
+  const updateNotesMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: number, notes: string }) => {
+      const res = await apiRequest("PATCH", `/api/invoices/${id}/notes`, { notes });
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      
+      // Show success message
+      toast({
+        title: "Notes updated",
+        description: "Invoice notes have been updated successfully",
+        variant: "default",
+      });
+      
+      // Close dialog and reset state
+      handleCloseNoteDialog();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update notes",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleOpenNoteDialog = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setNoteText(invoice.notes || "");
+    setIsNoteDialogOpen(true);
+  };
+  
+  const handleCloseNoteDialog = () => {
+    setIsNoteDialogOpen(false);
+    setSelectedInvoice(null);
+    setNoteText("");
+  };
+  
+  const handleSaveNote = () => {
+    if (!selectedInvoice) return;
+    
+    updateNotesMutation.mutate({
+      id: selectedInvoice.id,
+      notes: noteText
+    });
+  };
   
   const formatCurrency = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -184,6 +246,20 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
                       status={status}
                       className="mt-1 text-xs py-0.5 px-1.5"
                     />
+                    <div className="flex mt-1 space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOpenNoteDialog(invoice);
+                        }}
+                      >
+                        <MessageSquare className="h-3 w-3 text-primary-500" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
@@ -279,6 +355,47 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
         <p>BussNote v1.0</p>
         <p className="mt-1">© 2023 All Rights Reserved</p>
       </div>
+      
+      {/* Note Dialog */}
+      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add/Edit Notes</DialogTitle>
+            <DialogDescription>
+              {selectedInvoice && (
+                <span className="text-sm text-neutral-600">
+                  Invoice #{selectedInvoice.invoiceNumber} | 
+                  {selectedInvoice.partyName} | 
+                  {formatCurrency(selectedInvoice.total)}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Enter notes here..."
+              className="min-h-32"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={handleCloseNoteDialog}
+              disabled={updateNotesMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveNote}
+              disabled={updateNotesMutation.isPending}
+            >
+              {updateNotesMutation.isPending ? "Saving..." : "Save Notes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
