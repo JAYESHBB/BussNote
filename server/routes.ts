@@ -137,6 +137,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update party" });
     }
   });
+  
+  app.delete(`${apiPrefix}/parties/:id`, async (req, res) => {
+    try {
+      const partyId = parseInt(req.params.id);
+      
+      // Get party details before deletion (for activity log)
+      const party = await storage.getPartyById(partyId);
+      
+      if (!party) {
+        return res.status(404).json({ message: "Party not found" });
+      }
+      
+      await storage.deleteParty(partyId);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user!.id,
+        type: "party_deleted",
+        title: "Party deleted",
+        description: `Deleted ${party.name} from party master`,
+        timestamp: new Date()
+      });
+      
+      res.status(200).json({ message: "Party deleted successfully" });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("related invoices")) {
+        return res.status(409).json({ message: error.message });
+      }
+      console.error("Error deleting party:", error);
+      res.status(500).json({ message: typeof error === "object" && error instanceof Error ? error.message : "Failed to delete party" });
+    }
+  });
 
   // Invoices
   app.get(`${apiPrefix}/invoices`, async (req, res) => {

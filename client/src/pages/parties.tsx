@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { 
@@ -9,8 +9,11 @@ import {
   Eye, 
   Edit,
   Download,
-  Filter
+  Filter,
+  Trash2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +32,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PartyForm } from "@/components/PartyForm";
 import { Party } from "@shared/schema";
 
@@ -36,6 +49,9 @@ export default function PartiesPage() {
   const [search, setSearch] = useState("");
   const [openPartyForm, setOpenPartyForm] = useState(false);
   const [selectedParty, setSelectedParty] = useState<Party | undefined>(undefined);
+  const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   const { data: parties } = useQuery<Party[]>({
     queryKey: ["/api/parties"],
@@ -64,6 +80,44 @@ export default function PartiesPage() {
   const handleAddNewParty = () => {
     setSelectedParty(undefined);
     setOpenPartyForm(true);
+  };
+  
+  const deletePartyMutation = useMutation({
+    mutationFn: async (partyId: number) => {
+      const response = await apiRequest("DELETE", `/api/parties/${partyId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete party");
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/parties"] });
+      toast({
+        title: "Party deleted",
+        description: `${partyToDelete?.name} has been deleted successfully.`,
+      });
+      setPartyToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleDeleteParty = (party: Party) => {
+    setPartyToDelete(party);
+    setDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (partyToDelete) {
+      deletePartyMutation.mutate(partyToDelete.id);
+    }
+    setDeleteDialogOpen(false);
   };
 
   return (
@@ -147,6 +201,14 @@ export default function PartiesPage() {
                       >
                         <Edit className="h-4 w-4 text-neutral-500" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => handleDeleteParty(party)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -203,6 +265,31 @@ export default function PartiesPage() {
         onOpenChange={setOpenPartyForm} 
         party={selectedParty}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this party?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {partyToDelete && (
+                <>
+                  You are about to delete <span className="font-semibold">{partyToDelete.name}</span>. 
+                  This action cannot be undone if the party has no related invoices or transactions.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

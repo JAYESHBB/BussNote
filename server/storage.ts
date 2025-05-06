@@ -46,6 +46,7 @@ export interface IStorage {
   getPartyById(id: number): Promise<Party | undefined>;
   createParty(data: InsertParty): Promise<Party>;
   updateParty(id: number, data: Partial<InsertParty>): Promise<Party | undefined>;
+  deleteParty(id: number): Promise<void>;
   
   // Invoice methods
   getAllInvoices(): Promise<Invoice[]>;
@@ -189,6 +190,27 @@ class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedParty;
+  }
+  
+  async deleteParty(id: number): Promise<void> {
+    // First check if there are any invoices or transactions for this party
+    const invoiceCount = await db
+      .select({ count: count() })
+      .from(invoices)
+      .where(eq(invoices.partyId, id));
+    
+    const transactionCount = await db
+      .select({ count: count() })
+      .from(transactions)
+      .where(eq(transactions.partyId, id));
+    
+    // If there are related records, throw an error
+    if (invoiceCount[0].count > 0 || transactionCount[0].count > 0) {
+      throw new Error("Cannot delete party with related invoices or transactions.");
+    }
+    
+    // Delete the party
+    await db.delete(parties).where(eq(parties.id, id));
   }
   
   // Invoice methods
