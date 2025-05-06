@@ -57,7 +57,6 @@ const formSchema = z.object({
   brokerageRate: z.coerce.number().min(0, "Brokerage rate must be a positive number").default(0),
   isClosed: z.boolean().default(false),
   remarks: z.string().optional(),
-  notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -111,7 +110,6 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       brokerageRate: 0,
       isClosed: false,
       remarks: "",
-      notes: "",
     },
   });
   
@@ -546,24 +544,6 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                   <FormControl>
                     <Textarea
                       placeholder="Enter any specific remarks or additional information..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Additional notes..."
                       className="resize-none"
                       {...field}
                     />
