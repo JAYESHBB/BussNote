@@ -427,7 +427,7 @@ class DatabaseStorage implements IStorage {
       .insert(activities)
       .values({
         ...data,
-        timestamp: new Date().toISOString()
+        timestamp: new Date() // Fix: Pass a Date object directly, not a string
       })
       .returning();
       

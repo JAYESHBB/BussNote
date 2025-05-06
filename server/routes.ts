@@ -104,6 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: "New party added",
         description: `Added ${newParty.name} to party master`,
         partyId: newParty.id,
+        timestamp: new Date() // Add timestamp explicitly
       });
       
       res.status(201).json(newParty);
@@ -201,6 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Invoice #${newInvoice.invoiceNumber} for ${newInvoice.partyName}`,
         invoiceId: newInvoice.id,
         partyId: newInvoice.partyId,
+        timestamp: new Date() // Add timestamp explicitly
       });
       
       res.status(201).json(newInvoice);
@@ -248,6 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: `${formatCurrency(updatedInvoice.total)} from ${updatedInvoice.partyName}`,
           invoiceId: updatedInvoice.id,
           partyId: updatedInvoice.partyId,
+          timestamp: new Date() // Add timestamp explicitly
         });
       }
       
@@ -304,6 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `${formatCurrency(newTransaction.amount)} payment recorded`,
         invoiceId: newTransaction.invoiceId,
         partyId: newTransaction.partyId,
+        timestamp: new Date() // Add timestamp explicitly
       });
       
       res.status(201).json(newTransaction);
