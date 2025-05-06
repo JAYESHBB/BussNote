@@ -129,9 +129,16 @@ export default function InvoicesPage() {
               <TableRow>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Party Name</TableHead>
+                <TableHead>Buyer Name</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Due Date</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>Currency</TableHead>
+                <TableHead>Subtotal</TableHead>
+                <TableHead>Brokerage</TableHead>
+                <TableHead>Brokerage in INR</TableHead>
+                <TableHead>Received</TableHead>
+                <TableHead>Balance</TableHead>
+                <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -141,9 +148,16 @@ export default function InvoicesPage() {
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">#{invoice.invoiceNumber}</TableCell>
                   <TableCell>{invoice.partyName}</TableCell>
+                  <TableCell>{invoice.buyerName}</TableCell>
                   <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                  <TableCell>{formatCurrency(invoice.total)}</TableCell>
+                  <TableCell>{invoice.currency}</TableCell>
+                  <TableCell>{typeof invoice.subtotal === 'number' ? invoice.subtotal.toFixed(2) : invoice.subtotal}</TableCell>
+                  <TableCell>{typeof invoice.tax === 'number' ? invoice.tax.toFixed(2) : invoice.tax}</TableCell>
+                  <TableCell>{typeof invoice.brokerageInINR === 'number' ? invoice.brokerageInINR.toFixed(2) : invoice.brokerageInINR}</TableCell>
+                  <TableCell>{typeof invoice.receivedBrokerage === 'number' ? invoice.receivedBrokerage.toFixed(2) : invoice.receivedBrokerage}</TableCell>
+                  <TableCell>{typeof invoice.balanceBrokerage === 'number' ? invoice.balanceBrokerage.toFixed(2) : invoice.balanceBrokerage}</TableCell>
+                  <TableCell>{typeof invoice.total === 'number' ? invoice.total.toFixed(2) : invoice.total}</TableCell>
                   <TableCell>
                     <StatusBadge status={invoice.status as any} />
                   </TableCell>
@@ -175,10 +189,11 @@ export default function InvoicesPage() {
                   </TableCell>
                 </TableRow>
               ))}
+              
 
               {filteredInvoices?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
+                  <TableCell colSpan={14} className="text-center py-8 text-neutral-500">
                     No invoices found matching your filters. Try changing your search or create a new invoice.
                   </TableCell>
                 </TableRow>
