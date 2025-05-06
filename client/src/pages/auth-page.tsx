@@ -102,16 +102,16 @@ export default function AuthPage() {
       <div className="w-full max-w-5xl grid gap-6 md:grid-cols-2">
         <div className="flex flex-col justify-center">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-primary-50/50 backdrop-blur-sm">
+              <TabsTrigger value="login" className="text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-primary-600 data-[state=active]:shadow-md transition-all duration-300">Login</TabsTrigger>
+              <TabsTrigger value="register" className="text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-primary-600 data-[state=active]:shadow-md transition-all duration-300">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Login</CardTitle>
-                  <CardDescription>
+                <CardHeader className="colorful-header">
+                  <CardTitle className="text-2xl text-white">Login</CardTitle>
+                  <CardDescription className="text-white/80">
                     Enter your credentials to access your account
                   </CardDescription>
                 </CardHeader>
@@ -129,6 +129,7 @@ export default function AuthPage() {
                                 placeholder="Enter your username"
                                 {...field}
                                 disabled={loginMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -155,7 +156,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white shadow-md" 
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? "Logging in..." : "Login"}
@@ -179,9 +180,9 @@ export default function AuthPage() {
             
             <TabsContent value="register">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Create Account</CardTitle>
-                  <CardDescription>
+                <CardHeader className="colorful-header">
+                  <CardTitle className="text-2xl text-white">Create Account</CardTitle>
+                  <CardDescription className="text-white/80">
                     Register to get started with BussNote
                   </CardDescription>
                 </CardHeader>
@@ -312,7 +313,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full bg-gradient-to-r from-secondary-500 to-secondary-700 hover:from-secondary-600 hover:to-secondary-800 text-white shadow-md" 
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? "Creating account..." : "Register"}
