@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { 
@@ -10,10 +10,14 @@ import {
   FileText,
   CheckSquare,
   BarChart,
-  UserPlus
+  UserPlus,
+  MessageSquare,
+  Edit
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Select,
   SelectContent,
@@ -35,12 +39,18 @@ import { ActivityItem } from "@/components/ActivityItem";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { MobileDashboard } from "@/components/MobileDashboard";
 import { useMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 import { Invoice, Party, Activity } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState("today");
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [noteText, setNoteText] = useState("");
   const isMobile = useMobile();
+  const { toast } = useToast();
 
   const { data: dashboardStats } = useQuery({
     queryKey: ["/api/dashboard/stats", dateRange],
@@ -57,6 +67,36 @@ export default function Dashboard() {
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
+  
+  const updateNotesMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: number, notes: string }) => {
+      const res = await apiRequest("PATCH", `/api/invoices/${id}/notes`, { notes });
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      
+      // Show success message
+      toast({
+        title: "Notes updated",
+        description: "Invoice notes have been updated successfully",
+        variant: "default",
+      });
+      
+      // Close dialog and reset state
+      handleCloseNoteDialog();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update notes",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const getStatusFromInvoice = (invoice: Invoice) => {
     if (invoice.status === "paid") return "paid";
@@ -70,6 +110,27 @@ export default function Dashboard() {
     }
     
     return "pending";
+  };
+  
+  const handleOpenNoteDialog = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setNoteText(invoice.notes || "");
+    setIsNoteDialogOpen(true);
+  };
+  
+  const handleCloseNoteDialog = () => {
+    setIsNoteDialogOpen(false);
+    setSelectedInvoice(null);
+    setNoteText("");
+  };
+  
+  const handleSaveNote = () => {
+    if (!selectedInvoice) return;
+    
+    updateNotesMutation.mutate({
+      id: selectedInvoice.id,
+      notes: noteText
+    });
   };
   
   const formatCurrency = (amount: number) => {
@@ -196,6 +257,7 @@ export default function Dashboard() {
                   <TableHead>Date</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -207,6 +269,24 @@ export default function Dashboard() {
                     <TableCell>{formatCurrency(invoice.total)}</TableCell>
                     <TableCell>
                       <StatusBadge status={getStatusFromInvoice(invoice)} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleOpenNoteDialog(invoice)}
+                          title="Add/Edit Notes"
+                        >
+                          <MessageSquare className="h-4 w-4 text-primary-500" />
+                        </Button>
+                        <Link href={`/invoices/${invoice.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Edit className="h-4 w-4 text-neutral-500" />
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -345,6 +425,47 @@ export default function Dashboard() {
       </Card>
 
       <InvoiceForm open={isInvoiceFormOpen} onOpenChange={setIsInvoiceFormOpen} />
+      
+      {/* Note Dialog */}
+      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add/Edit Notes</DialogTitle>
+            <DialogDescription>
+              {selectedInvoice && (
+                <span className="text-sm text-neutral-600">
+                  Invoice #{selectedInvoice.invoiceNumber} | 
+                  {selectedInvoice.partyName} | 
+                  {formatCurrency(selectedInvoice.total)}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Enter notes here..."
+              className="min-h-32"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={handleCloseNoteDialog}
+              disabled={updateNotesMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveNote}
+              disabled={updateNotesMutation.isPending}
+            >
+              {updateNotesMutation.isPending ? "Saving..." : "Save Notes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

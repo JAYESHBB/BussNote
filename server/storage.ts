@@ -54,6 +54,7 @@ export interface IStorage {
   getInvoiceById(id: number): Promise<Invoice | undefined>;
   createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice>;
   updateInvoiceStatus(id: number, status: string): Promise<Invoice | undefined>;
+  updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined>;
   getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]>;
   getInvoicesByPartyId(partyId: number): Promise<Invoice[]>;
   
@@ -346,6 +347,26 @@ class DatabaseStorage implements IStorage {
     const [updatedInvoice] = await db
       .update(invoices)
       .set(updateData)
+      .where(eq(invoices.id, id))
+      .returning();
+      
+    if (!updatedInvoice) {
+      return undefined;
+    }
+    
+    // Get party name
+    const party = await this.getPartyById(updatedInvoice.partyId);
+    
+    return {
+      ...updatedInvoice,
+      partyName: party?.name || 'Unknown'
+    };
+  }
+  
+  async updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined> {
+    const [updatedInvoice] = await db
+      .update(invoices)
+      .set({ notes, updatedAt: new Date() })
       .where(eq(invoices.id, id))
       .returning();
       

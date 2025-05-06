@@ -293,6 +293,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update invoice notes
+  app.patch(`${apiPrefix}/invoices/:id/notes`, async (req, res) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      if (typeof notes !== 'string') {
+        return res.status(400).json({ message: "Notes must be a string" });
+      }
+      
+      const updatedInvoice = await storage.updateInvoiceNotes(invoiceId, notes);
+      
+      if (!updatedInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Create an activity for the note update
+      await storage.createActivity({
+        userId: req.user!.id,
+        type: "invoice_note_updated",
+        title: "Invoice Note Updated",
+        description: `Invoice #${updatedInvoice.invoiceNumber} notes updated`,
+        timestamp: new Date(),
+        partyId: updatedInvoice.partyId,
+        invoiceId: updatedInvoice.id
+      });
+      
+      res.json(updatedInvoice);
+    } catch (error) {
+      console.error("Error updating invoice notes:", error);
+      res.status(500).json({ message: "Failed to update invoice notes" });
+    }
+  });
+
   // Get invoices for a specific party
   app.get(`${apiPrefix}/parties/:id/invoices`, async (req, res) => {
     try {
