@@ -54,7 +54,7 @@ export default function InvoicesPage() {
     // Filter by search
     const searchMatch = 
       invoice.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.partyName.toLowerCase().includes(search.toLowerCase());
+      (invoice.partyName ? invoice.partyName.toLowerCase().includes(search.toLowerCase()) : false);
       
     // Filter by status
     const statusMatch = status === "all" || invoice.status === status;
@@ -62,12 +62,13 @@ export default function InvoicesPage() {
     return searchMatch && statusMatch;
   });
   
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string | number) => {
+    const numAmount = typeof amount === 'number' ? amount : Number(amount || 0);
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
+      maximumFractionDigits: 2,
+    }).format(numAmount);
   };
 
   return (
@@ -124,7 +125,8 @@ export default function InvoicesPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader className="bg-neutral-50">
               <TableRow>
                 <TableHead>Invoice #</TableHead>
@@ -147,17 +149,17 @@ export default function InvoicesPage() {
               {filteredInvoices?.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">#{invoice.invoiceNumber}</TableCell>
-                  <TableCell>{invoice.partyName}</TableCell>
-                  <TableCell>{invoice.buyerName}</TableCell>
+                  <TableCell>{invoice.partyName || '-'}</TableCell>
+                  <TableCell>{invoice.buyerName || '-'}</TableCell>
                   <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                  <TableCell>{invoice.currency}</TableCell>
-                  <TableCell>{typeof invoice.subtotal === 'number' ? invoice.subtotal.toFixed(2) : invoice.subtotal}</TableCell>
-                  <TableCell>{typeof invoice.tax === 'number' ? invoice.tax.toFixed(2) : invoice.tax}</TableCell>
-                  <TableCell>{typeof invoice.brokerageInINR === 'number' ? invoice.brokerageInINR.toFixed(2) : invoice.brokerageInINR}</TableCell>
-                  <TableCell>{typeof invoice.receivedBrokerage === 'number' ? invoice.receivedBrokerage.toFixed(2) : invoice.receivedBrokerage}</TableCell>
-                  <TableCell>{typeof invoice.balanceBrokerage === 'number' ? invoice.balanceBrokerage.toFixed(2) : invoice.balanceBrokerage}</TableCell>
-                  <TableCell>{typeof invoice.total === 'number' ? invoice.total.toFixed(2) : invoice.total}</TableCell>
+                  <TableCell>{invoice.currency || 'INR'}</TableCell>
+                  <TableCell>{invoice.subtotal || 0}</TableCell>
+                  <TableCell>{invoice.tax || 0}</TableCell>
+                  <TableCell>{invoice.brokerageInINR || 0}</TableCell>
+                  <TableCell>{invoice.receivedBrokerage || 0}</TableCell>
+                  <TableCell>{invoice.balanceBrokerage || 0}</TableCell>
+                  <TableCell>{invoice.total || 0}</TableCell>
                   <TableCell>
                     <StatusBadge status={invoice.status as any} />
                   </TableCell>
@@ -200,6 +202,7 @@ export default function InvoicesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
           
           {filteredInvoices && filteredInvoices.length > 0 && (
             <div className="flex items-center justify-between p-4 border-t border-neutral-200 bg-neutral-50">
