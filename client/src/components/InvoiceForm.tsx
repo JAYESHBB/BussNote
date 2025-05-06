@@ -57,6 +57,9 @@ const formSchema = z.object({
   brokerageRate: z.coerce.number().min(0, "Brokerage rate must be a positive number").default(0),
   isClosed: z.boolean().default(false),
   remarks: z.string().optional(),
+}).refine(data => data.partyId !== data.buyerId, {
+  message: "Seller and buyer cannot be the same party",
+  path: ["buyerId"], // Show error on buyer field
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -125,6 +128,10 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
   const invoiceDate = form.watch("invoiceDate");
   const dueDays = form.watch("dueDays");
   
+  // Watch party selections to ensure buyer and seller are different
+  const partyId = form.watch("partyId");
+  const buyerId = form.watch("buyerId");
+  
   // Update due date when invoice date or due days change
   React.useEffect(() => {
     if (invoiceDate && dueDays !== undefined) {
@@ -132,6 +139,20 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       form.setValue("dueDate", newDueDate);
     }
   }, [invoiceDate, dueDays, form]);
+  
+  // Show warning and clear buyer if same as seller
+  React.useEffect(() => {
+    if (partyId && buyerId && partyId === buyerId) {
+      toast({
+        title: "Validation error",
+        description: "Seller and buyer cannot be the same party",
+        variant: "destructive",
+      });
+      
+      // Clear the buyer field
+      form.setValue("buyerId", "");
+    }
+  }, [partyId, buyerId, toast, form]);
   
   // Force re-render when currency changes to update currency symbols
   const [, forceUpdate] = useState({});
@@ -280,21 +301,32 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Select Buyer</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className={partyId && field.value === partyId ? "border-red-500" : ""}>
                           <SelectValue placeholder="Select a buyer" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {parties?.map((party) => (
-                          <SelectItem key={party.id} value={party.id.toString()}>
+                          <SelectItem 
+                            key={party.id} 
+                            value={party.id.toString()}
+                            disabled={party.id.toString() === partyId}
+                          >
                             {party.name}
+                            {party.id.toString() === partyId ? " (Same as Seller)" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    {partyId && field.value === partyId && (
+                      <p className="text-xs text-red-500 mt-1">Buyer cannot be the same as Seller</p>
+                    )}
                   </FormItem>
                 )}
               />
