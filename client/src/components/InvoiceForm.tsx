@@ -156,9 +156,9 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Invoice</DialogTitle>
+          <DialogTitle>Add New Note</DialogTitle>
           <DialogDescription>
-            Create a new invoice for a party. Add items, set dates, and include notes.
+            Create a new note for a party. Add items, set dates, and include additional information.
           </DialogDescription>
         </DialogHeader>
         
@@ -320,7 +320,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Invoice</Button>
+              <Button type="submit">Save Note</Button>
             </DialogFooter>
           </form>
         </Form>

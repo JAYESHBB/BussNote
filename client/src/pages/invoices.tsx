@@ -9,7 +9,8 @@ import {
   Download,
   Eye,
   Printer,
-  MoreHorizontal
+  MoreHorizontal,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,8 +81,8 @@ export default function InvoicesPage() {
           onClick={() => setIsInvoiceFormOpen(true)}
           className="flex items-center"
         >
-          <FileText className="mr-2 h-4 w-4" />
-          <span>Create New Invoice</span>
+          <MessageSquare className="mr-2 h-4 w-4" />
+          <span>Add New Note</span>
         </Button>
       </div>
       
