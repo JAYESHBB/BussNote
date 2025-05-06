@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -44,6 +46,7 @@ import { Invoice } from "@shared/schema";
 export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [showClosed, setShowClosed] = useState(false);
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
   
   const { data: invoices } = useQuery<Invoice[]>({
@@ -59,7 +62,10 @@ export default function InvoicesPage() {
     // Filter by status
     const statusMatch = status === "all" || invoice.status === status;
     
-    return searchMatch && statusMatch;
+    // Filter by closed/open status
+    const closedMatch = showClosed || !(invoice.isClosed === true);
+    
+    return searchMatch && statusMatch && closedMatch;
   });
   
   const formatCurrency = (amount: string | number) => {
@@ -116,6 +122,16 @@ export default function InvoicesPage() {
                 <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center space-x-2 border px-3 py-2 rounded-md">
+              <Switch 
+                id="show-closed" 
+                checked={showClosed} 
+                onCheckedChange={setShowClosed} 
+              />
+              <Label htmlFor="show-closed" className="cursor-pointer text-sm">
+                Show Closed Bills
+              </Label>
+            </div>
             <Button variant="outline" size="icon">
               <Filter className="h-4 w-4" />
             </Button>

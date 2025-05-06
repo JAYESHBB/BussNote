@@ -65,6 +65,7 @@ export const invoices = pgTable("invoices", {
   exchangeRate: decimal("exchange_rate", { precision: 10, scale: 2 }).default("1.00"), // Exchange rate against INR
   remarks: text("remarks"), // Added remarks field for additional information
   status: text("status").notNull().default("pending"), // pending, paid, cancelled
+  isClosed: boolean("is_closed").default(false), // Added field to track if bill is closed
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   tax: decimal("tax", { precision: 10, scale: 2 }).notNull(), // Brokerage amount
   brokerageInINR: decimal("brokerage_inr", { precision: 10, scale: 2 }).default("0.00"), // Brokerage in INR
