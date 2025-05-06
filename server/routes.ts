@@ -218,7 +218,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate invoice data
       const validatedInvoiceData = invoicesInsertSchema.parse({
         ...invoiceData,
-        partyId: parseInt(invoiceData.partyId),
+        partyId: parseInt(invoiceData.partyId), // Seller
+        buyerId: parseInt(invoiceData.buyerId), // Buyer
         userId: req.user!.id,
         status: "pending",
       });
@@ -230,8 +231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createActivity({
         userId: req.user!.id,
         type: "invoice_created",
-        title: "New invoice created",
-        description: `Invoice #${newInvoice.invoiceNumber} for ${newInvoice.partyName}`,
+        title: "New note created",
+        description: `Note #${newInvoice.invoiceNumber} between seller ${newInvoice.partyName} and buyer ${newInvoice.buyerName}`,
         invoiceId: newInvoice.id,
         partyId: newInvoice.partyId,
         timestamp: new Date() // Add timestamp explicitly

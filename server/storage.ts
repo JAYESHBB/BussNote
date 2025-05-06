@@ -276,6 +276,7 @@ class DatabaseStorage implements IStorage {
         paymentDate: invoices.paymentDate,
         userId: invoices.userId,
         partyId: invoices.partyId,
+        buyerId: invoices.buyerId,
         partyName: parties.name,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt
@@ -284,8 +285,18 @@ class DatabaseStorage implements IStorage {
       .leftJoin(parties, eq(invoices.partyId, parties.id))
       .where(eq(invoices.id, id))
       .limit(1);
+
+    // Get buyer name if there is a buyerId
+    let invoice = result[0];
+    if (invoice && invoice.buyerId) {
+      const buyer = await this.getPartyById(invoice.buyerId);
+      invoice = {
+        ...invoice,
+        buyerName: buyer?.name || 'Unknown'
+      };
+    }
       
-    return result[0];
+    return invoice;
   }
   
   async createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice> {
@@ -326,12 +337,14 @@ class DatabaseStorage implements IStorage {
       await db.insert(invoiceItems).values(itemsWithInvoiceId);
     }
     
-    // Get party name for response
-    const party = await this.getPartyById(invoice.partyId);
+    // Get seller and buyer names for response
+    const seller = await this.getPartyById(invoice.partyId);
+    const buyer = await this.getPartyById(invoice.buyerId);
     
     return {
       ...invoice,
-      partyName: party?.name || 'Unknown'
+      partyName: seller?.name || 'Unknown',
+      buyerName: buyer?.name || 'Unknown'
     };
   }
   
