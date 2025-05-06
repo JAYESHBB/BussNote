@@ -499,11 +499,40 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 <span className="text-neutral-600">Subtotal:</span>
                 <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Tax (18%):</span>
-                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateTax().toFixed(2)}</span>
+              
+              <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center">
+                  <span className="text-neutral-600 mr-2">Brokerage @</span>
+                  <FormField
+                    control={form.control}
+                    name="brokerageRate"
+                    render={({ field }) => (
+                      <FormItem className="w-20 mb-0">
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="100"
+                            step="0.01"
+                            placeholder="0.00" 
+                            className="h-7 px-2 py-1 text-sm"
+                            {...field} 
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? "0" : e.target.value;
+                              field.onChange(parseFloat(value));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <span className="text-neutral-600 ml-1">%:</span>
+                </div>
+                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateBrokerage().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold">
+              
+              <div className="flex justify-between text-sm pt-2 border-t font-bold">
                 <span>Total:</span>
                 <span>{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateTotal().toFixed(2)}</span>
               </div>
