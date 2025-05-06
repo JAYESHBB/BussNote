@@ -200,7 +200,7 @@ export default function AuthPage() {
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your full name"
+                                placeholder="Enter your proper full name"
                                 {...field}
                                 disabled={registerMutation.isPending}
                                 className="form-input"
@@ -273,7 +273,7 @@ export default function AuthPage() {
                             <FormLabel>User ID</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Choose a username"
+                                placeholder="Choose a unique username"
                                 {...field}
                                 disabled={registerMutation.isPending}
                                 className="form-input"
@@ -292,7 +292,7 @@ export default function AuthPage() {
                             <FormControl>
                               <Input
                                 type="password"
-                                placeholder="Choose a password"
+                                placeholder="Choose a strong mixed content password"
                                 {...field}
                                 disabled={registerMutation.isPending}
                                 className="form-input"
