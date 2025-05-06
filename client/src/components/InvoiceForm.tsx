@@ -298,22 +298,6 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
               
               <FormField
                 control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} readOnly />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
                 name="dueDays"
                 render={({ field }) => (
                   <FormItem>
@@ -334,7 +318,9 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                   </FormItem>
                 )}
               />
-              
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="terms"
@@ -355,6 +341,20 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} readOnly />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -425,21 +425,6 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
             
             <Separator />
             
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Subtotal:</span>
-                <span className="font-medium">₹{calculateSubtotal().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Tax (18%):</span>
-                <span className="font-medium">₹{calculateTax().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm font-bold">
-                <span>Total:</span>
-                <span>₹{calculateTotal().toFixed(2)}</span>
-              </div>
-            </div>
-            
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -465,6 +450,21 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+            
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-600">Subtotal:</span>
+                <span className="font-medium">₹{calculateSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-600">Tax (18%):</span>
+                <span className="font-medium">₹{calculateTax().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold">
+                <span>Total:</span>
+                <span>₹{calculateTotal().toFixed(2)}</span>
+              </div>
             </div>
             
             <FormField
