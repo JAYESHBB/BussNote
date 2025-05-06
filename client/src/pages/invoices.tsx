@@ -127,81 +127,80 @@ export default function InvoicesPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-            <TableHeader className="bg-neutral-50">
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Party Name</TableHead>
-                <TableHead>Buyer Name</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Currency</TableHead>
-                <TableHead>Subtotal</TableHead>
-                <TableHead>Brokerage</TableHead>
-                <TableHead>Brokerage in INR</TableHead>
-                <TableHead>Received</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices?.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">#{invoice.invoiceNumber}</TableCell>
-                  <TableCell>{invoice.partyName || '-'}</TableCell>
-                  <TableCell>{invoice.buyerName || '-'}</TableCell>
-                  <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
-                  <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                  <TableCell>{invoice.currency || 'INR'}</TableCell>
-                  <TableCell>{invoice.subtotal || 0}</TableCell>
-                  <TableCell>{invoice.tax || 0}</TableCell>
-                  <TableCell>{invoice.brokerageInINR || 0}</TableCell>
-                  <TableCell>{invoice.receivedBrokerage || 0}</TableCell>
-                  <TableCell>{invoice.balanceBrokerage || 0}</TableCell>
-                  <TableCell>{invoice.total || 0}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={invoice.status as any} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Link href={`/invoices/${invoice.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
-                          <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">Cancel Invoice</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              
-
-              {filteredInvoices?.length === 0 && (
+              <TableHeader className="bg-neutral-50">
                 <TableRow>
-                  <TableCell colSpan={14} className="text-center py-8 text-neutral-500">
-                    No invoices found matching your filters. Try changing your search or create a new invoice.
-                  </TableCell>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Party Name</TableHead>
+                  <TableHead>Buyer Name</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Currency</TableHead>
+                  <TableHead>Subtotal</TableHead>
+                  <TableHead>Brokerage</TableHead>
+                  <TableHead>Brokerage in INR</TableHead>
+                  <TableHead>Received</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices?.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">#{invoice.invoiceNumber}</TableCell>
+                    <TableCell>{invoice.partyName || '-'}</TableCell>
+                    <TableCell>{invoice.buyerName || '-'}</TableCell>
+                    <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
+                    <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
+                    <TableCell>{invoice.currency || 'INR'}</TableCell>
+                    <TableCell>{invoice.subtotal || 0}</TableCell>
+                    <TableCell>{invoice.tax || 0}</TableCell>
+                    <TableCell>{invoice.brokerageInINR || 0}</TableCell>
+                    <TableCell>{invoice.receivedBrokerage || 0}</TableCell>
+                    <TableCell>{invoice.balanceBrokerage || 0}</TableCell>
+                    <TableCell>{invoice.total || 0}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={invoice.status as any} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Link href={`/invoices/${invoice.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                            <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">Cancel Invoice</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {filteredInvoices?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={14} className="text-center py-8 text-neutral-500">
+                      No invoices found matching your filters. Try changing your search or create a new invoice.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
           
           {filteredInvoices && filteredInvoices.length > 0 && (
