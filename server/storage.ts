@@ -1,6 +1,7 @@
 import { db } from "@db";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
+import { or } from "drizzle-orm";
 
 // Add type definition for SessionStore
 declare module 'express-session' {
@@ -367,12 +368,14 @@ class DatabaseStorage implements IStorage {
       return undefined;
     }
     
-    // Get party name
-    const party = await this.getPartyById(updatedInvoice.partyId);
+    // Get seller and buyer names
+    const seller = await this.getPartyById(updatedInvoice.partyId);
+    const buyer = await this.getPartyById(updatedInvoice.buyerId);
     
     return {
       ...updatedInvoice,
-      partyName: party?.name || 'Unknown'
+      partyName: seller?.name || 'Unknown',
+      buyerName: buyer?.name || 'Unknown'
     };
   }
   
@@ -387,12 +390,14 @@ class DatabaseStorage implements IStorage {
       return undefined;
     }
     
-    // Get party name
-    const party = await this.getPartyById(updatedInvoice.partyId);
+    // Get seller and buyer names
+    const seller = await this.getPartyById(updatedInvoice.partyId);
+    const buyer = await this.getPartyById(updatedInvoice.buyerId);
     
     return {
       ...updatedInvoice,
-      partyName: party?.name || 'Unknown'
+      partyName: seller?.name || 'Unknown',
+      buyerName: buyer?.name || 'Unknown'
     };
   }
   
@@ -407,6 +412,7 @@ class DatabaseStorage implements IStorage {
   }
   
   async getInvoicesByPartyId(partyId: number): Promise<Invoice[]> {
+    // Get invoices where party is either seller or buyer
     const invoiceList = await db
       .select({
         id: invoices.id,
@@ -421,16 +427,26 @@ class DatabaseStorage implements IStorage {
         paymentDate: invoices.paymentDate,
         userId: invoices.userId,
         partyId: invoices.partyId,
-        partyName: parties.name,
+        buyerId: invoices.buyerId,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt
       })
       .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
-      .where(eq(invoices.partyId, partyId))
+      .where(or(eq(invoices.partyId, partyId), eq(invoices.buyerId, partyId)))
       .orderBy(desc(invoices.invoiceDate));
       
-    return invoiceList;
+    // Enhance with party names
+    const enhancedInvoices = await Promise.all(invoiceList.map(async (invoice) => {
+      const seller = await this.getPartyById(invoice.partyId);
+      const buyer = await this.getPartyById(invoice.buyerId);
+      return {
+        ...invoice,
+        partyName: seller?.name || 'Unknown',
+        buyerName: buyer?.name || 'Unknown'
+      };
+    }));
+    
+    return enhancedInvoices;
   }
   
   // Transaction methods
