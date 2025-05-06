@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { format } from "date-fns";
 import { 
@@ -16,6 +16,8 @@ import {
   MoreHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   Card,
   CardContent,
@@ -45,21 +47,245 @@ import { Invoice, InvoiceItem } from "@shared/schema";
 export default function InvoiceDetailsPage() {
   const [, params] = useRoute("/invoices/:id");
   const invoiceId = params?.id;
+  const { toast } = useToast();
   
   const { data: invoice } = useQuery<Invoice>({
     queryKey: [`/api/invoices/${invoiceId}`],
+  });
+  
+  const updateStatusMutation = useMutation({
+    mutationFn: async (status: string) => {
+      const res = await apiRequest(
+        "PATCH", 
+        `/api/invoices/${invoiceId}/status`,
+        { status }
+      );
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/invoices/${invoiceId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      toast({
+        title: "Success",
+        description: "Invoice status updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
   
   if (!invoice) {
     return <div className="flex justify-center items-center h-64">Loading invoice details...</div>;
   }
   
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string | number) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(numericAmount);
+  };
+  
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Error",
+        description: "Could not open print window. Please check your popup settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Invoice #${invoice.invoiceNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .invoice-title { font-size: 24px; font-weight: bold; color: #333; }
+            .invoice-details { margin-top: 5px; color: #666; }
+            .section { margin-bottom: 20px; }
+            .section-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+            .info-box { padding: 15px; border: 1px solid #eee; border-radius: 5px; }
+            .info-box-title { font-weight: bold; margin-bottom: 8px; color: #555; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .table th { background-color: #f5f5f5; text-align: left; padding: 10px; }
+            .table td { padding: 10px; border-bottom: 1px solid #eee; }
+            .text-right { text-align: right; }
+            .total-row { font-weight: bold; }
+            .notes { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="invoice-title">Invoice #${invoice.invoiceNumber}</div>
+              <div class="invoice-details">Issued on ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
+              <div class="invoice-details">Status: ${invoice.status}</div>
+            </div>
+            <div>
+              <h1>BussNote</h1>
+              <div>Invoice Management System</div>
+            </div>
+          </div>
+          
+          <div class="grid">
+            <div class="info-box">
+              <div class="info-box-title">Party Information</div>
+              <div>${invoice.partyName || ""}</div>
+            </div>
+            
+            <div class="info-box">
+              <div class="info-box-title">Invoice Details</div>
+              <div>Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
+              <div>Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}</div>
+              ${invoice.status === "paid" && invoice.paymentDate ? 
+                `<div>Payment Date: ${format(new Date(invoice.paymentDate), "MMMM d, yyyy")}</div>` : ""}
+            </div>
+            
+            <div class="info-box">
+              <div class="info-box-title">Payment Summary</div>
+              <div>Subtotal: ${formatCurrency(Number(invoice.subtotal))}</div>
+              <div>Tax (18%): ${formatCurrency(Number(invoice.tax))}</div>
+              <div>Total: ${formatCurrency(Number(invoice.total))}</div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Invoice Items</div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="text-right">Quantity</th>
+                  <th class="text-right">Rate</th>
+                  <th class="text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoice.items?.map((item) => `
+                  <tr>
+                    <td>${item.description}</td>
+                    <td class="text-right">${item.quantity}</td>
+                    <td class="text-right">${formatCurrency(Number(item.rate))}</td>
+                    <td class="text-right">${formatCurrency(Number(item.quantity) * Number(item.rate))}</td>
+                  </tr>
+                `).join("") || ""}
+                <tr class="total-row">
+                  <td colspan="2"></td>
+                  <td class="text-right">Subtotal</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.subtotal))}</td>
+                </tr>
+                <tr class="total-row">
+                  <td colspan="2"></td>
+                  <td class="text-right">Tax (18%)</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.tax))}</td>
+                </tr>
+                <tr class="total-row">
+                  <td colspan="2"></td>
+                  <td class="text-right">Total</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.total))}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          ${invoice.notes ? `
+            <div class="notes">
+              <div class="section-title">Notes</div>
+              <p>${invoice.notes}</p>
+            </div>
+          ` : ""}
+          
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+  
+  const handleDownload = () => {
+    toast({
+      title: "Coming Soon",
+      description: "Download as PDF functionality will be available soon."
+    });
+  };
+  
+  const handleEmail = () => {
+    const emailTo = invoice.partyEmail || invoice.buyerEmail;
+    if (!emailTo) {
+      toast({
+        title: "Error",
+        description: "No email address found for this party",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const subject = `Invoice #${invoice.invoiceNumber} from BussNote`;
+    const body = `Dear ${invoice.partyName},\n\n`+
+      `Please find attached invoice #${invoice.invoiceNumber} for your reference.\n\n`+
+      `Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}\n`+
+      `Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}\n`+
+      `Amount Due: ${formatCurrency(Number(invoice.total))}\n\n`+
+      `Please let us know if you have any questions.\n\n`+
+      `Thank you for your business!\n\n`+
+      `Regards,\nBussNote Team`;
+    
+    window.open(`mailto:${emailTo}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  };
+  
+  const handleMarkAsPaid = () => {
+    updateStatusMutation.mutate("paid");
+  };
+  
+  const handleCancelInvoice = () => {
+    updateStatusMutation.mutate("cancelled");
+  };
+  
+  const handleDuplicateInvoice = () => {
+    toast({
+      title: "Coming Soon",
+      description: "Duplicate invoice functionality will be available soon."
+    });
+  };
+  
+  const handleSendReminder = () => {
+    const emailTo = invoice.partyEmail || invoice.buyerEmail;
+    if (!emailTo) {
+      toast({
+        title: "Error",
+        description: "No email address found for this party",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const subject = `REMINDER: Invoice #${invoice.invoiceNumber} Payment Due`;
+    const body = `Dear ${invoice.partyName},\n\n`+
+      `This is a friendly reminder that payment for invoice #${invoice.invoiceNumber} is due `+
+      `${new Date(invoice.dueDate) < new Date() ? 'was due' : 'is due'} on ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}.\n\n`+
+      `Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}\n`+
+      `Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}\n`+
+      `Amount Due: ${formatCurrency(Number(invoice.total))}\n\n`+
+      `Please arrange for payment at your earliest convenience. If you have already made the payment, please disregard this reminder.\n\n`+
+      `If you have any questions regarding this invoice, please don't hesitate to contact us.\n\n`+
+      `Thank you for your business!\n\n`+
+      `Regards,\nBussNote Team`;
+    
+    window.open(`mailto:${emailTo}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
   return (
@@ -83,15 +309,15 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleDownload}>
               <Download className="h-4 w-4 mr-2" />
               Download
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleEmail}>
               <Send className="h-4 w-4 mr-2" />
               Email
             </Button>
@@ -103,20 +329,20 @@ export default function InvoiceDetailsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleMarkAsPaid}>
                   <CreditCard className="h-4 w-4 mr-2" />
                   Record Payment
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSendReminder}>
                   <Send className="h-4 w-4 mr-2" />
                   Send Reminder
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDuplicateInvoice}>
                   <FileText className="h-4 w-4 mr-2" />
                   Duplicate Invoice
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem className="text-destructive" onClick={handleCancelInvoice}>
                   Cancel Invoice
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -136,10 +362,8 @@ export default function InvoiceDetailsPage() {
               <div>
                 <p className="font-medium">{invoice.partyName}</p>
                 <p className="text-sm text-neutral-500">
-                  <Link href={`/parties/${invoice.partyId}`}>
-                    <a className="text-primary-500 hover:underline">
-                      View Party Details
-                    </a>
+                  <Link href={`/parties/${invoice.partyId}`} className="text-primary-500 hover:underline">
+                    View Party Details
                   </Link>
                 </p>
               </div>
@@ -248,25 +472,25 @@ export default function InvoiceDetailsPage() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.quantity * item.rate)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(Number(item.quantity) * Number(item.rate))}</TableCell>
                 </TableRow>
               ))}
+              <TableRow className="bg-neutral-50">
+                <TableCell colSpan={2}></TableCell>
+                <TableCell className="text-right font-medium">Subtotal</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(invoice.subtotal)}</TableCell>
+              </TableRow>
+              <TableRow className="bg-neutral-50">
+                <TableCell colSpan={2}></TableCell>
+                <TableCell className="text-right font-medium">Tax (18%)</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(invoice.tax)}</TableCell>
+              </TableRow>
+              <TableRow className="bg-neutral-50">
+                <TableCell colSpan={2}></TableCell>
+                <TableCell className="text-right font-bold">Total</TableCell>
+                <TableCell className="text-right font-bold">{formatCurrency(invoice.total)}</TableCell>
+              </TableRow>
             </TableBody>
-            <TableRow className="bg-neutral-50">
-              <TableCell colSpan={2}></TableCell>
-              <TableCell className="text-right font-medium">Subtotal</TableCell>
-              <TableCell className="text-right font-medium">{formatCurrency(invoice.subtotal)}</TableCell>
-            </TableRow>
-            <TableRow className="bg-neutral-50">
-              <TableCell colSpan={2}></TableCell>
-              <TableCell className="text-right font-medium">Tax (18%)</TableCell>
-              <TableCell className="text-right font-medium">{formatCurrency(invoice.tax)}</TableCell>
-            </TableRow>
-            <TableRow className="bg-neutral-50">
-              <TableCell colSpan={2}></TableCell>
-              <TableCell className="text-right font-bold">Total</TableCell>
-              <TableCell className="text-right font-bold">{formatCurrency(invoice.total)}</TableCell>
-            </TableRow>
           </Table>
         </CardContent>
       </Card>
