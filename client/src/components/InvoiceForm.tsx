@@ -251,7 +251,9 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         items: items.map(({ id, ...rest }) => rest), // Remove temporary id
         subtotal: calculateSubtotal(),
         tax: calculateBrokerage(),
+        exchangeRate: data.exchangeRate || 1.00,
         brokerageInINR: calculateBrokerageInINR(),
+        receivedBrokerage: data.receivedBrokerage || 0,
         balanceBrokerage: calculateBalanceBrokerage(),
         total: calculateTotal(),
       };
