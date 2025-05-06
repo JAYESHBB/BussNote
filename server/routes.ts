@@ -222,6 +222,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         buyerId: parseInt(invoiceData.buyerId), // Buyer
         userId: req.user!.id,
         status: "pending",
+        currency: invoiceData.currency || 'INR', // Default to INR if not provided
+        remarks: invoiceData.remarks || '', // Default to empty string if not provided
       });
       
       // Create invoice and items

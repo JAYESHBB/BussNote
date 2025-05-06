@@ -51,6 +51,8 @@ const formSchema = z.object({
   dueDays: z.coerce.number().min(0, "Due days must be a positive number"),
   terms: z.string().min(1, "Terms are required"),
   dueDate: z.string().min(1, "Due date is required"),
+  currency: z.string().min(1, "Currency is required"),
+  remarks: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -63,6 +65,16 @@ const termsOptions = [
   "Days D/A",
   "Days B/D",
   "Days A/D"
+];
+
+// Currency options for dropdown
+const currencyOptions = [
+  "INR",
+  "USD",
+  "EUR",
+  "GBP",
+  "AED",
+  "CAD"
 ];
 
 interface InvoiceFormProps {
@@ -91,6 +103,8 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       dueDays: 15,
       terms: "Days",
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      currency: "INR",
+      remarks: "",
       notes: "",
     },
   });
@@ -425,6 +439,51 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 <span>₹{calculateTotal().toFixed(2)}</span>
               </div>
             </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {currencyOptions.map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {currency}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="remarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Remarks</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any specific remarks or additional information..."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}

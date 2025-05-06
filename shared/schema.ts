@@ -61,6 +61,8 @@ export const invoices = pgTable("invoices", {
   dueDays: integer("due_days").default(0), // Added due days field
   terms: text("terms").default("Days"), // Added terms field (Days, Days Fix, Days D/A, Days B/D, Days A/D)
   dueDate: timestamp("due_date").notNull(),
+  currency: text("currency").default("INR"), // Added currency field (INR, USD, EUR, etc.)
+  remarks: text("remarks"), // Added remarks field for additional information
   status: text("status").notNull().default("pending"), // pending, paid, cancelled
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   tax: decimal("tax", { precision: 10, scale: 2 }).notNull(),
