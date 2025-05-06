@@ -167,6 +167,25 @@ input.form-input:hover:not(:focus) {
   to { transform: translateX(0); opacity: 1; }
 }
 
+.form-animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.form-field-animate {
+  animation: slideIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+/* Staggered animations for form fields */
+.form-field:nth-child(1) { animation: slideIn 0.3s ease-out 0.1s forwards; opacity: 0; }
+.form-field:nth-child(2) { animation: slideIn 0.3s ease-out 0.2s forwards; opacity: 0; }
+.form-field:nth-child(3) { animation: slideIn 0.3s ease-out 0.3s forwards; opacity: 0; }
+.form-field:nth-child(4) { animation: slideIn 0.3s ease-out 0.4s forwards; opacity: 0; }
+.form-field:nth-child(5) { animation: slideIn 0.3s ease-out 0.5s forwards; opacity: 0; }
+.form-field:nth-child(6) { animation: slideIn 0.3s ease-out 0.6s forwards; opacity: 0; }
+.form-field:nth-child(7) { animation: slideIn 0.3s ease-out 0.7s forwards; opacity: 0; }
+
 @layer components {
   .sidebar-link {
     @apply flex items-center pl-6 pr-4 py-3 text-neutral-700 hover:bg-neutral-100 transition-all duration-200;
