@@ -245,18 +245,21 @@ class DatabaseStorage implements IStorage {
       .leftJoin(parties, eq(invoices.partyId, parties.id))
       .orderBy(desc(invoices.invoiceDate));
 
-    // Add buyer names to all invoices
-    const invoicesWithBuyerNames = await Promise.all(
+    // Add buyer names and party emails to all invoices
+    const enhancedInvoices = await Promise.all(
       invoiceList.map(async (invoice) => {
         const buyer = await this.getPartyById(invoice.buyerId);
+        const party = await this.getPartyById(invoice.partyId);
         return {
           ...invoice,
-          buyerName: buyer?.name || 'Unknown'
+          buyerName: buyer?.name || 'Unknown',
+          buyerEmail: buyer?.email || undefined,
+          partyEmail: party?.email || undefined
         };
       })
     );
       
-    return invoicesWithBuyerNames;
+    return enhancedInvoices;
   }
   
   async getRecentInvoices(limit: number): Promise<Invoice[]> {
@@ -311,11 +314,14 @@ class DatabaseStorage implements IStorage {
 
     // Get buyer name if there is a buyerId
     let invoice = result[0];
-    if (invoice && invoice.buyerId) {
-      const buyer = await this.getPartyById(invoice.buyerId);
+    if (invoice) {
+      const buyer = invoice.buyerId ? await this.getPartyById(invoice.buyerId) : null;
+      const party = await this.getPartyById(invoice.partyId);
       invoice = {
         ...invoice,
-        buyerName: buyer?.name || 'Unknown'
+        buyerName: buyer?.name || 'Unknown',
+        buyerEmail: buyer?.email || undefined,
+        partyEmail: party?.email || undefined
       };
     }
       

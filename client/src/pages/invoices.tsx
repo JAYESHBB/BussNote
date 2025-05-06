@@ -185,11 +185,53 @@ export default function InvoicesPage() {
     });
   };
   
-  // Function to send reminder (placeholder for now)
+  // Function to send reminder via the user's default email client
   const handleSendReminder = (invoice: Invoice) => {
+    // Get the party email address
+    if (!invoice.partyEmail && !invoice.buyerEmail) {
+      toast({
+        title: "Missing Email",
+        description: "No email address found for this invoice's party or buyer.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create the reminder email content
+    const subject = `Reminder: Invoice #${invoice.invoiceNumber} Payment Due`;
+    
+    const body = `Dear ${invoice.buyerName || invoice.partyName},
+
+This is a friendly reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)} is currently ${invoice.status}.
+
+Invoice Details:
+- Invoice Number: ${invoice.invoiceNumber}
+- Invoice Date: ${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+- Due Date: ${format(new Date(invoice.dueDate), "MMM dd, yyyy")}
+- Amount Due: ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)}
+
+Please process this payment at your earliest convenience.
+
+Thank you for your business.
+
+Best regards,
+BussNote Team`;
+    
+    // Encode the subject and body for mailto link
+    const encodedSubject = encodeURIComponent(subject);
+    const encodedBody = encodeURIComponent(body);
+    
+    // Use the party's email or the buyer's email if available
+    const toEmail = invoice.partyEmail || invoice.buyerEmail || '';
+    
+    // Create and open the mailto link
+    const mailtoLink = `mailto:${toEmail}?subject=${encodedSubject}&body=${encodedBody}`;
+    window.open(mailtoLink);
+    
+    // Show a success message
     toast({
-      title: "Coming Soon",
-      description: "Send reminder functionality will be available soon.",
+      title: "Email Prepared",
+      description: "Reminder email has been prepared in your default email client.",
     });
   };
   
