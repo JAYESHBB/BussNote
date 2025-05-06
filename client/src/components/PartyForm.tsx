@@ -60,6 +60,19 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [gstinValid, setGstinValid] = useState<boolean | null>(null);
   
+  // Function to reset the form and all validation states
+  const resetForm = () => {
+    form.reset();
+    setNameAvailable(null);
+    setMobileValid(null);
+    setEmailValid(null);
+    setGstinValid(null);
+    toast({
+      title: "Form Reset",
+      description: "All form fields have been cleared."
+    });
+  };
+  
   const validateMobile = (mobile: string) => {
     const isValid = /^\+?[0-9\s-]{10,15}$/.test(mobile);
     setMobileValid(isValid);
@@ -480,10 +493,20 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
               )}
             />
             
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+            <DialogFooter className="flex justify-between">
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={resetForm}
+                  className="bg-blue-50 hover:bg-blue-100"
+                >
+                  Reset Form
+                </Button>
+              </div>
               <Button type="submit">{isEditing ? "Update Party" : "Add Party"}</Button>
             </DialogFooter>
           </form>
