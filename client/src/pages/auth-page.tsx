@@ -122,7 +122,7 @@ export default function AuthPage() {
                         control={loginForm.control}
                         name="username"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Username</FormLabel>
                             <FormControl>
                               <Input
@@ -140,7 +140,7 @@ export default function AuthPage() {
                         control={loginForm.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <Input
@@ -148,6 +148,7 @@ export default function AuthPage() {
                                 placeholder="Enter your password"
                                 {...field}
                                 disabled={loginMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -200,6 +201,7 @@ export default function AuthPage() {
                                 placeholder="Enter your full name"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -217,6 +219,7 @@ export default function AuthPage() {
                                 placeholder="Enter your address"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -234,6 +237,7 @@ export default function AuthPage() {
                                 placeholder="Enter your mobile number"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -252,6 +256,7 @@ export default function AuthPage() {
                                 placeholder="Enter your email address"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -269,6 +274,7 @@ export default function AuthPage() {
                                 placeholder="Choose a username"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -287,6 +293,7 @@ export default function AuthPage() {
                                 placeholder="Choose a password"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
@@ -305,6 +312,7 @@ export default function AuthPage() {
                                 placeholder="Confirm your password"
                                 {...field}
                                 disabled={registerMutation.isPending}
+                                className="form-input"
                               />
                             </FormControl>
                             <FormMessage />
