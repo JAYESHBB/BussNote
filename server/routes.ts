@@ -226,6 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "pending",
         currency: invoiceData.currency || 'INR', // Default to INR if not provided
         remarks: invoiceData.remarks || '', // Default to empty string if not provided
+        invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}` // Generate invoice number
       });
       
       // Create invoice and items

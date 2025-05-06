@@ -249,13 +249,16 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       const invoiceData = {
         ...data,
         items: items.map(({ id, ...rest }) => rest), // Remove temporary id
-        subtotal: calculateSubtotal(),
-        tax: calculateBrokerage(),
-        exchangeRate: data.exchangeRate || 1.00,
-        brokerageInINR: calculateBrokerageInINR(),
-        receivedBrokerage: data.receivedBrokerage || 0,
-        balanceBrokerage: calculateBalanceBrokerage(),
-        total: calculateTotal(),
+        subtotal: calculateSubtotal().toString(),
+        tax: calculateBrokerage().toString(),
+        exchangeRate: (data.exchangeRate || 1.00).toString(),
+        brokerageInINR: calculateBrokerageInINR().toString(),
+        receivedBrokerage: (data.receivedBrokerage || 0).toString(),
+        balanceBrokerage: calculateBalanceBrokerage().toString(),
+        total: calculateTotal().toString(),
+        // Convert date strings to Date objects
+        invoiceDate: new Date(data.invoiceDate),
+        dueDate: new Date(data.dueDate)
       };
 
       await apiRequest("POST", "/api/invoices", invoiceData);
