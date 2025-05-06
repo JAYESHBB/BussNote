@@ -128,6 +128,20 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       form.setValue("dueDate", newDueDate);
     }
   }, [invoiceDate, dueDays, form]);
+  
+  // Force re-render when currency changes to update currency symbols
+  const [, forceUpdate] = useState({});
+  
+  // Watch for currency changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'currency') {
+        forceUpdate({});
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const handleAddItem = () => {
     setItems([
@@ -148,6 +162,19 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
+  };
+  
+  // Get currency symbol based on selected currency
+  const getCurrencySymbol = (currency: string): string => {
+    switch(currency) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'AED': return 'د.إ';
+      case 'CAD': return 'C$';
+      case 'INR':
+      default: return '₹';
+    }
   };
 
   const calculateSubtotal = () => {
@@ -395,6 +422,15 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 <FormLabel>Items</FormLabel>
               </div>
               
+              {/* Column Headers */}
+              <div className="flex items-center gap-2 mb-2 text-xs font-medium text-neutral-500">
+                <div className="flex-1 pl-3">Description</div>
+                <div className="w-20 text-center">Quantity</div>
+                <div className="w-24 text-center">Rate</div>
+                <div className="w-24 text-right pr-2">Amount</div>
+                <div className="w-9"></div> {/* Space for the remove button */}
+              </div>
+              
               <div className="space-y-2">
                 {items.map((item, index) => (
                   <div key={item.id} className="flex items-end gap-2">
@@ -409,9 +445,10 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                       <Input
                         type="number"
                         placeholder="Qty"
-                        min="1"
+                        min="0.01"
+                        step="0.01"
                         value={item.quantity.toString()}
-                        onChange={(e) => handleItemChange(item.id, "quantity", parseInt(e.target.value) || 0)}
+                        onChange={(e) => handleItemChange(item.id, "quantity", parseFloat(e.target.value) || 0)}
                       />
                     </div>
                     <div className="w-24">
@@ -419,12 +456,13 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                         type="number"
                         placeholder="Rate"
                         min="0"
+                        step="0.01"
                         value={item.rate.toString()}
                         onChange={(e) => handleItemChange(item.id, "rate", parseFloat(e.target.value) || 0)}
                       />
                     </div>
                     <div className="w-24 text-right">
-                      ₹{(item.quantity * item.rate).toFixed(2)}
+                      {getCurrencySymbol(form.getValues().currency || 'INR')}{(item.quantity * item.rate).toFixed(2)}
                     </div>
                     <Button
                       type="button"
@@ -455,15 +493,15 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Subtotal:</span>
-                <span className="font-medium">₹{calculateSubtotal().toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateSubtotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Tax (18%):</span>
-                <span className="font-medium">₹{calculateTax().toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateTax().toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold">
                 <span>Total:</span>
-                <span>₹{calculateTotal().toFixed(2)}</span>
+                <span>{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateTotal().toFixed(2)}</span>
               </div>
             </div>
             
