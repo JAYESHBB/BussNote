@@ -355,10 +355,12 @@ export default function AuthPage() {
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary-400/30 rounded-full -mb-10 -ml-10 blur-xl pointer-events-none"></div>
           
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary-100">
-              Welcome to <span className="text-white">Buss</span><span className="text-secondary-300 font-extrabold">Note</span>
+            <h1 className="text-4xl font-bold mb-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-amber-200 to-amber-100">Welcome to </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">Buss</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-br from-secondary-300 to-secondary-500 font-extrabold">Note</span>
             </h1>
-            <p className="mb-10 text-lg text-primary-100/90 max-w-md">Complete sales invoice management system for your business</p>
+            <p className="mb-10 text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary-200/70 max-w-md font-medium">Complete sales invoice management system for your business</p>
             
             <div className="space-y-6">
               <div className="flex items-start space-x-4 group">
@@ -366,8 +368,8 @@ export default function AuthPage() {
                   <FileText className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Invoice Management</h3>
-                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Create and manage sales invoices with ease</p>
+                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary-200 group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300">Invoice Management</h3>
+                  <p className="text-white/80 group-hover:text-white transition-colors duration-300">Create and manage sales invoices with ease</p>
                 </div>
               </div>
               
@@ -376,8 +378,8 @@ export default function AuthPage() {
                   <LucideUsers className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Party Master</h3>
-                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Manage all your clients and customers in one place</p>
+                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary-200 group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300">Party Master</h3>
+                  <p className="text-white/80 group-hover:text-white transition-colors duration-300">Manage all your clients and customers in one place</p>
                 </div>
               </div>
               
@@ -386,8 +388,8 @@ export default function AuthPage() {
                   <CreditCard className="h-6 w-6 text-secondary-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-white group-hover:text-secondary-200 transition-colors">Financial Reports</h3>
-                  <p className="text-white/70 group-hover:text-white/90 transition-colors">Track outstanding dues, closed bills and sales analysis</p>
+                  <h3 className="font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary-200 group-hover:from-secondary-100 group-hover:to-secondary-300 transition-all duration-300">Financial Reports</h3>
+                  <p className="text-white/80 group-hover:text-white transition-colors duration-300">Track outstanding dues, closed bills and sales analysis</p>
                 </div>
               </div>
             </div>
