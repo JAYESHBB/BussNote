@@ -215,9 +215,20 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
   };
 
   const brokerageRate = form.watch("brokerageRate");
+  const exchangeRate = form.watch("exchangeRate");
+  const receivedBrokerage = form.watch("receivedBrokerage");
+  const currency = form.watch("currency");
 
   const calculateBrokerage = () => {
     return calculateSubtotal() * (brokerageRate / 100);
+  };
+
+  const calculateBrokerageInINR = () => {
+    return calculateBrokerage() * exchangeRate;
+  };
+
+  const calculateBalanceBrokerage = () => {
+    return calculateBrokerageInINR() - receivedBrokerage;
   };
 
   const calculateTotal = () => {
@@ -240,6 +251,8 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         items: items.map(({ id, ...rest }) => rest), // Remove temporary id
         subtotal: calculateSubtotal(),
         tax: calculateBrokerage(),
+        brokerageInINR: calculateBrokerageInINR(),
+        balanceBrokerage: calculateBalanceBrokerage(),
         total: calculateTotal(),
       };
 
@@ -572,6 +585,77 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                   <span className="text-neutral-600 ml-1">%:</span>
                 </div>
                 <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateBrokerage().toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-sm mt-2">
+                <div className="flex items-center">
+                  <span className="text-neutral-600 mr-2">Ex. Rate</span>
+                  <FormField
+                    control={form.control}
+                    name="exchangeRate"
+                    render={({ field }) => (
+                      <FormItem className="w-20 mb-0">
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0.01" 
+                            step="0.01"
+                            placeholder="1.00" 
+                            className="h-7 px-2 py-1 text-sm"
+                            disabled={currency === 'INR'}
+                            {...field} 
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? "1" : e.target.value;
+                              field.onChange(parseFloat(value));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <span className="font-medium">{currency !== 'INR' ? `1 ${currency} = ₹${exchangeRate.toFixed(2)}` : ''}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-neutral-600">Brokerage in INR:</span>
+                <span className="font-medium">₹{calculateBrokerageInINR().toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-sm mt-2">
+                <div className="flex items-center">
+                  <span className="text-neutral-600 mr-2">Received Brokerage</span>
+                  <FormField
+                    control={form.control}
+                    name="receivedBrokerage"
+                    render={({ field }) => (
+                      <FormItem className="w-24 mb-0">
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00" 
+                            className="h-7 px-2 py-1 text-sm"
+                            {...field} 
+                            onChange={(e) => {
+                              const value = e.target.value === "" ? "0" : e.target.value;
+                              field.onChange(parseFloat(value));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <span className="font-medium">₹{receivedBrokerage.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-neutral-600">Balance Brokerage:</span>
+                <span className="font-medium">₹{calculateBalanceBrokerage().toFixed(2)}</span>
               </div>
             </div>
             
