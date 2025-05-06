@@ -535,27 +535,6 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 </div>
                 <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateBrokerage().toFixed(2)}</span>
               </div>
-              
-              <FormField
-                control={form.control}
-                name="isClosed"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base font-semibold">Closed Bill</FormLabel>
-                      <FormDescription>
-                        Toggle if this bill is already closed
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
             </div>
             
             <FormField
@@ -590,6 +569,27 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="isClosed"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-2">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base font-semibold">Closed Bill</FormLabel>
+                    <FormDescription>
+                      Toggle if this bill is already closed
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
