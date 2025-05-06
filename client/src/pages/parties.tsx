@@ -1,0 +1,208 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { format } from "date-fns";
+import { 
+  UserPlus, 
+  Search, 
+  FileText, 
+  Eye, 
+  Edit,
+  Download,
+  Filter
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PartyForm } from "@/components/PartyForm";
+import { Party } from "@shared/schema";
+
+export default function PartiesPage() {
+  const [search, setSearch] = useState("");
+  const [openPartyForm, setOpenPartyForm] = useState(false);
+  const [selectedParty, setSelectedParty] = useState<Party | undefined>(undefined);
+  
+  const { data: parties } = useQuery<Party[]>({
+    queryKey: ["/api/parties"],
+  });
+  
+  const filteredParties = parties?.filter((party) => 
+    party.name.toLowerCase().includes(search.toLowerCase()) ||
+    party.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
+    party.phone.includes(search)
+  );
+  
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount === null || amount === undefined) return "₹0";
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+  
+  const handleEditParty = (party: Party) => {
+    setSelectedParty(party);
+    setOpenPartyForm(true);
+  };
+  
+  const handleAddNewParty = () => {
+    setSelectedParty(undefined);
+    setOpenPartyForm(true);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-800">Party Master</h1>
+          <p className="text-neutral-600">Manage your clients and customers</p>
+        </div>
+        <Button onClick={handleAddNewParty} className="flex items-center">
+          <UserPlus className="mr-2 h-4 w-4" />
+          <span>Add New Party</span>
+        </Button>
+      </div>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-5">
+          <CardTitle className="text-lg font-semibold">All Parties</CardTitle>
+          <div className="flex space-x-2">
+            <div className="relative w-60">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500" />
+              <Input
+                placeholder="Search parties..."
+                className="pl-10"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon">
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-neutral-50">
+              <TableRow>
+                <TableHead>Party Name</TableHead>
+                <TableHead>Contact Person</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Outstanding</TableHead>
+                <TableHead>Last Transaction</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredParties?.map((party) => (
+                <TableRow key={party.id}>
+                  <TableCell className="font-medium">{party.name}</TableCell>
+                  <TableCell>{party.contactPerson}</TableCell>
+                  <TableCell>{party.phone}</TableCell>
+                  <TableCell>{party.email || '-'}</TableCell>
+                  <TableCell>{formatCurrency(party.outstanding)}</TableCell>
+                  <TableCell>
+                    {party.lastTransactionDate 
+                      ? format(new Date(party.lastTransactionDate), "MMM dd, yyyy")
+                      : "No transactions"
+                    }
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Link href={`/invoices/new?partyId=${party.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <FileText className="h-4 w-4 text-primary-500" />
+                        </Button>
+                      </Link>
+                      <Link href={`/parties/${party.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Eye className="h-4 w-4 text-neutral-500" />
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => handleEditParty(party)}
+                      >
+                        <Edit className="h-4 w-4 text-neutral-500" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {filteredParties?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
+                    No parties found. Add your first party to get started.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          
+          {filteredParties && filteredParties.length > 0 && (
+            <div className="flex items-center justify-between p-4 border-t border-neutral-200 bg-neutral-50">
+              <div className="text-sm text-neutral-600">
+                Showing 1-{filteredParties.length} of {filteredParties.length} parties
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select defaultValue="10">
+                  <SelectTrigger className="w-16">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center space-x-1">
+                  <Button disabled variant="outline" size="icon" className="h-8 w-8">
+                    <span className="sr-only">Previous page</span>
+                    <span>←</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-primary-500 text-white h-8 min-w-8">
+                    1
+                  </Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8">
+                    <span className="sr-only">Next page</span>
+                    <span>→</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <PartyForm 
+        open={openPartyForm} 
+        onOpenChange={setOpenPartyForm} 
+        party={selectedParty}
+      />
+    </>
+  );
+}
