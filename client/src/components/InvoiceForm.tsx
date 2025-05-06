@@ -19,6 +19,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 interface InvoiceItem {
   id: string;
@@ -53,6 +55,7 @@ const formSchema = z.object({
   dueDate: z.string().min(1, "Due date is required"),
   currency: z.string().min(1, "Currency is required"),
   brokerageRate: z.coerce.number().min(0, "Brokerage rate must be a positive number").default(0),
+  isClosed: z.boolean().default(false),
   remarks: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -106,6 +109,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       currency: "INR",
       brokerageRate: 0,
+      isClosed: false,
       remarks: "",
       notes: "",
     },
@@ -532,10 +536,26 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
                 <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateBrokerage().toFixed(2)}</span>
               </div>
               
-              <div className="flex justify-between text-sm pt-2 border-t font-bold">
-                <span>Total:</span>
-                <span>{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateTotal().toFixed(2)}</span>
-              </div>
+              <FormField
+                control={form.control}
+                name="isClosed"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-semibold">Closed Bill</FormLabel>
+                      <FormDescription>
+                        Toggle if this bill is already closed
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
             
             <FormField
