@@ -217,6 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { items, ...invoiceData } = req.body;
       
       // Validate invoice data
+      console.log('Validating with schema:', Object.keys(invoicesInsertSchema.shape));
       const validatedInvoiceData = invoicesInsertSchema.parse({
         ...invoiceData,
         partyId: parseInt(invoiceData.partyId), // Seller
