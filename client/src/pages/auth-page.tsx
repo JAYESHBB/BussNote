@@ -157,10 +157,11 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 animate-in fade-in duration-500 delay-500" 
+                        className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 animate-in fade-in duration-500 delay-500 rounded-md relative overflow-hidden group" 
                         disabled={loginMutation.isPending}
                       >
-                        {loginMutation.isPending ? "Logging in..." : "Login"}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative z-10 font-medium">{loginMutation.isPending ? "Logging in..." : "Login"}</span>
                       </Button>
                       <div className="text-center mt-4 text-sm text-muted-foreground">
                         Not yet registered? <a 
@@ -322,10 +323,11 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-secondary-500 to-secondary-700 hover:from-secondary-600 hover:to-secondary-800 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 animate-in fade-in duration-500 delay-700" 
+                        className="w-full bg-gradient-to-r from-secondary-500 to-secondary-700 hover:from-secondary-600 hover:to-secondary-800 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 animate-in fade-in duration-500 delay-700 rounded-md relative overflow-hidden group" 
                         disabled={registerMutation.isPending}
                       >
-                        {registerMutation.isPending ? "Creating account..." : "Register"}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative z-10 font-medium">{registerMutation.isPending ? "Creating account..." : "Register"}</span>
                       </Button>
                       <div className="text-center mt-4 text-sm text-muted-foreground">
                         Already registered? <a 
