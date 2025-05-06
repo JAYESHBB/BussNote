@@ -104,15 +104,7 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
     
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: party ? {
-      name: party.name,
-      contactPerson: party.contactPerson,
-      phone: party.phone,
-      email: party.email || "",
-      address: party.address || "",
-      gstin: party.gstin || "",
-      notes: party.notes || "",
-    } : {
+    defaultValues: {
       name: "",
       contactPerson: "",
       phone: "",
@@ -122,6 +114,31 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
       notes: "",
     },
   });
+  
+  // Update form values when party prop changes
+  useEffect(() => {
+    if (party) {
+      form.reset({
+        name: party.name,
+        contactPerson: party.contactPerson,
+        phone: party.phone,
+        email: party.email || "",
+        address: party.address || "",
+        gstin: party.gstin || "",
+        notes: party.notes || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        contactPerson: "",
+        phone: "",
+        email: "",
+        address: "",
+        gstin: "",
+        notes: "",
+      });
+    }
+  }, [party, form, open]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -199,8 +216,20 @@ export function PartyForm({ open, onOpenChange, party }: PartyFormProps) {
     }
   };
 
+  // Reset validation indicators when dialog closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset validation states when dialog closes
+      setNameAvailable(null);
+      setMobileValid(null);
+      setEmailValid(null);
+      setGstinValid(null);
+    }
+    onOpenChange(open);
+  };
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Party" : "Add New Party"}</DialogTitle>
