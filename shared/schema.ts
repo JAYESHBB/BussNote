@@ -65,7 +65,8 @@ export const invoices = pgTable("invoices", {
   notes: text("notes"),
   paymentDate: timestamp("payment_date"),
   userId: integer("user_id").references(() => users.id).notNull(),
-  partyId: integer("party_id").references(() => parties.id).notNull(),
+  partyId: integer("party_id").references(() => parties.id).notNull(), // Seller
+  buyerId: integer("buyer_id").references(() => parties.id).notNull(), // Buyer
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -73,7 +74,7 @@ export const invoices = pgTable("invoices", {
 export const invoicesInsertSchema = createInsertSchema(invoices);
 
 export type InsertInvoice = z.infer<typeof invoicesInsertSchema>;
-export type Invoice = typeof invoices.$inferSelect & { partyName?: string; items?: InvoiceItem[]; daysOverdue?: number; closedDate?: Date };
+export type Invoice = typeof invoices.$inferSelect & { partyName?: string; buyerName?: string; items?: InvoiceItem[]; daysOverdue?: number; closedDate?: Date };
 
 // Invoice Items table
 export const invoiceItems = pgTable("invoice_items", {
