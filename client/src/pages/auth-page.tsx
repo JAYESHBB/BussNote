@@ -157,20 +157,21 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white shadow-md" 
+                        className="w-full bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5" 
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? "Logging in..." : "Login"}
                       </Button>
                       <div className="text-center mt-4 text-sm text-muted-foreground">
                         Not yet registered? <a 
-                          className="text-primary hover:underline cursor-pointer" 
+                          className="text-primary hover:text-primary-700 font-medium cursor-pointer relative group" 
                           onClick={() => {
                             const element = document.querySelector('[data-state="inactive"][data-value="register"]') as HTMLElement;
                             element?.click();
                           }}
                         >
                           Click here to register
+                          <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
                         </a>
                       </div>
                     </form>
@@ -194,7 +195,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="fullName"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
                               <Input
@@ -212,7 +213,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="address"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Address</FormLabel>
                             <FormControl>
                               <Input
@@ -230,7 +231,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="mobile"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Mobile</FormLabel>
                             <FormControl>
                               <Input
@@ -248,7 +249,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input
@@ -267,7 +268,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="username"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>User ID</FormLabel>
                             <FormControl>
                               <Input
@@ -285,7 +286,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <Input
@@ -304,7 +305,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="confirmPassword"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-field">
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
                               <Input
@@ -321,20 +322,21 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-secondary-500 to-secondary-700 hover:from-secondary-600 hover:to-secondary-800 text-white shadow-md" 
+                        className="w-full bg-gradient-to-r from-secondary-500 to-secondary-700 hover:from-secondary-600 hover:to-secondary-800 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5" 
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? "Creating account..." : "Register"}
                       </Button>
                       <div className="text-center mt-4 text-sm text-muted-foreground">
                         Already registered? <a 
-                          className="text-primary hover:underline cursor-pointer" 
+                          className="text-primary hover:text-primary-700 font-medium cursor-pointer relative group" 
                           onClick={() => {
                             const element = document.querySelector('[data-state="inactive"][data-value="login"]') as HTMLElement;
                             element?.click();
                           }}
                         >
                           Click here for login
+                          <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
                         </a>
                       </div>
                     </form>

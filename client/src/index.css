@@ -4,7 +4,7 @@
 
 /* Custom styles for form inputs */
 input.form-input {
-  @apply transition-all duration-300;
+  @apply transition-all duration-300 rounded-md;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -13,12 +13,35 @@ input.form-input:focus {
   transform: translateY(-1px);
 }
 
+input.form-input:hover:not(:focus) {
+  box-shadow: 0 0 0 1px rgba(79, 94, 197, 0.2);
+}
+
 .form-field {
-  @apply transition-all duration-300;
+  @apply transition-all duration-300 relative;
 }
 
 .form-field:focus-within {
   transform: translateY(-2px);
+}
+
+.form-field:hover:not(:focus-within) label {
+  color: hsl(var(--primary));
+}
+
+.form-field:after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.5) 100%);
+  transition: width 0.3s ease;
+}
+
+.form-field:focus-within:after {
+  width: 100%;
 }
 
 @layer base {
@@ -132,6 +155,16 @@ input.form-input:focus {
       radial-gradient(at 82% 65%, hsla(122, 52%, 90%, 0.5) 0, transparent 55%),
       radial-gradient(at 23% 75%, hsla(30, 100%, 90%, 0.4) 0, transparent 45%);
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 @layer components {
