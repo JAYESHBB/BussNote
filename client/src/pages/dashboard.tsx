@@ -40,6 +40,7 @@ import { Invoice, Party, Activity } from "@shared/schema";
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState("today");
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
+  const isMobile = useMobile();
 
   const { data: dashboardStats } = useQuery({
     queryKey: ["/api/dashboard/stats", dateRange],
@@ -79,6 +80,20 @@ export default function Dashboard() {
     }).format(amount);
   };
 
+  // If mobile, render the mobile dashboard instead
+  if (isMobile) {
+    return (
+      <>
+        <MobileDashboard 
+          recentInvoices={recentInvoices} 
+          stats={dashboardStats}
+          handleNewInvoice={() => setIsInvoiceFormOpen(true)}
+        />
+        <InvoiceForm open={isInvoiceFormOpen} onOpenChange={setIsInvoiceFormOpen} />
+      </>
+    );
+  }
+  
   return (
     <>
       <div className="mb-6">

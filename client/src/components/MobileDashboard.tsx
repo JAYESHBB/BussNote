@@ -161,26 +161,33 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-neutral-100">
-            {recentInvoices?.slice(0, 3).map((invoice) => (
-              <div key={invoice.id} className="p-3 flex justify-between items-center">
-                <div>
-                  <div className="font-medium text-sm">#{invoice.invoiceNumber}</div>
-                  <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
-                  <div className="text-xs text-neutral-400 mt-0.5">
-                    {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+            {recentInvoices?.slice(0, 3).map((invoice) => {
+              // Convert status to the expected type
+              const status = invoice.status === "paid" ? "paid" : 
+                             invoice.status === "cancelled" ? "cancelled" : 
+                             invoice.status === "overdue" ? "overdue" : "pending";
+                             
+              return (
+                <div key={invoice.id} className="p-3 flex justify-between items-center">
+                  <div>
+                    <div className="font-medium text-sm">#{invoice.invoiceNumber}</div>
+                    <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
+                    <div className="text-xs text-neutral-400 mt-0.5">
+                      {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="font-semibold text-sm">
+                      {formatCurrency(invoice.total)}
+                    </div>
+                    <StatusBadge 
+                      status={status}
+                      className="mt-1 text-xs py-0.5 px-1.5"
+                    />
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <div className="font-semibold text-sm">
-                    {formatCurrency(invoice.total)}
-                  </div>
-                  <StatusBadge 
-                    status={invoice.status} 
-                    className="mt-1 text-xs py-0.5 px-1.5"
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {(recentInvoices?.length || 0) === 0 && (
               <div className="p-4 text-center text-neutral-500 text-sm">
                 No recent invoices
