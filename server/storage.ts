@@ -1,6 +1,16 @@
 import { db } from "@db";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
+
+// Add type definition for SessionStore
+declare module 'express-session' {
+  interface SessionStore {
+    destroy: (sid: string, callback: (err: any) => void) => void;
+    get: (sid: string, callback: (err: any, session: any) => void) => void;
+    set: (sid: string, session: session.SessionData, callback?: (err?: any) => void) => void;
+    touch: (sid: string, session: session.SessionData, callback?: (err?: any) => void) => void;
+  }
+}
 import { 
   users, 
   parties, 

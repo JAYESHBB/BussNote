@@ -160,6 +160,17 @@ export default function AuthPage() {
                       >
                         {loginMutation.isPending ? "Logging in..." : "Login"}
                       </Button>
+                      <div className="text-center mt-4 text-sm text-muted-foreground">
+                        Not yet registered? <a 
+                          className="text-primary hover:underline cursor-pointer" 
+                          onClick={() => {
+                            const element = document.querySelector('[data-state="inactive"][data-value="register"]') as HTMLElement;
+                            element?.click();
+                          }}
+                        >
+                          Click here to register
+                        </a>
+                      </div>
                     </form>
                   </Form>
                 </CardContent>
@@ -306,6 +317,17 @@ export default function AuthPage() {
                       >
                         {registerMutation.isPending ? "Creating account..." : "Register"}
                       </Button>
+                      <div className="text-center mt-4 text-sm text-muted-foreground">
+                        Already registered? <a 
+                          className="text-primary hover:underline cursor-pointer" 
+                          onClick={() => {
+                            const element = document.querySelector('[data-state="inactive"][data-value="login"]') as HTMLElement;
+                            element?.click();
+                          }}
+                        >
+                          Click here for login
+                        </a>
+                      </div>
                     </form>
                   </Form>
                 </CardContent>
