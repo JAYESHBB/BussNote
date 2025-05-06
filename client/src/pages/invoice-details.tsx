@@ -123,15 +123,19 @@ export default function InvoiceDetailsPage() {
             .text-right { text-align: right; }
             .total-row { font-weight: bold; }
             .notes { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }
+            .flex-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .flex-row .label { color: #666; }
+            .flex-row .value { font-weight: 500; }
             @media print { body { margin: 0; } }
           </style>
         </head>
         <body>
           <div class="header">
             <div>
-              <div class="invoice-title">Invoice #${invoice.invoiceNumber}</div>
+              <div class="invoice-title">Invoice #${invoice.invoiceNo || invoice.invoiceNumber}</div>
               <div class="invoice-details">Issued on ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
               <div class="invoice-details">Status: ${invoice.status}</div>
+              <div class="invoice-details">Bill Closed: ${invoice.isClosed ? 'Yes' : 'No'}</div>
             </div>
             <div>
               <h1>BussNote</h1>
@@ -142,22 +146,54 @@ export default function InvoiceDetailsPage() {
           <div class="grid">
             <div class="info-box">
               <div class="info-box-title">Party Information</div>
-              <div>${invoice.partyName || ""}</div>
+              <div>Seller: ${invoice.partyName || ""}</div>
+              ${invoice.buyerName ? `<div>Buyer: ${invoice.buyerName}</div>` : ""}
             </div>
             
             <div class="info-box">
               <div class="info-box-title">Invoice Details</div>
               <div>Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
               <div>Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}</div>
+              <div>Due Terms: ${invoice.dueDays || '0'} ${invoice.terms || 'Days'}</div>
               ${invoice.status === "paid" && invoice.paymentDate ? 
                 `<div>Payment Date: ${format(new Date(invoice.paymentDate), "MMMM d, yyyy")}</div>` : ""}
+              ${invoice.remarks ? `<div>Remarks: ${invoice.remarks}</div>` : ""}
             </div>
             
             <div class="info-box">
               <div class="info-box-title">Payment Summary</div>
-              <div>Subtotal: ${formatCurrency(Number(invoice.subtotal))}</div>
-              <div>Tax (18%): ${formatCurrency(Number(invoice.tax))}</div>
-              <div>Total: ${formatCurrency(Number(invoice.total))}</div>
+              <div class="flex-row">
+                <span class="label">Subtotal:</span>
+                <span class="value">${formatCurrency(Number(invoice.subtotal))}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Brokerage (${invoice.brokerageRate || '0'}%):</span>
+                <span class="value">${formatCurrency(Number(invoice.tax))}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Currency:</span>
+                <span class="value">${invoice.currency || 'INR'}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Exchange Rate:</span>
+                <span class="value">${invoice.exchangeRate || '1.00'}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Brokerage in INR:</span>
+                <span class="value">${formatCurrency(Number(invoice.brokerageInINR || '0'))}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Received Brokerage:</span>
+                <span class="value">${formatCurrency(Number(invoice.receivedBrokerage || '0'))}</span>
+              </div>
+              <div class="flex-row">
+                <span class="label">Balance Brokerage:</span>
+                <span class="value">${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
+              </div>
+              <div class="flex-row" style="margin-top: 10px; font-weight: bold;">
+                <span class="label">Total:</span>
+                <span class="value">${formatCurrency(Number(invoice.total))}</span>
+              </div>
             </div>
           </div>
           
@@ -188,7 +224,7 @@ export default function InvoiceDetailsPage() {
                 </tr>
                 <tr class="total-row">
                   <td colspan="2"></td>
-                  <td class="text-right">Tax (18%)</td>
+                  <td class="text-right">Brokerage (${invoice.brokerageRate || '0'}%)</td>
                   <td class="text-right">${formatCurrency(Number(invoice.tax))}</td>
                 </tr>
                 <tr class="total-row">
@@ -377,6 +413,14 @@ export default function InvoiceDetailsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start space-x-3">
+              <FileText className="h-5 w-5 text-neutral-500 mt-0.5" />
+              <div>
+                <p className="font-medium">{invoice.invoiceNo || invoice.invoiceNumber}</p>
+                <p className="text-sm text-neutral-500">Invoice No.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
               <Calendar className="h-5 w-5 text-neutral-500 mt-0.5" />
               <div>
                 <p className="font-medium">{format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</p>
@@ -389,6 +433,14 @@ export default function InvoiceDetailsPage() {
               <div>
                 <p className="font-medium">{format(new Date(invoice.dueDate), "MMMM d, yyyy")}</p>
                 <p className="text-sm text-neutral-500">Due Date</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Clock className="h-5 w-5 text-neutral-500 mt-0.5" />
+              <div>
+                <p className="font-medium">{invoice.dueDays || '0'} {invoice.terms || 'Days'}</p>
+                <p className="text-sm text-neutral-500">Due Terms</p>
               </div>
             </div>
             
@@ -416,8 +468,38 @@ export default function InvoiceDetailsPage() {
               </div>
               
               <div className="flex justify-between">
-                <span className="text-neutral-600">Tax (18%):</span>
+                <span className="text-neutral-600">Brokerage ({invoice.brokerageRate || '0'}%):</span>
                 <span className="font-medium">{formatCurrency(invoice.tax)}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Currency:</span>
+                <span className="font-medium">{invoice.currency || 'INR'}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Exchange Rate:</span>
+                <span className="font-medium">{invoice.exchangeRate || '1.00'}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Brokerage in INR:</span>
+                <span className="font-medium">{formatCurrency(invoice.brokerageInINR || '0')}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Received Brokerage:</span>
+                <span className="font-medium">{formatCurrency(invoice.receivedBrokerage || '0')}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Balance Brokerage:</span>
+                <span className="font-medium">{formatCurrency(invoice.balanceBrokerage || '0')}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-neutral-600">Bill Closed:</span>
+                <span className="font-medium">{invoice.isClosed ? 'Yes' : 'No'}</span>
               </div>
               
               <Separator className="my-2" />
@@ -482,7 +564,7 @@ export default function InvoiceDetailsPage() {
               </TableRow>
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
-                <TableCell className="text-right font-medium">Tax (18%)</TableCell>
+                <TableCell className="text-right font-medium">Brokerage ({invoice.brokerageRate || '0'}%)</TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(invoice.tax)}</TableCell>
               </TableRow>
               <TableRow className="bg-neutral-50">
