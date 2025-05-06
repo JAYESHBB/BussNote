@@ -44,7 +44,8 @@ interface InvoiceItem {
 }
 
 const formSchema = z.object({
-  partyId: z.string().min(1, "Party is required"),
+  partyId: z.string().min(1, "Seller is required"),
+  buyerId: z.string().min(1, "Buyer is required"),
   invoiceDate: z.string().min(1, "Invoice date is required"),
   dueDate: z.string().min(1, "Due date is required"),
   notes: z.string().optional(),
@@ -72,6 +73,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       partyId: "",
+      buyerId: "",
       invoiceDate: new Date().toISOString().split("T")[0],
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       notes: "",
@@ -135,7 +137,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
       toast({
         title: "Success",
-        description: "Invoice created successfully",
+        description: "Note created successfully",
       });
       
       onOpenChange(false);
@@ -146,7 +148,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create invoice",
+        description: "Failed to create note",
         variant: "destructive",
       });
     }
@@ -158,36 +160,63 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         <DialogHeader>
           <DialogTitle>Add New Note</DialogTitle>
           <DialogDescription>
-            Create a new note for a party. Add items, set dates, and include additional information.
+            Create a new note to track sales between a seller and a buyer. Add items, set dates, and include additional information.
           </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="partyId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Party</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a party" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {parties?.map((party) => (
-                        <SelectItem key={party.id} value={party.id.toString()}>
-                          {party.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="partyId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Seller</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a seller" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {parties?.map((party) => (
+                          <SelectItem key={party.id} value={party.id.toString()}>
+                            {party.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="buyerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Buyer</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a buyer" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {parties?.map((party) => (
+                          <SelectItem key={party.id} value={party.id.toString()}>
+                            {party.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <FormField
