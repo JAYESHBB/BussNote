@@ -62,10 +62,14 @@ export const invoices = pgTable("invoices", {
   terms: text("terms").default("Days"), // Added terms field (Days, Days Fix, Days D/A, Days B/D, Days A/D)
   dueDate: timestamp("due_date").notNull(),
   currency: text("currency").default("INR"), // Added currency field (INR, USD, EUR, etc.)
+  exchangeRate: decimal("exchange_rate", { precision: 10, scale: 2 }).default("1.00"), // Exchange rate against INR
   remarks: text("remarks"), // Added remarks field for additional information
   status: text("status").notNull().default("pending"), // pending, paid, cancelled
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
-  tax: decimal("tax", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).notNull(), // Brokerage amount
+  brokerageInINR: decimal("brokerage_inr", { precision: 10, scale: 2 }).default("0.00"), // Brokerage in INR
+  receivedBrokerage: decimal("received_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Received brokerage amount
+  balanceBrokerage: decimal("balance_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Balance brokerage amount
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),
   paymentDate: timestamp("payment_date"),
