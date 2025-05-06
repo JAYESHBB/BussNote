@@ -52,6 +52,7 @@ const formSchema = z.object({
   terms: z.string().min(1, "Terms are required"),
   dueDate: z.string().min(1, "Due date is required"),
   currency: z.string().min(1, "Currency is required"),
+  brokerageRate: z.coerce.number().min(0, "Brokerage rate must be a positive number").default(0),
   remarks: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -104,6 +105,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       terms: "Days",
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       currency: "INR",
+      brokerageRate: 0,
       remarks: "",
       notes: "",
     },
@@ -181,12 +183,14 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     return items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
   };
 
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.18; // 18% tax
+  const brokerageRate = form.watch("brokerageRate");
+
+  const calculateBrokerage = () => {
+    return calculateSubtotal() * (brokerageRate / 100);
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return calculateSubtotal() + calculateBrokerage();
   };
 
   const onSubmit = async (data: FormData) => {
@@ -204,7 +208,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         ...data,
         items: items.map(({ id, ...rest }) => rest), // Remove temporary id
         subtotal: calculateSubtotal(),
-        tax: calculateTax(),
+        tax: calculateBrokerage(),
         total: calculateTotal(),
       };
 
