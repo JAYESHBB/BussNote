@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -21,6 +21,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // API Routes
   const apiPrefix = "/api";
+  
+  // Username availability check
+  app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
+    try {
+      const username = req.query.username as string;
+      
+      if (!username || username.length < 3) {
+        return res.status(400).json({ message: "Username must be at least 3 characters", available: false });
+      }
+      
+      // Check if username exists in database
+      const existingUser = await storage.getUserByUsername(username);
+      
+      // Return result
+      res.json({ available: !existingUser });
+    } catch (error) {
+      console.error("Error checking username:", error);
+      res.status(500).json({ message: "Failed to check username availability", available: false });
+    }
+  });
 
   // Parties (customers/clients)
   app.get(`${apiPrefix}/parties`, async (req, res) => {

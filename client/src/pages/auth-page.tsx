@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,10 +35,15 @@ const loginSchema = z.object({
   }),
 });
 
+// Function to capitalize each word in a string
+function capitalizeWords(str: string): string {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 const registerSchema = z.object({
   fullName: z.string().min(2, {
     message: "Full name is required.",
-  }),
+  }).transform(capitalizeWords),
   address: z.string().optional(),
   mobile: z.string().regex(/^\+?[0-9\s-]{10,15}$/, {
     message: "Please enter a valid mobile number.",
@@ -48,9 +54,16 @@ const registerSchema = z.object({
   username: z.string().min(3, {
     message: "Username must be at least 3 characters.",
   }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
-  }),
+  password: z.string()
+    .min(8, {
+      message: "Password must be at least 8 characters.",
+    })
+    .max(16, {
+      message: "Password must not exceed 16 characters.",
+    })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).+$/, {
+      message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+    }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -60,6 +73,8 @@ const registerSchema = z.object({
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, navigate] = useLocation();
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -271,15 +286,64 @@ export default function AuthPage() {
                         render={({ field }) => (
                           <FormItem className="form-field">
                             <FormLabel>User ID</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Choose a unique username"
-                                {...field}
-                                disabled={registerMutation.isPending}
-                                className="form-input"
-                              />
-                            </FormControl>
+                            <div className="relative">
+                              <FormControl>
+                                <Input
+                                  placeholder="Choose a unique username"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    // Reset username availability when typing
+                                    setUsernameAvailable(null);
+                                  }}
+                                  onBlur={async (e) => {
+                                    field.onBlur();
+                                    const value = e.target.value;
+                                    if (value.length >= 3) {
+                                      setUsernameChecking(true);
+                                      try {
+                                        const response = await apiRequest('GET', `/api/check-username?username=${encodeURIComponent(value)}`);
+                                        const data = await response.json();
+                                        setUsernameAvailable(data.available);
+                                      } catch (error) {
+                                        console.error('Error checking username:', error);
+                                        setUsernameAvailable(null);
+                                      } finally {
+                                        setUsernameChecking(false);
+                                      }
+                                    }
+                                  }}
+                                  disabled={registerMutation.isPending}
+                                  className="form-input pr-8"
+                                />
+                              </FormControl>
+                              {usernameChecking && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                  <div className="h-4 w-4 rounded-full border-2 border-b-transparent border-primary animate-spin"></div>
+                                </div>
+                              )}
+                              {!usernameChecking && usernameAvailable === false && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                              {!usernameChecking && usernameAvailable === true && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                             <FormMessage />
+                            {!usernameChecking && usernameAvailable === false && (
+                              <p className="text-xs text-red-500 mt-1">This username is already taken. Please choose another.</p>
+                            )}
+                            {!usernameChecking && usernameAvailable === true && (
+                              <p className="text-xs text-green-500 mt-1">Username is available!</p>
+                            )}
                           </FormItem>
                         )}
                       />
