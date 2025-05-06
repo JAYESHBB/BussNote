@@ -101,6 +101,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(231, 55%, 97%) 100%);
   }
 }
 
@@ -115,5 +116,24 @@
 
   .stat-card-icon {
     @apply p-2 rounded-full flex items-center justify-center text-lg;
+  }
+  
+  .colorful-bg-pattern {
+    background-color: hsla(var(--background));
+    background-image: 
+      radial-gradient(at 47% 33%, hsla(231, 55%, 92%, 0.8) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsla(122, 52%, 95%, 0.6) 0, transparent 55%),
+      radial-gradient(at 23% 75%, hsla(30, 100%, 95%, 0.5) 0, transparent 45%);
+  }
+  
+  .colorful-card {
+    @apply bg-white transition-all duration-200 hover:shadow-lg;
+    background: linear-gradient(to right bottom, white, hsl(231, 55%, 99%));
+    border: 1px solid rgba(231, 233, 250, 0.7);
+  }
+  
+  .colorful-header {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
+    @apply text-white p-6 rounded-t-lg;
   }
 }
