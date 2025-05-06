@@ -84,7 +84,7 @@ export const invoices = pgTable("invoices", {
 export const invoicesInsertSchema = createInsertSchema(invoices);
 
 export type InsertInvoice = z.infer<typeof invoicesInsertSchema>;
-export type Invoice = typeof invoices.$inferSelect & { partyName?: string; buyerName?: string; items?: InvoiceItem[]; daysOverdue?: number; closedDate?: Date };
+export type Invoice = typeof invoices.$inferSelect & { partyName?: string; buyerName?: string; partyEmail?: string; buyerEmail?: string; items?: InvoiceItem[]; daysOverdue?: number; closedDate?: Date };
 
 // Invoice Items table
 export const invoiceItems = pgTable("invoice_items", {
