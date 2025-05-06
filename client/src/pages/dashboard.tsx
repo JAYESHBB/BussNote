@@ -33,6 +33,8 @@ import { DashboardCard } from "@/components/DashboardCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActivityItem } from "@/components/ActivityItem";
 import { InvoiceForm } from "@/components/InvoiceForm";
+import { MobileDashboard } from "@/components/MobileDashboard";
+import { useMobile } from "@/hooks/use-mobile";
 import { Invoice, Party, Activity } from "@shared/schema";
 
 export default function Dashboard() {
