@@ -38,6 +38,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
+// Round to 2 decimal places to avoid floating point precision issues
+const roundToTwoDecimals = (value: number): number => {
+  return Math.round(value * 100) / 100;
+};
+
 interface InvoiceItem {
   id: string;
   description: string;
