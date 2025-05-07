@@ -55,7 +55,9 @@ export interface IStorage {
   getInvoiceById(id: number): Promise<Invoice | undefined>;
   createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice>;
   updateInvoiceStatus(id: number, status: string): Promise<Invoice | undefined>;
+  updateInvoice(id: number, data: Partial<InsertInvoice>): Promise<Invoice | undefined>;
   updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined>;
+  deleteInvoice(id: number): Promise<boolean>;
   getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]>;
   getInvoicesByPartyId(partyId: number): Promise<Invoice[]>;
   
@@ -135,7 +137,7 @@ class DatabaseStorage implements IStorage {
         
         return {
           ...party,
-          outstanding,
+          outstanding: outstanding as number,
           lastTransactionDate
         };
       })
@@ -174,7 +176,7 @@ class DatabaseStorage implements IStorage {
     
     return {
       ...party,
-      outstanding,
+      outstanding: outstanding as number,
       lastTransactionDate
     };
   }
@@ -259,7 +261,7 @@ class DatabaseStorage implements IStorage {
       })
     );
       
-    return enhancedInvoices;
+    return enhancedInvoices as Invoice[];
   }
   
   async getRecentInvoices(limit: number): Promise<Invoice[]> {
@@ -279,7 +281,7 @@ class DatabaseStorage implements IStorage {
       .orderBy(desc(invoices.createdAt))
       .limit(limit);
       
-    return invoiceList;
+    return invoiceList as Invoice[];
   }
   
   async getInvoiceById(id: number): Promise<Invoice | undefined> {
@@ -325,27 +327,31 @@ class DatabaseStorage implements IStorage {
       };
     }
       
-    return invoice;
+    return invoice as Invoice | undefined;
   }
   
   async createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice> {
-    // Generate invoice number
-    const year = new Date().getFullYear();
-    const latestInvoiceResult = await db
-      .select({ maxNumber: sql<string | null>`MAX(${invoices.invoiceNumber})` })
-      .from(invoices);
+    // Generate invoice number if not provided
+    let invoiceNumber = data.invoiceNumber;
+    if (!invoiceNumber) {
+      // Generate invoice number
+      const year = new Date().getFullYear();
+      const latestInvoiceResult = await db
+        .select({ maxNumber: sql<string | null>`MAX(${invoices.invoiceNumber})` })
+        .from(invoices);
+        
+      let nextNumber = 1;
       
-    let nextNumber = 1;
-    
-    if (latestInvoiceResult[0]?.maxNumber) {
-      const lastNumStr = latestInvoiceResult[0].maxNumber.split('-')[2];
-      if (lastNumStr) {
-        nextNumber = parseInt(lastNumStr) + 1;
+      if (latestInvoiceResult[0]?.maxNumber) {
+        const lastNumStr = latestInvoiceResult[0].maxNumber.split('-')[2];
+        if (lastNumStr) {
+          nextNumber = parseInt(lastNumStr) + 1;
+        }
       }
+      
+      const paddedNumber = nextNumber.toString().padStart(4, '0');
+      invoiceNumber = `INV-${year}-${paddedNumber}`;
     }
-    
-    const paddedNumber = nextNumber.toString().padStart(4, '0');
-    const invoiceNumber = `INV-${year}-${paddedNumber}`;
     
     // Create the invoice
     const [invoice] = await db
@@ -373,8 +379,10 @@ class DatabaseStorage implements IStorage {
     return {
       ...invoice,
       partyName: seller?.name || 'Unknown',
-      buyerName: buyer?.name || 'Unknown'
-    };
+      buyerName: buyer?.name || 'Unknown',
+      partyEmail: seller?.email || undefined,
+      buyerEmail: buyer?.email || undefined
+    } as Invoice;
   }
   
   async updateInvoiceStatus(id: number, status: string): Promise<Invoice | undefined> {
@@ -386,25 +394,7 @@ class DatabaseStorage implements IStorage {
       updateData.paymentDate = new Date();
     }
     
-    const [updatedInvoice] = await db
-      .update(invoices)
-      .set(updateData)
-      .where(eq(invoices.id, id))
-      .returning();
-      
-    if (!updatedInvoice) {
-      return undefined;
-    }
-    
-    // Get seller and buyer names
-    const seller = await this.getPartyById(updatedInvoice.partyId);
-    const buyer = await this.getPartyById(updatedInvoice.buyerId);
-    
-    return {
-      ...updatedInvoice,
-      partyName: seller?.name || 'Unknown',
-      buyerName: buyer?.name || 'Unknown'
-    };
+    return this.updateInvoice(id, updateData);
   }
   
   async updateInvoice(id: number, updateData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
@@ -426,9 +416,9 @@ class DatabaseStorage implements IStorage {
       ...updatedInvoice,
       partyName: seller?.name || 'Unknown',
       buyerName: buyer?.name || 'Unknown',
-      partyEmail: seller?.email,
-      buyerEmail: buyer?.email
-    };
+      partyEmail: seller?.email || undefined,
+      buyerEmail: buyer?.email || undefined
+    } as Invoice;
   }
 
   async updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined> {
@@ -443,7 +433,7 @@ class DatabaseStorage implements IStorage {
       // Delete the invoice
       const result = await db.delete(invoices).where(eq(invoices.id, id));
       
-      return result.rowCount > 0;
+      return result.rowCount ? result.rowCount > 0 : false;
     } catch (error) {
       console.error("Error deleting invoice:", error);
       return false;
@@ -495,7 +485,7 @@ class DatabaseStorage implements IStorage {
       };
     }));
     
-    return enhancedInvoices;
+    return enhancedInvoices as Invoice[];
   }
   
   // Transaction methods
@@ -519,7 +509,7 @@ class DatabaseStorage implements IStorage {
       .where(eq(transactions.partyId, partyId))
       .orderBy(desc(transactions.date));
       
-    return transactionList;
+    return transactionList as Transaction[];
   }
   
   async createTransaction(data: InsertTransaction): Promise<Transaction> {
@@ -539,7 +529,7 @@ class DatabaseStorage implements IStorage {
     return {
       ...transaction,
       invoiceNumber
-    };
+    } as Transaction;
   }
   
   // Activity methods
@@ -583,11 +573,13 @@ class DatabaseStorage implements IStorage {
       .where(eq(invoices.status, "pending"));
       
     if (fromDate) {
-      query = query.where(gte(invoices.invoiceDate, fromDate));
+      query = query
+        .where(gte(invoices.invoiceDate, fromDate)) as any;
     }
     
     if (toDate) {
-      query = query.where(lte(invoices.invoiceDate, toDate));
+      query = query
+        .where(lte(invoices.invoiceDate, toDate)) as any;
     }
     
     const invoiceList = await query.orderBy(asc(invoices.dueDate));
@@ -606,7 +598,7 @@ class DatabaseStorage implements IStorage {
       };
     });
     
-    return result;
+    return result as Invoice[];
   }
   
   async getClosedInvoices(fromDate?: Date, toDate?: Date, status: string = "all"): Promise<Invoice[]> {
@@ -636,15 +628,17 @@ class DatabaseStorage implements IStorage {
       .where(statusCondition);
       
     if (fromDate) {
-      query = query.where(gte(invoices.paymentDate, fromDate));
+      query = query
+        .where(gte(invoices.paymentDate, fromDate)) as any;
     }
     
     if (toDate) {
-      query = query.where(lte(invoices.paymentDate, toDate));
+      query = query
+        .where(lte(invoices.paymentDate, toDate)) as any;
     }
     
     const invoiceList = await query.orderBy(desc(invoices.paymentDate));
-    return invoiceList;
+    return invoiceList as Invoice[];
   }
   
   async getSalesReport(fromDate?: Date, toDate?: Date, groupBy: string = "monthly"): Promise<any> {
@@ -693,9 +687,9 @@ class DatabaseStorage implements IStorage {
         
         const period = periodMap.get(dateStr);
         period.invoiceCount += 1;
-        period.grossSales += invoice.subtotal;
-        period.tax += invoice.tax;
-        period.netSales += invoice.total;
+        period.grossSales += parseFloat(invoice.subtotal as any) || 0;
+        period.tax += parseFloat(invoice.tax as any) || 0;
+        period.netSales += parseFloat(invoice.total as any) || 0;
       }
     } else if (groupBy === "weekly") {
       // Group by week
@@ -719,9 +713,9 @@ class DatabaseStorage implements IStorage {
         
         const period = periodMap.get(weekKey);
         period.invoiceCount += 1;
-        period.grossSales += invoice.subtotal;
-        period.tax += invoice.tax;
-        period.netSales += invoice.total;
+        period.grossSales += parseFloat(invoice.subtotal as any) || 0;
+        period.tax += parseFloat(invoice.tax as any) || 0;
+        period.netSales += parseFloat(invoice.total as any) || 0;
       }
     } else if (groupBy === "monthly") {
       // Group by month
@@ -742,9 +736,9 @@ class DatabaseStorage implements IStorage {
         
         const period = periodMap.get(monthKey);
         period.invoiceCount += 1;
-        period.grossSales += invoice.subtotal;
-        period.tax += invoice.tax;
-        period.netSales += invoice.total;
+        period.grossSales += parseFloat(invoice.subtotal as any) || 0;
+        period.tax += parseFloat(invoice.tax as any) || 0;
+        period.netSales += parseFloat(invoice.total as any) || 0;
       }
     } else if (groupBy === "quarterly") {
       // Group by quarter
@@ -768,14 +762,14 @@ class DatabaseStorage implements IStorage {
         
         const period = periodMap.get(quarterKey);
         period.invoiceCount += 1;
-        period.grossSales += invoice.subtotal;
-        period.tax += invoice.tax;
-        period.netSales += invoice.total;
+        period.grossSales += parseFloat(invoice.subtotal as any) || 0;
+        period.tax += parseFloat(invoice.tax as any) || 0;
+        period.netSales += parseFloat(invoice.total as any) || 0;
       }
     }
     
     // Convert map to array and sort
-    for (const [key, value] of periodMap.entries()) {
+    for (const [_, value] of periodMap.entries()) {
       periods.push(value);
     }
     
@@ -809,7 +803,7 @@ class DatabaseStorage implements IStorage {
         fromDate = new Date(today.setHours(0, 0, 0, 0));
         break;
       case "yesterday":
-        fromDate = subDays(new Date().setHours(0, 0, 0, 0), 1);
+        fromDate = subDays(new Date(today).setHours(0, 0, 0, 0), 1) as Date;
         break;
       case "week":
         fromDate = startOfWeek(today);
@@ -817,54 +811,63 @@ class DatabaseStorage implements IStorage {
       case "month":
         fromDate = startOfMonth(today);
         break;
-      case "quarter":
-        fromDate = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
-        break;
       case "year":
         fromDate = new Date(today.getFullYear(), 0, 1);
         break;
       default:
-        // Default to "month"
+        // Default to month
         fromDate = startOfMonth(today);
     }
     
-    // Calculate total sales
+    // Total sales amount for the period
     const salesResult = await db
-      .select({ total: sum(invoices.total) })
+      .select({ totalSales: sum(invoices.total) })
       .from(invoices)
       .where(and(
         gte(invoices.invoiceDate, fromDate),
-        sql`${invoices.status} != 'cancelled'`
+        lte(invoices.invoiceDate, today),
+        eq(invoices.status, "paid")
       ));
-    
-    const totalSales = salesResult[0]?.total || 0;
-    
-    // Calculate outstanding amount
-    const outstandingResult = await db
-      .select({ total: sum(invoices.total) })
-      .from(invoices)
-      .where(eq(invoices.status, "pending"));
       
-    const outstanding = outstandingResult[0]?.total || 0;
+    const totalSales = salesResult[0]?.totalSales || 0;
     
-    // Count active parties
+    // Total invoices for the period
+    const invoiceCountResult = await db
+      .select({ count: count() })
+      .from(invoices)
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, today)
+      ));
+      
+    const totalInvoices = invoiceCountResult[0].count;
+    
+    // Pending invoices
+    const pendingCountResult = await db
+      .select({ count: count() })
+      .from(invoices)
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, today),
+        eq(invoices.status, "pending")
+      ));
+      
+    const pendingInvoices = pendingCountResult[0].count;
+    
+    // Active parties in the period
     const activePartiesResult = await db
-      .select({ count: count() })
-      .from(parties);
-      
-    const activeParties = activePartiesResult[0]?.count || 0;
-    
-    // Count pending invoices
-    const pendingResult = await db
-      .select({ count: count() })
+      .select({ count: count(invoices.partyId) })
       .from(invoices)
-      .where(eq(invoices.status, "pending"));
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, today)
+      ));
       
-    const pendingInvoices = pendingResult[0]?.count || 0;
+    const activeParties = activePartiesResult[0].count;
     
     return {
       totalSales,
-      outstanding,
+      totalInvoices,
       activeParties,
       pendingInvoices,
       dateRange

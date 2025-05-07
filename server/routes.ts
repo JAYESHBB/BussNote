@@ -351,6 +351,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update invoice (full edit)
+  app.patch(`${apiPrefix}/invoices/:id`, async (req, res) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      const updateData = invoicesInsertSchema.partial().parse(req.body);
+      
+      const updatedInvoice = await storage.updateInvoice(invoiceId, updateData);
+      
+      if (!updatedInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Create an activity for the invoice update
+      await storage.createActivity({
+        userId: req.user!.id,
+        type: "invoice_updated",
+        title: "Invoice Updated",
+        description: `Invoice #${updatedInvoice.invoiceNumber} details updated`,
+        timestamp: new Date(),
+        partyId: updatedInvoice.partyId,
+        invoiceId: updatedInvoice.id
+      });
+      
+      res.json(updatedInvoice);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ errors: error.errors });
+      }
+      console.error("Error updating invoice:", error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+  
+  // Delete invoice
+  app.delete(`${apiPrefix}/invoices/:id`, async (req, res) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      
+      // Get invoice details before deletion (for activity log)
+      const invoice = await storage.getInvoiceById(invoiceId);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      const success = await storage.deleteInvoice(invoiceId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete invoice" });
+      }
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user!.id,
+        type: "invoice_deleted",
+        title: "Invoice deleted",
+        description: `Deleted invoice #${invoice.invoiceNumber}`,
+        partyId: invoice.partyId,
+        timestamp: new Date()
+      });
+      
+      res.status(200).json({ message: "Invoice deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
   // Get invoices for a specific party
   app.get(`${apiPrefix}/parties/:id/invoices`, async (req, res) => {
     try {

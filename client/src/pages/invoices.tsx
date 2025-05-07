@@ -50,6 +50,9 @@ export default function InvoicesPage() {
   const [status, setStatus] = useState("all");
   const [showClosed, setShowClosed] = useState(false);
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const { toast } = useToast();
   
   // Mutation for updating invoice status
@@ -69,6 +72,30 @@ export default function InvoicesPage() {
       toast({
         title: "Error",
         description: `Failed to update invoice status: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutation for deleting invoice
+  const deleteInvoiceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/invoices/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      toast({
+        title: "Success",
+        description: "Invoice deleted successfully",
+      });
+      setIsDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete invoice: ${error.message}`,
         variant: "destructive",
       });
     },
