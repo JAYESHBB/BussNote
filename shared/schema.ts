@@ -90,7 +90,7 @@ export type Invoice = typeof invoices.$inferSelect & { partyName?: string; buyer
 // Invoice Items table
 export const invoiceItems = pgTable("invoice_items", {
   id: serial("id").primaryKey(),
-  invoiceId: integer("invoice_id").references(() => invoices.id).notNull(),
+  invoiceId: integer("invoice_id").references(() => invoices.id, { onDelete: 'cascade' }).notNull(),
   description: text("description").notNull(),
   quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
   rate: decimal("rate", { precision: 10, scale: 2 }).notNull(),
@@ -110,7 +110,7 @@ export const transactions = pgTable("transactions", {
   type: text("type").notNull(), // payment, refund, etc.
   notes: text("notes"),
   partyId: integer("party_id").references(() => parties.id).notNull(),
-  invoiceId: integer("invoice_id").references(() => invoices.id),
+  invoiceId: integer("invoice_id").references(() => invoices.id, { onDelete: 'cascade' }),
   userId: integer("user_id").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -128,8 +128,8 @@ export const activities = pgTable("activities", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   timestamp: timestamp("timestamp").notNull(),
-  partyId: integer("party_id").references(() => parties.id),
-  invoiceId: integer("invoice_id").references(() => invoices.id),
+  partyId: integer("party_id").references(() => parties.id, { onDelete: 'set null' }),
+  invoiceId: integer("invoice_id").references(() => invoices.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

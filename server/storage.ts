@@ -427,8 +427,30 @@ class DatabaseStorage implements IStorage {
   
   async deleteInvoice(id: number): Promise<boolean> {
     try {
-      // First delete related activities that reference this invoice
-      await db.delete(activities).where(eq(activities.invoiceId, id));
+      // First check all related activities for this invoice
+      const relatedActivities = await db
+        .select()
+        .from(activities)
+        .where(eq(activities.invoiceId, id));
+      
+      console.log(`Found ${relatedActivities.length} related activities for invoice ${id}`);
+      
+      // Delete each activity individually with better error handling
+      for (const activity of relatedActivities) {
+        console.log(`Deleting activity ${activity.id} for invoice ${id}`);
+        await db.delete(activities).where(eq(activities.id, activity.id));
+      }
+      
+      // Double-check that all activities are deleted
+      const remainingActivities = await db
+        .select()
+        .from(activities)
+        .where(eq(activities.invoiceId, id));
+        
+      if (remainingActivities.length > 0) {
+        console.error(`Still found ${remainingActivities.length} activities after deletion attempt`);
+        return false;
+      }
       
       // Then delete related invoice items
       await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
