@@ -396,6 +396,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Invoice not found" });
       }
       
+      // Check invoice status - only pending invoices can be deleted
+      if (invoice.status !== "pending") {
+        return res.status(400).json({ 
+          message: "Only pending invoices can be deleted. Please cancel the invoice first if needed." 
+        });
+      }
+      
       // Store details for the response
       const invoiceNumber = invoice.invoiceNumber;
       const partyId = invoice.partyId;
@@ -406,9 +413,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(500).json({ message: "Failed to delete invoice" });
       }
-      
-      // We don't log activity to avoid circular foreign key reference
-      // since we just deleted activities related to this invoice
       
       res.status(200).json({ message: "Invoice deleted successfully" });
     } catch (error) {
