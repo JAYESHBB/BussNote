@@ -210,9 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const subtotal = parseFloat(invoice.subtotal);
         const tax = parseFloat(invoice.tax);
         if (!isNaN(subtotal) && !isNaN(tax) && subtotal > 0) {
-          brokerageRate = (tax / subtotal) * 100;
+          brokerageRate = ((tax / subtotal) * 100).toFixed(2);
         } else {
-          brokerageRate = 0.75; // Default brokerage rate
+          brokerageRate = "0.75"; // Default brokerage rate
         }
       }
       
@@ -220,7 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completeInvoice = {
         ...invoice,
         items,
-        brokerageRate: brokerageRate || 0.75,
+        brokerageRate: typeof brokerageRate === 'string' ? brokerageRate : "0.75", // Ensure it's a string
+        exchangeRate: (parseFloat(invoice.exchangeRate || "1.00")).toFixed(2), // Ensure exchange rate is a string
         remarks: invoice.notes || "", // Use notes field for remarks if missing
       };
       

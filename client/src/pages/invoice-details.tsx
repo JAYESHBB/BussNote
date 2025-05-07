@@ -471,6 +471,11 @@ export default function InvoiceDetailsPage() {
                 <span className="text-neutral-600">Brokerage ({isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%):</span>
                 <span className="font-medium">{formatCurrency(invoice.tax, invoice.currency)}</span>
               </div>
+              
+              <div className="flex justify-between font-medium mt-3 border-t pt-2">
+                <span>Total:</span>
+                <span>{formatCurrency(invoice.total, invoice.currency)}</span>
+              </div>
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Currency:</span>
