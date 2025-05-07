@@ -379,45 +379,45 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     }
   };
 
-  const calculateSubtotal = () => {
-    // Calculate the sum of all items with quantity * rate
-    const subtotal = items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    // Ensure we get exactly 2 decimal places with proper rounding
-    return parseFloat((Math.round((subtotal + Number.EPSILON) * 100) / 100).toFixed(2));
+  // Simple rounding helper that doesn't call toFixed (avoids string conversion)
+  const simpleRound = (num: number): number => {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
   };
 
+  // Get all needed form values
   const brokerageRate = form.watch("brokerageRate");
   const exchangeRate = form.watch("exchangeRate");
   const receivedBrokerage = form.watch("receivedBrokerage");
   const currency = form.watch("currency");
 
-  const calculateBrokerage = () => {
-    // Use precise calculation for brokerage
-    const result = calculateSubtotal() * (brokerageRate / 100);
-    // Ensure we get exactly 2 decimal places with proper rounding
-    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
-  };
+  // Calculate just once and memoize values to prevent infinite recursion
+  const subtotalValue = React.useMemo(() => {
+    const subtotal = items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
+    return simpleRound(subtotal);
+  }, [items]);
 
-  const calculateBrokerageInINR = () => {
-    // For better precision, do the calc and then format to 2 decimals
-    const result = calculateBrokerage() * exchangeRate;
-    // Ensure we get exactly 2 decimal places with proper rounding
-    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
-  };
+  const brokerageValue = React.useMemo(() => {
+    return simpleRound(subtotalValue * (brokerageRate / 100));
+  }, [subtotalValue, brokerageRate]);
 
-  const calculateBalanceBrokerage = () => {
-    // Use precise calculation for balance
-    const result = calculateBrokerageInINR() - receivedBrokerage;
-    // Ensure we get exactly 2 decimal places with proper rounding
-    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
-  };
+  const brokerageInINRValue = React.useMemo(() => {
+    return simpleRound(brokerageValue * exchangeRate);
+  }, [brokerageValue, exchangeRate]);
 
-  const calculateTotal = () => {
-    // Use precise calculation for total
-    const result = calculateSubtotal() + calculateBrokerage();
-    // Ensure we get exactly 2 decimal places with proper rounding
-    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
-  };
+  const balanceBrokerageValue = React.useMemo(() => {
+    return simpleRound(brokerageInINRValue - receivedBrokerage);
+  }, [brokerageInINRValue, receivedBrokerage]);
+
+  const totalValue = React.useMemo(() => {
+    return simpleRound(subtotalValue + brokerageValue);
+  }, [subtotalValue, brokerageValue]);
+
+  // Simple getter functions that won't cause stack overflow
+  const calculateSubtotal = () => subtotalValue;
+  const calculateBrokerage = () => brokerageValue;
+  const calculateBrokerageInINR = () => brokerageInINRValue;
+  const calculateBalanceBrokerage = () => balanceBrokerageValue;
+  const calculateTotal = () => totalValue;
 
   const onSubmit = async (data: FormData) => {
     if (items.some(item => !item.description)) {
@@ -440,7 +440,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         rate: rest.rate.toString()
       }));
       
-      // Don't round input values, just convert them to fixed strings for API
+      // Format numeric values as strings for API - API expects strings, not numbers
       const exchangeRateValue = parseFloat(data.exchangeRate?.toString() || "1.00").toFixed(2);
       const receivedBrokerageValue = parseFloat(data.receivedBrokerage?.toString() || "0").toFixed(2);
       const brokerageRateValue = parseFloat(data.brokerageRate?.toString() || "0").toFixed(2);
@@ -828,7 +828,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Subtotal:</span>
-                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateSubtotal().toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{subtotalValue.toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between items-center text-sm">
@@ -860,7 +860,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                   />
                   <span className="text-neutral-600 ml-1">%:</span>
                 </div>
-                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{calculateBrokerage().toFixed(2)}</span>
+                <span className="font-medium">{getCurrencySymbol(form.getValues().currency || 'INR')}{brokerageValue.toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between items-center text-sm mt-2">
@@ -896,7 +896,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-neutral-600">Brokerage in INR:</span>
-                <span className="font-medium">₹{calculateBrokerageInINR().toFixed(2)}</span>
+                <span className="font-medium">₹{brokerageInINRValue.toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between items-center text-sm mt-2">
@@ -931,7 +931,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-neutral-600">Balance Brokerage:</span>
-                <span className="font-medium">₹{calculateBalanceBrokerage().toFixed(2)}</span>
+                <span className="font-medium">₹{balanceBrokerageValue.toFixed(2)}</span>
               </div>
             </div>
             
