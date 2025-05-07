@@ -376,16 +376,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const invoiceId = parseInt(req.params.id);
       
-      // Extract the items array and remarks from the request body
-      const { items, remarks, ...updateData } = req.body;
+      console.log('Update invoice request body:', JSON.stringify(req.body, null, 2));
       
-      // If remarks field is provided, store it in the notes field
-      if (remarks !== undefined) {
-        updateData.notes = remarks;
+      // Extract the items array, notes/remarks and dates from the request body
+      const { items, notes, invoiceDate, dueDate, ...updateData } = req.body;
+      
+      // Fix dates if they're strings
+      if (invoiceDate && typeof invoiceDate === 'string') {
+        updateData.invoiceDate = new Date(invoiceDate);
       }
       
-      // Validate the core invoice data
-      const validatedUpdateData = invoicesInsertSchema.partial().parse(updateData);
+      if (dueDate && typeof dueDate === 'string') {
+        updateData.dueDate = new Date(dueDate);
+      }
+      
+      // If notes field is provided, include it in the update data
+      if (notes !== undefined) {
+        updateData.notes = notes;
+      }
       
       // First, let's get the current invoice to verify it exists
       const existingInvoice = await storage.getInvoiceById(invoiceId);
@@ -394,8 +402,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Invoice not found" });
       }
       
-      // Delete existing invoice items if new items are provided
+      // Prepare the data for validation - convert any number strings to numbers
+      const processedData = {...updateData};
+      
+      // Clean up the data for validation
+      if (processedData.partyId && typeof processedData.partyId === 'string') {
+        processedData.partyId = parseInt(processedData.partyId);
+      }
+      
+      if (processedData.buyerId && typeof processedData.buyerId === 'string') {
+        processedData.buyerId = parseInt(processedData.buyerId);
+      }
+      
+      // Validate the core invoice data
+      const validatedUpdateData = invoicesInsertSchema.partial().parse(processedData);
+      console.log('Validated update data:', validatedUpdateData);
+      
+      // Handle invoice items if provided
       if (items && Array.isArray(items)) {
+        console.log('Updating invoice items:', items);
+        
         // First, get the existing invoice items to handle deletion cleanly
         const existingItems = await storage.getInvoiceItems(invoiceId);
         
@@ -438,9 +464,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the updated invoice with items
       const fullUpdatedInvoice = await storage.getInvoiceById(invoiceId);
       
+      if (fullUpdatedInvoice) {
+        // Map notes to remarks for the response
+        fullUpdatedInvoice.remarks = fullUpdatedInvoice.notes || "";
+      }
+      
       res.json(fullUpdatedInvoice);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log('Validation error:', JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ errors: error.errors });
       }
       console.error("Error updating invoice:", error);

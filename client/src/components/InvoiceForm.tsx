@@ -210,6 +210,17 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const diffTime = Math.abs(dueDateObj.getTime() - invoiceDateObj.getTime());
       const calculatedDueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 15;
       
+      // Get remarks value, checking both invoice.remarks and invoice.notes
+      // Make sure to convert any null values to empty string
+      const remarksValue = invoice.remarks !== undefined && invoice.remarks !== null ? invoice.remarks : 
+                          (invoice.notes !== undefined && invoice.notes !== null ? invoice.notes : "");
+      
+      console.log("Remarks/Notes value from invoice:", {
+        remarks: invoice.remarks,
+        notes: invoice.notes,
+        finalValue: remarksValue
+      });
+      
       // Reset form with updated values from the invoice
       const formValues = {
         partyId: invoice.partyId?.toString() || "",
@@ -224,7 +235,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         exchangeRate: parseFloat(invoice.exchangeRate?.toString() || "1.00"),
         receivedBrokerage: parseFloat(invoice.receivedBrokerage?.toString() || "0"),
         isClosed: invoice.isClosed || false,
-        remarks: invoice.remarks || invoice.notes || "",
+        remarks: remarksValue,
       };
       
       console.log("Setting form values:", formValues);
@@ -358,9 +369,24 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     }
 
     try {
+      // Separate notes/remarks handling
+      const { remarks, ...restData } = data;
+      
+      // Format items correctly, removing temp id
+      const formattedItems = items.map(({ id, ...rest }) => ({
+        description: rest.description,
+        quantity: rest.quantity.toString(),
+        rate: rest.rate.toString()
+      }));
+      
+      // Build the invoice data object
       const invoiceData = {
-        ...data,
-        items: items.map(({ id, ...rest }) => rest), // Remove temporary id
+        ...restData,
+        // Explicitly set notes field to remarks value (that's how it's stored in DB)
+        notes: remarks || "",
+        // Include correctly formatted items
+        items: formattedItems,
+        // Format numeric values as strings for API
         subtotal: calculateSubtotal().toString(),
         tax: calculateBrokerage().toString(),
         exchangeRate: (data.exchangeRate || 1.00).toString(),
@@ -368,14 +394,22 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         receivedBrokerage: (data.receivedBrokerage || 0).toString(),
         balanceBrokerage: calculateBalanceBrokerage().toString(),
         total: calculateTotal().toString(),
-        // Convert date strings to Date objects
-        invoiceDate: new Date(data.invoiceDate),
-        dueDate: new Date(data.dueDate)
+        // Format dates properly
+        invoiceDate: data.invoiceDate,
+        dueDate: data.dueDate
       };
+      
+      console.log("Submitting invoice data:", invoiceData);
 
       if (isEditing && invoice) {
         // Update existing invoice
-        await apiRequest("PATCH", `/api/invoices/${invoice.id}`, invoiceData);
+        const response = await apiRequest("PATCH", `/api/invoices/${invoice.id}`, invoiceData);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Update error:", errorData);
+          throw new Error(errorData.message || "Failed to update invoice");
+        }
         
         queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
         toast({
@@ -384,7 +418,13 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         });
       } else {
         // Create new invoice
-        await apiRequest("POST", "/api/invoices", invoiceData);
+        const response = await apiRequest("POST", "/api/invoices", invoiceData);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Create error:", errorData);
+          throw new Error(errorData.message || "Failed to create invoice");
+        }
         
         queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
         toast({
@@ -399,9 +439,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       form.reset();
       setItems([{ id: crypto.randomUUID(), description: "", quantity: 1, rate: 0 }]);
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? 'update' : 'create'} note`,
+        description: `Failed to ${isEditing ? 'update' : 'create'} note: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
