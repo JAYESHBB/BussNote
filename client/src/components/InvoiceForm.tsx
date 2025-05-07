@@ -6,7 +6,7 @@ import { X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import { Party } from "@shared/schema";
+import { Party, Invoice } from "@shared/schema";
 
 import {
   Dialog,
@@ -91,10 +91,26 @@ interface InvoiceFormProps {
   invoice?: Invoice | null;
 }
 
-export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
+export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: crypto.randomUUID(), description: "", quantity: 1, rate: 0 },
   ]);
+  
+  const isEditing = !!invoice;
+  
+  // Load items when editing an invoice
+  useEffect(() => {
+    if (isEditing && invoice?.items?.length) {
+      // Convert invoice items to the local format with unique IDs
+      const formattedItems = invoice.items.map(item => ({
+        id: crypto.randomUUID(),
+        description: item.description || "",
+        quantity: parseFloat(item.quantity || "1"),
+        rate: parseFloat(item.rate || "0")
+      }));
+      setItems(formattedItems);
+    }
+  }, [isEditing, invoice]);
   
   const { data: parties } = useQuery<Party[]>({
     queryKey: ["/api/parties"],
@@ -102,9 +118,10 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
   
   const { toast } = useToast();
   
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  // Prepare default values based on whether we're editing or creating
+  const getDefaultValues = () => {
+    // Default values for new invoice
+    const newInvoiceDefaults = {
       partyId: "",
       buyerId: "",
       invoiceNo: "",
@@ -118,7 +135,33 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
       receivedBrokerage: 0,
       isClosed: false,
       remarks: "",
-    },
+    };
+    
+    // If editing an existing invoice, populate with its data
+    if (isEditing && invoice) {
+      return {
+        partyId: invoice.partyId?.toString() || "",
+        buyerId: invoice.buyerId?.toString() || "",
+        invoiceNo: invoice.invoiceNumber || "",
+        invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
+        dueDays: 15, // This would need calculation based on dueDate and invoiceDate
+        terms: invoice.terms || "Days",
+        dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
+        currency: invoice.currency || "INR",
+        brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
+        exchangeRate: parseFloat(invoice.exchangeRate || "1.00"),
+        receivedBrokerage: parseFloat(invoice.receivedBrokerage || "0"),
+        isClosed: invoice.isClosed || false,
+        remarks: invoice.notes || "",
+      };
+    }
+    
+    return newInvoiceDefaults;
+  };
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: getDefaultValues(),
   });
   
   // Calculate due date when invoice date or due days change
@@ -262,13 +305,25 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
         dueDate: new Date(data.dueDate)
       };
 
-      await apiRequest("POST", "/api/invoices", invoiceData);
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-      toast({
-        title: "Success",
-        description: "Note created successfully",
-      });
+      if (isEditing && invoice) {
+        // Update existing invoice
+        await apiRequest("PATCH", `/api/invoices/${invoice.id}`, invoiceData);
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+        toast({
+          title: "Success",
+          description: "Note updated successfully",
+        });
+      } else {
+        // Create new invoice
+        await apiRequest("POST", "/api/invoices", invoiceData);
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+        toast({
+          title: "Success",
+          description: "Note created successfully",
+        });
+      }
       
       onOpenChange(false);
       
@@ -278,7 +333,7 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create note",
+        description: `Failed to ${isEditing ? 'update' : 'create'} note`,
         variant: "destructive",
       });
     }
@@ -288,9 +343,12 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Note</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Note' : 'Add New Note'}</DialogTitle>
           <DialogDescription>
-            Create a new note to track sales between a seller and a buyer. Add items, set dates, and include additional information.
+            {isEditing 
+              ? 'Edit this note to update sales details between a seller and a buyer.'
+              : 'Create a new note to track sales between a seller and a buyer. Add items, set dates, and include additional information.'
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -708,7 +766,9 @@ export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Note</Button>
+              <Button type="submit">
+                {isEditing ? 'Update Note' : 'Save Note'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
