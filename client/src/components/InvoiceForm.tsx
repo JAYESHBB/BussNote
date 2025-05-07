@@ -39,8 +39,10 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
 // Round to 2 decimal places to avoid floating point precision issues
+// Using more precise implementation to handle floating point errors better
 const roundToTwoDecimals = (value: number): number => {
-  return Math.round(value * 100) / 100;
+  const rounded = Math.round((value + Number.EPSILON) * 100) / 100;
+  return parseFloat(rounded.toFixed(2)); // Ensure we always have exactly 2 decimal places
 };
 
 interface InvoiceItem {
