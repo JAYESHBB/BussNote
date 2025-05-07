@@ -10,7 +10,14 @@ import {
   Eye,
   Printer,
   MoreHorizontal,
-  MessageSquare
+  MessageSquare,
+  Edit,
+  CheckSquare,
+  Bell,
+  Copy,
+  XCircle,
+  Trash,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +46,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { Invoice } from "@shared/schema";
@@ -410,15 +427,42 @@ BussNote Team`;
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice)}>Mark as Paid</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSendReminder(invoice)}>Send Reminder</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateInvoice(invoice)}>Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setEditingInvoice(invoice);
+                              setIsInvoiceFormOpen(true);
+                            }}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice)}>
+                              <CheckSquare className="mr-2 h-4 w-4" />
+                              Mark as Paid
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendReminder(invoice)}>
+                              <Bell className="mr-2 h-4 w-4" />
+                              Send Reminder
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicateInvoice(invoice)}>
+                              <Copy className="mr-2 h-4 w-4" />
+                              Duplicate
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive"
                               onClick={() => handleCancelInvoice(invoice)}
                             >
+                              <XCircle className="mr-2 h-4 w-4" />
                               Cancel Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => {
+                                setInvoiceToDelete(invoice);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -474,7 +518,44 @@ BussNote Team`;
         </CardContent>
       </Card>
 
-      <InvoiceForm open={isInvoiceFormOpen} onOpenChange={setIsInvoiceFormOpen} />
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete Invoice #{invoiceToDelete?.invoiceNumber}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (invoiceToDelete) {
+                  deleteInvoiceMutation.mutate(invoiceToDelete.id);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deleteInvoiceMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash className="mr-2 h-4 w-4" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <InvoiceForm 
+        open={isInvoiceFormOpen} 
+        onOpenChange={(open) => {
+          setIsInvoiceFormOpen(open);
+          if (!open) setEditingInvoice(null);
+        }}
+        invoice={editingInvoice} 
+      />
     </>
   );
 }

@@ -88,6 +88,7 @@ const currencyOptions = [
 interface InvoiceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  invoice?: Invoice | null;
 }
 
 export function InvoiceForm({ open, onOpenChange }: InvoiceFormProps) {
