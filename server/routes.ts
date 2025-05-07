@@ -414,9 +414,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedData.buyerId = parseInt(processedData.buyerId);
       }
       
+      // Log the data we're trying to validate
+      console.log('Data to be validated:', JSON.stringify(processedData, null, 2));
+      
       // Validate the core invoice data
-      const validatedUpdateData = invoicesInsertSchema.partial().parse(processedData);
-      console.log('Validated update data:', validatedUpdateData);
+      let validatedUpdateData;
+      try {
+        validatedUpdateData = invoicesInsertSchema.partial().parse(processedData);
+        console.log('Validation successful, validated data:', JSON.stringify(validatedUpdateData, null, 2));
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          console.log('Detailed validation error:', JSON.stringify(validationError.errors, null, 2));
+        }
+        // Rethrow to be caught by the outer catch
+        throw validationError;
+      }
       
       // Handle invoice items if provided
       if (items && Array.isArray(items)) {
