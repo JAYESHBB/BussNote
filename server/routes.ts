@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { eq, desc, and, gte, lte, isNull, isNotNull } from "drizzle-orm";
+import { db } from "../db";
 import {
   parties,
   invoices,
@@ -355,12 +356,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(`${apiPrefix}/invoices/:id`, async (req, res) => {
     try {
       const invoiceId = parseInt(req.params.id);
-      const updateData = invoicesInsertSchema.partial().parse(req.body);
       
-      const updatedInvoice = await storage.updateInvoice(invoiceId, updateData);
+      // Extract the items array from the request body
+      const { items, ...updateData } = req.body;
+      
+      // Validate the core invoice data
+      const validatedUpdateData = invoicesInsertSchema.partial().parse(updateData);
+      
+      // First, let's get the current invoice to verify it exists
+      const existingInvoice = await storage.getInvoiceById(invoiceId);
+      
+      if (!existingInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Delete existing invoice items if new items are provided
+      if (items && Array.isArray(items)) {
+        // First, get the existing invoice items to handle deletion cleanly
+        const existingItems = await storage.getInvoiceItems(invoiceId);
+        
+        // Delete existing items if we found any
+        if (existingItems.length > 0) {
+          await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
+        }
+        
+        // Add new invoice items
+        if (items.length > 0) {
+          const itemsWithInvoiceId = items.map(item => ({
+            description: item.description,
+            quantity: item.quantity.toString(),
+            rate: item.rate.toString(),
+            invoiceId: invoiceId
+          }));
+          
+          await db.insert(invoiceItems).values(itemsWithInvoiceId);
+        }
+      }
+      
+      // Update the invoice
+      const updatedInvoice = await storage.updateInvoice(invoiceId, validatedUpdateData);
       
       if (!updatedInvoice) {
-        return res.status(404).json({ message: "Invoice not found" });
+        return res.status(500).json({ message: "Failed to update invoice" });
       }
       
       // Create an activity for the invoice update
@@ -374,7 +411,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         invoiceId: updatedInvoice.id
       });
       
-      res.json(updatedInvoice);
+      // Get the updated invoice with items
+      const fullUpdatedInvoice = await storage.getInvoiceById(invoiceId);
+      
+      res.json(fullUpdatedInvoice);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ errors: error.errors });
