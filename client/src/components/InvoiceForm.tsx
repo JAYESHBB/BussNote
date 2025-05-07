@@ -157,7 +157,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       terms: "Days",
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       currency: "INR",
-      brokerageRate: 0,
+      brokerageRate: 0.75, // Default brokerage rate is 0.75%
       exchangeRate: 1.00,
       receivedBrokerage: 0,
       isClosed: false,
@@ -174,7 +174,15 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const diffTime = Math.abs(dueDateObj.getTime() - invoiceDateObj.getTime());
       const calculatedDueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 15;
       
-      return {
+      // Ensure all numeric values are rounded properly
+      const brokerageRateValue = roundToTwoDecimals(parseFloat(invoice.brokerageRate?.toString() || "0.75"));
+      const exchangeRateValue = roundToTwoDecimals(parseFloat(invoice.exchangeRate?.toString() || "1.00"));
+      const receivedBrokerageValue = roundToTwoDecimals(parseFloat(invoice.receivedBrokerage?.toString() || "0"));
+      
+      const remarksOrNotes = invoice.remarks || invoice.notes || "";
+      console.log("Remarks/Notes value from invoice:", { remarks: invoice.remarks, notes: invoice.notes, finalValue: remarksOrNotes });
+      
+      const values = {
         partyId: invoice.partyId?.toString() || "",
         buyerId: invoice.buyerId?.toString() || "",
         invoiceNo: invoice.invoiceNo || invoice.invoiceNumber || "",
@@ -183,12 +191,15 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         terms: invoice.terms || "Days",
         dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
         currency: invoice.currency || "INR",
-        brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
-        exchangeRate: parseFloat(invoice.exchangeRate?.toString() || "1.00"),
-        receivedBrokerage: parseFloat(invoice.receivedBrokerage?.toString() || "0"),
+        brokerageRate: brokerageRateValue,
+        exchangeRate: exchangeRateValue,
+        receivedBrokerage: receivedBrokerageValue,
         isClosed: invoice.isClosed || false,
-        remarks: invoice.remarks || invoice.notes || "",
+        remarks: remarksOrNotes,
       };
+      
+      console.log("Setting form values:", values);
+      return values;
     }
     
     return newInvoiceDefaults;
@@ -199,7 +210,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     defaultValues: getDefaultValues(),
   });
   
-  // Reset form when invoice changes (for editing)
+  // Reset form when invoice changes (for editing) or when opening/closing modal
   useEffect(() => {
     if (isEditing && invoice) {
       console.log("Resetting form with invoice data:", invoice);
@@ -221,6 +232,11 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         finalValue: remarksValue
       });
       
+      // Round all decimal values properly for display
+      const brokerageRateValue = roundToTwoDecimals(parseFloat(invoice.brokerageRate?.toString() || "0.75"));
+      const exchangeRateValue = roundToTwoDecimals(parseFloat(invoice.exchangeRate?.toString() || "1.00"));
+      const receivedBrokerageValue = roundToTwoDecimals(parseFloat(invoice.receivedBrokerage?.toString() || "0"));
+      
       // Reset form with updated values from the invoice
       const formValues = {
         partyId: invoice.partyId?.toString() || "",
@@ -231,17 +247,40 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         terms: invoice.terms || "Days",
         dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
         currency: invoice.currency || "INR",
-        brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
-        exchangeRate: parseFloat(invoice.exchangeRate?.toString() || "1.00"),
-        receivedBrokerage: parseFloat(invoice.receivedBrokerage?.toString() || "0"),
+        brokerageRate: brokerageRateValue,
+        exchangeRate: exchangeRateValue,
+        receivedBrokerage: receivedBrokerageValue,
         isClosed: invoice.isClosed || false,
         remarks: remarksValue,
       };
       
       console.log("Setting form values:", formValues);
       form.reset(formValues);
+    } else if (!isEditing) {
+      // Reset form to defaults when creating a new invoice
+      const newInvoiceDefaults = {
+        partyId: "",
+        buyerId: "",
+        invoiceNo: "",
+        invoiceDate: new Date().toISOString().split("T")[0],
+        dueDays: 15,
+        terms: "Days",
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        currency: "INR",
+        brokerageRate: 0.75, // Default brokerage rate is 0.75%
+        exchangeRate: 1.00,
+        receivedBrokerage: 0,
+        isClosed: false,
+        remarks: "",
+      };
+      
+      // Reset form with default values
+      form.reset(newInvoiceDefaults);
+      
+      // Reset items to a single empty item
+      setItems([{ id: crypto.randomUUID(), description: "", quantity: 1, rate: 0 }]);
     }
-  }, [isEditing, invoice, form]);
+  }, [isEditing, invoice, form, open]);
   
   // Calculate due date when invoice date or due days change
   const calculateDueDate = (invoiceDate: string, dueDays: number): string => {
@@ -461,10 +500,30 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         });
       }
       
+      // Close the dialog first
       onOpenChange(false);
       
-      // Reset form
-      form.reset();
+      // Reset form to default values for a clean state on next open
+      const newInvoiceDefaults = {
+        partyId: "",
+        buyerId: "",
+        invoiceNo: "",
+        invoiceDate: new Date().toISOString().split("T")[0],
+        dueDays: 15,
+        terms: "Days",
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        currency: "INR",
+        brokerageRate: 0.75, // Default brokerage rate is 0.75%
+        exchangeRate: 1.00,
+        receivedBrokerage: 0,
+        isClosed: false,
+        remarks: "",
+      };
+      
+      // Reset form with default values 
+      form.reset(newInvoiceDefaults);
+      
+      // Reset items to a single empty item
       setItems([{ id: crypto.randomUUID(), description: "", quantity: 1, rate: 0 }]);
     } catch (error) {
       console.error("Form submission error:", error);
@@ -773,9 +832,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             placeholder="0.00" 
                             className="h-7 px-2 py-1 text-sm"
                             {...field} 
+                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "0" : e.target.value;
-                              field.onChange(parseFloat(value));
+                              field.onChange(roundToTwoDecimals(parseFloat(value)));
                             }}
                           />
                         </FormControl>
@@ -805,9 +865,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             className="h-7 px-2 py-1 text-sm"
                             disabled={currency === 'INR'}
                             {...field} 
+                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "1" : e.target.value;
-                              field.onChange(parseFloat(value));
+                              field.onChange(roundToTwoDecimals(parseFloat(value)));
                             }}
                           />
                         </FormControl>
