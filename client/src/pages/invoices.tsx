@@ -71,6 +71,7 @@ export default function InvoicesPage() {
   
   // Function to handle edit invoice
   const handleEditInvoice = (invoice: Invoice) => {
+    console.log("Editing invoice:", invoice);
     setEditingInvoice(invoice);
     setIsInvoiceFormOpen(true);
   };

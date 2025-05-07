@@ -92,11 +92,14 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
+  console.log("InvoiceForm received invoice:", invoice);
+  
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: crypto.randomUUID(), description: "", quantity: 1, rate: 0 },
   ]);
   
   const isEditing = !!invoice;
+  console.log("isEditing:", isEditing);
   
   // Load items when editing an invoice
   useEffect(() => {
