@@ -391,11 +391,6 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     return roundToTwoDecimals(calculateSubtotal() * (brokerageRate / 100));
   };
 
-  // Round to 2 decimal places to avoid floating point precision issues
-  const roundToTwoDecimals = (value: number): number => {
-    return Math.round(value * 100) / 100;
-  };
-
   const calculateBrokerageInINR = () => {
     return roundToTwoDecimals(calculateBrokerage() * exchangeRate);
   };
@@ -837,10 +832,9 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             placeholder="0.00" 
                             className="h-7 px-2 py-1 text-sm"
                             {...field} 
-                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "0" : e.target.value;
-                              field.onChange(roundToTwoDecimals(parseFloat(value)));
+                              field.onChange(parseFloat(value));
                             }}
                           />
                         </FormControl>
@@ -870,10 +864,9 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             className="h-7 px-2 py-1 text-sm"
                             disabled={currency === 'INR'}
                             {...field} 
-                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "1" : e.target.value;
-                              field.onChange(roundToTwoDecimals(parseFloat(value)));
+                              field.onChange(parseFloat(value));
                             }}
                           />
                         </FormControl>
@@ -906,10 +899,9 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             placeholder="0.00" 
                             className="h-7 px-2 py-1 text-sm"
                             {...field} 
-                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "0" : e.target.value;
-                              field.onChange(roundToTwoDecimals(parseFloat(value)));
+                              field.onChange(parseFloat(value));
                             }}
                           />
                         </FormControl>
