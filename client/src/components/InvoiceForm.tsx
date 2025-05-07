@@ -933,6 +933,11 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                 <span className="text-neutral-600">Balance Brokerage:</span>
                 <span className="font-medium">₹{balanceBrokerageValue.toFixed(2)}</span>
               </div>
+              
+              <div className="flex justify-between items-center font-medium mt-3 border-t pt-2">
+                <span>Total:</span>
+                <span>{getCurrencySymbol(form.getValues().currency || 'INR')}{totalValue.toFixed(2)}</span>
+              </div>
             </div>
             
             <FormField
