@@ -83,11 +83,11 @@ export default function InvoiceDetailsPage() {
     return <div className="flex justify-center items-center h-64">Loading invoice details...</div>;
   }
   
-  const formatCurrency = (amount: string | number) => {
+  const formatCurrency = (amount: string | number, currencyCode: string = 'INR') => {
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: currencyCode || 'INR',
       maximumFractionDigits: 2,
     }).format(numericAmount);
   };
@@ -164,11 +164,11 @@ export default function InvoiceDetailsPage() {
               <div class="info-box-title">Payment Summary</div>
               <div class="flex-row">
                 <span class="label">Subtotal:</span>
-                <span class="value">${formatCurrency(Number(invoice.subtotal))}</span>
+                <span class="value">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</span>
               </div>
               <div class="flex-row">
                 <span class="label">Brokerage (${invoice.brokerageRate || '0'}%):</span>
-                <span class="value">${formatCurrency(Number(invoice.tax))}</span>
+                <span class="value">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</span>
               </div>
               <div class="flex-row">
                 <span class="label">Currency:</span>
@@ -192,7 +192,7 @@ export default function InvoiceDetailsPage() {
               </div>
               <div class="flex-row" style="margin-top: 10px; font-weight: bold;">
                 <span class="label">Total:</span>
-                <span class="value">${formatCurrency(Number(invoice.total))}</span>
+                <span class="value">${formatCurrency(Number(invoice.total), invoice.currency || 'INR')}</span>
               </div>
             </div>
           </div>
@@ -213,24 +213,24 @@ export default function InvoiceDetailsPage() {
                   <tr>
                     <td>${item.description}</td>
                     <td class="text-right">${item.quantity}</td>
-                    <td class="text-right">${formatCurrency(Number(item.rate))}</td>
-                    <td class="text-right">${formatCurrency(Number(item.quantity) * Number(item.rate))}</td>
+                    <td class="text-right">${formatCurrency(Number(item.rate), invoice.currency || 'INR')}</td>
+                    <td class="text-right">${formatCurrency(Number(item.quantity) * Number(item.rate), invoice.currency || 'INR')}</td>
                   </tr>
                 `).join("") || ""}
                 <tr class="total-row">
                   <td colspan="2"></td>
                   <td class="text-right">Subtotal</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.subtotal))}</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</td>
                 </tr>
                 <tr class="total-row">
                   <td colspan="2"></td>
                   <td class="text-right">Brokerage (${invoice.brokerageRate || '0'}%)</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.tax))}</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</td>
                 </tr>
                 <tr class="total-row">
                   <td colspan="2"></td>
                   <td class="text-right">Total</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.total))}</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.total), invoice.currency || 'INR')}</td>
                 </tr>
               </tbody>
             </table>
@@ -464,12 +464,12 @@ export default function InvoiceDetailsPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-neutral-600">Subtotal:</span>
-                <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
+                <span className="font-medium">{formatCurrency(invoice.subtotal, invoice.currency)}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-neutral-600">Brokerage ({invoice.brokerageRate || '0'}%):</span>
-                <span className="font-medium">{formatCurrency(invoice.tax)}</span>
+                <span className="font-medium">{formatCurrency(invoice.tax, invoice.currency)}</span>
               </div>
 
               <div className="flex justify-between">
@@ -484,17 +484,17 @@ export default function InvoiceDetailsPage() {
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Brokerage in INR:</span>
-                <span className="font-medium">{formatCurrency(invoice.brokerageInINR || '0')}</span>
+                <span className="font-medium">{formatCurrency(invoice.brokerageInINR || '0', 'INR')}</span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Received Brokerage:</span>
-                <span className="font-medium">{formatCurrency(invoice.receivedBrokerage || '0')}</span>
+                <span className="font-medium">{formatCurrency(invoice.receivedBrokerage || '0', 'INR')}</span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Balance Brokerage:</span>
-                <span className="font-medium">{formatCurrency(invoice.balanceBrokerage || '0')}</span>
+                <span className="font-medium">{formatCurrency(invoice.balanceBrokerage || '0', 'INR')}</span>
               </div>
               
               <div className="flex justify-between">
@@ -553,24 +553,24 @@ export default function InvoiceDetailsPage() {
                 <TableRow key={index}>
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(Number(item.quantity) * Number(item.rate))}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.rate, invoice.currency)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(Number(item.quantity) * Number(item.rate), invoice.currency)}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
                 <TableCell className="text-right font-medium">Subtotal</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(invoice.subtotal)}</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(invoice.subtotal, invoice.currency)}</TableCell>
               </TableRow>
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
                 <TableCell className="text-right font-medium">Brokerage ({invoice.brokerageRate || '0'}%)</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(invoice.tax)}</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(invoice.tax, invoice.currency)}</TableCell>
               </TableRow>
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
                 <TableCell className="text-right font-bold">Total</TableCell>
-                <TableCell className="text-right font-bold">{formatCurrency(invoice.total)}</TableCell>
+                <TableCell className="text-right font-bold">{formatCurrency(invoice.total, invoice.currency)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
