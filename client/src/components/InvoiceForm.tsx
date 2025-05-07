@@ -105,9 +105,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const formattedItems = invoice.items.map(item => ({
         id: crypto.randomUUID(),
         description: item.description || "",
-        quantity: parseFloat(item.quantity || "1"),
-        rate: parseFloat(item.rate || "0")
+        quantity: parseFloat(typeof item.quantity === 'string' ? item.quantity : String(item.quantity) || "1"),
+        rate: parseFloat(typeof item.rate === 'string' ? item.rate : String(item.rate) || "0")
       }));
+      console.log("Loading invoice items for editing:", formattedItems);
       setItems(formattedItems);
     }
   }, [isEditing, invoice]);
@@ -163,6 +164,28 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: getDefaultValues(),
   });
+  
+  // Reset form when invoice changes (for editing)
+  useEffect(() => {
+    if (isEditing && invoice) {
+      // Reset form with updated values from the invoice
+      form.reset({
+        partyId: invoice.partyId?.toString() || "",
+        buyerId: invoice.buyerId?.toString() || "",
+        invoiceNo: invoice.invoiceNumber || "",
+        invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
+        dueDays: 15, // Calculate based on dueDate and invoiceDate
+        terms: invoice.terms || "Days",
+        dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
+        currency: invoice.currency || "INR",
+        brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
+        exchangeRate: parseFloat(invoice.exchangeRate || "1.00"),
+        receivedBrokerage: parseFloat(invoice.receivedBrokerage || "0"),
+        isClosed: invoice.isClosed || false,
+        remarks: invoice.notes || "",
+      });
+    }
+  }, [isEditing, invoice, form]);
   
   // Calculate due date when invoice date or due days change
   const calculateDueDate = (invoiceDate: string, dueDays: number): string => {
@@ -361,7 +384,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Select Seller</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a seller" />
@@ -388,7 +411,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                     <FormLabel>Select Buyer</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className={partyId && field.value === partyId ? "border-red-500" : ""}>
@@ -477,7 +500,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Terms</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select terms" />
@@ -518,7 +541,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Currency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select currency" />
