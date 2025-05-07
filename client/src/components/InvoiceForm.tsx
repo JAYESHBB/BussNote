@@ -334,7 +334,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   };
 
   const calculateSubtotal = () => {
-    return items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
+    return roundToTwoDecimals(subtotal);
   };
 
   const brokerageRate = form.watch("brokerageRate");
@@ -343,19 +344,24 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   const currency = form.watch("currency");
 
   const calculateBrokerage = () => {
-    return calculateSubtotal() * (brokerageRate / 100);
+    return roundToTwoDecimals(calculateSubtotal() * (brokerageRate / 100));
+  };
+
+  // Round to 2 decimal places to avoid floating point precision issues
+  const roundToTwoDecimals = (value: number): number => {
+    return Math.round(value * 100) / 100;
   };
 
   const calculateBrokerageInINR = () => {
-    return calculateBrokerage() * exchangeRate;
+    return roundToTwoDecimals(calculateBrokerage() * exchangeRate);
   };
 
   const calculateBalanceBrokerage = () => {
-    return calculateBrokerageInINR() - receivedBrokerage;
+    return roundToTwoDecimals(calculateBrokerageInINR() - receivedBrokerage);
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateBrokerage();
+    return roundToTwoDecimals(calculateSubtotal() + calculateBrokerage());
   };
 
   const onSubmit = async (data: FormData) => {
@@ -379,9 +385,16 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         rate: rest.rate.toString()
       }));
       
+      // Ensure all numeric values are properly rounded
+      const exchangeRateValue = roundToTwoDecimals(data.exchangeRate || 1.00);
+      const receivedBrokerageValue = roundToTwoDecimals(data.receivedBrokerage || 0);
+      const brokerageRateValue = roundToTwoDecimals(data.brokerageRate || 0);
+      
       // Build the invoice data object
       const invoiceData = {
         ...restData,
+        // Replace brokerageRate with the rounded value
+        brokerageRate: brokerageRateValue.toString(),
         // Explicitly set notes field to remarks value (that's how it's stored in DB)
         notes: remarks || "",
         // Include correctly formatted items
@@ -389,9 +402,9 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         // Format numeric values as strings for API
         subtotal: calculateSubtotal().toString(),
         tax: calculateBrokerage().toString(),
-        exchangeRate: (data.exchangeRate || 1.00).toString(),
+        exchangeRate: exchangeRateValue.toString(),
         brokerageInINR: calculateBrokerageInINR().toString(),
-        receivedBrokerage: (data.receivedBrokerage || 0).toString(),
+        receivedBrokerage: receivedBrokerageValue.toString(),
         balanceBrokerage: calculateBalanceBrokerage().toString(),
         total: calculateTotal().toString(),
         // Format dates properly
