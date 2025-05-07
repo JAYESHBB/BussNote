@@ -414,6 +414,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedData.buyerId = parseInt(processedData.buyerId);
       }
       
+      // Process numeric fields - ensure all are the right type
+      // Drizzle/zod expects numbers not strings for numeric fields
+      if (processedData.exchangeRate && typeof processedData.exchangeRate === 'string') {
+        processedData.exchangeRate = parseFloat(processedData.exchangeRate);
+      }
+      
+      if (processedData.brokerageRate && typeof processedData.brokerageRate === 'string') {
+        processedData.brokerageRate = parseFloat(processedData.brokerageRate);
+      }
+      
+      if (processedData.subtotal && typeof processedData.subtotal === 'string') {
+        processedData.subtotal = processedData.subtotal;
+      }
+      
+      if (processedData.tax && typeof processedData.tax === 'string') {
+        processedData.tax = processedData.tax;
+      }
+      
+      if (processedData.brokerageInINR && typeof processedData.brokerageInINR === 'string') {
+        processedData.brokerageInINR = processedData.brokerageInINR;
+      }
+      
+      if (processedData.receivedBrokerage && typeof processedData.receivedBrokerage === 'string') {
+        processedData.receivedBrokerage = processedData.receivedBrokerage;
+      }
+      
+      if (processedData.balanceBrokerage && typeof processedData.balanceBrokerage === 'string') {
+        processedData.balanceBrokerage = processedData.balanceBrokerage;
+      }
+      
+      if (processedData.total && typeof processedData.total === 'string') {
+        processedData.total = processedData.total;
+      }
+      
+      // For boolean fields
+      if (processedData.isClosed !== undefined) {
+        // Ensure it's a proper boolean
+        processedData.isClosed = Boolean(processedData.isClosed);
+      }
+      
       // Log the data we're trying to validate
       console.log('Data to be validated:', JSON.stringify(processedData, null, 2));
       

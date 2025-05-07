@@ -386,27 +386,42 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       }));
       
       // Ensure all numeric values are properly rounded
-      const exchangeRateValue = roundToTwoDecimals(data.exchangeRate || 1.00);
-      const receivedBrokerageValue = roundToTwoDecimals(data.receivedBrokerage || 0);
-      const brokerageRateValue = roundToTwoDecimals(data.brokerageRate || 0);
+      const exchangeRateValue = roundToTwoDecimals(parseFloat(data.exchangeRate?.toString() || "1.00"));
+      const receivedBrokerageValue = roundToTwoDecimals(parseFloat(data.receivedBrokerage?.toString() || "0"));
+      const brokerageRateValue = roundToTwoDecimals(parseFloat(data.brokerageRate?.toString() || "0"));
+      
+      // Convert other string values to ensure consistent types
+      const partyId = typeof data.partyId === 'string' ? parseInt(data.partyId) : data.partyId;
+      const buyerId = typeof data.buyerId === 'string' ? parseInt(data.buyerId) : data.buyerId;
+      const dueDays = typeof data.dueDays === 'string' ? parseInt(data.dueDays) : data.dueDays;
       
       // Build the invoice data object
       const invoiceData = {
-        ...restData,
-        // Replace brokerageRate with the rounded value
-        brokerageRate: brokerageRateValue.toString(),
+        // Main fields with correct types
+        partyId,
+        buyerId,
+        invoiceNo: data.invoiceNo,
+        dueDays,
+        terms: data.terms,
+        currency: data.currency,
+        isClosed: data.isClosed,
+        
         // Explicitly set notes field to remarks value (that's how it's stored in DB)
         notes: remarks || "",
+        
         // Include correctly formatted items
         items: formattedItems,
+        
         // Format numeric values as strings for API
         subtotal: calculateSubtotal().toString(),
         tax: calculateBrokerage().toString(),
+        brokerageRate: brokerageRateValue.toString(),
         exchangeRate: exchangeRateValue.toString(),
         brokerageInINR: calculateBrokerageInINR().toString(),
         receivedBrokerage: receivedBrokerageValue.toString(),
         balanceBrokerage: calculateBalanceBrokerage().toString(),
         total: calculateTotal().toString(),
+        
         // Format dates properly
         invoiceDate: data.invoiceDate,
         dueDate: data.dueDate
