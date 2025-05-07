@@ -203,9 +203,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get invoice items
       const items = await storage.getInvoiceItems(invoiceId);
-      invoice.items = items;
       
-      res.json(invoice);
+      // Calculate brokerage rate if not available
+      let brokerageRate = invoice.brokerageRate;
+      if (!brokerageRate && invoice.subtotal && invoice.tax) {
+        const subtotal = parseFloat(invoice.subtotal);
+        const tax = parseFloat(invoice.tax);
+        if (!isNaN(subtotal) && !isNaN(tax) && subtotal > 0) {
+          brokerageRate = (tax / subtotal) * 100;
+        } else {
+          brokerageRate = 0.75; // Default brokerage rate
+        }
+      }
+      
+      // Return complete invoice data with all fields needed for editing
+      const completeInvoice = {
+        ...invoice,
+        items,
+        brokerageRate: brokerageRate || 0.75,
+        remarks: invoice.notes || "", // Use notes field for remarks if missing
+      };
+      
+      res.json(completeInvoice);
     } catch (error) {
       console.error("Error fetching invoice:", error);
       res.status(500).json({ message: "Failed to fetch invoice" });
@@ -357,8 +376,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const invoiceId = parseInt(req.params.id);
       
-      // Extract the items array from the request body
-      const { items, ...updateData } = req.body;
+      // Extract the items array and remarks from the request body
+      const { items, remarks, ...updateData } = req.body;
+      
+      // If remarks field is provided, store it in the notes field
+      if (remarks !== undefined) {
+        updateData.notes = remarks;
+      }
       
       // Validate the core invoice data
       const validatedUpdateData = invoicesInsertSchema.partial().parse(updateData);
@@ -458,6 +482,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting invoice:", error);
       res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
+  // Get items for a specific invoice
+  app.get(`${apiPrefix}/invoices/:id/items`, async (req, res) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      const items = await storage.getInvoiceItems(invoiceId);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching invoice items:", error);
+      res.status(500).json({ message: "Failed to fetch invoice items" });
     }
   });
 

@@ -101,20 +101,43 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   const isEditing = !!invoice;
   console.log("isEditing:", isEditing);
   
+  // Fetch invoice items if not included
+  const { data: invoiceItems } = useQuery<InvoiceItem[]>({
+    queryKey: ["/api/invoices", invoice?.id, "items"],
+    queryFn: async () => {
+      if (!isEditing || !invoice?.id) return [];
+      const res = await apiRequest("GET", `/api/invoices/${invoice.id}/items`);
+      return await res.json();
+    },
+    enabled: isEditing && invoice?.id !== undefined && !invoice?.items?.length
+  });
+
   // Load items when editing an invoice
   useEffect(() => {
-    if (isEditing && invoice?.items?.length) {
-      // Convert invoice items to the local format with unique IDs
-      const formattedItems = invoice.items.map(item => ({
-        id: crypto.randomUUID(),
-        description: item.description || "",
-        quantity: parseFloat(typeof item.quantity === 'string' ? item.quantity : String(item.quantity) || "1"),
-        rate: parseFloat(typeof item.rate === 'string' ? item.rate : String(item.rate) || "0")
-      }));
-      console.log("Loading invoice items for editing:", formattedItems);
-      setItems(formattedItems);
+    if (isEditing) {
+      if (invoice?.items?.length) {
+        // Convert invoice items to the local format with unique IDs
+        const formattedItems = invoice.items.map(item => ({
+          id: crypto.randomUUID(),
+          description: item.description || "",
+          quantity: parseFloat(typeof item.quantity === 'string' ? item.quantity : String(item.quantity) || "1"),
+          rate: parseFloat(typeof item.rate === 'string' ? item.rate : String(item.rate) || "0")
+        }));
+        console.log("Loading invoice items from invoice:", formattedItems);
+        setItems(formattedItems);
+      } else if (invoiceItems && invoiceItems.length > 0) {
+        // Use items fetched from separate query
+        const formattedItems = invoiceItems.map(item => ({
+          id: crypto.randomUUID(),
+          description: item.description || "",
+          quantity: parseFloat(typeof item.quantity === 'string' ? item.quantity : String(item.quantity) || "1"),
+          rate: parseFloat(typeof item.rate === 'string' ? item.rate : String(item.rate) || "0")
+        }));
+        console.log("Loading invoice items from separate query:", formattedItems);
+        setItems(formattedItems);
+      }
     }
-  }, [isEditing, invoice]);
+  }, [isEditing, invoice, invoiceItems]);
   
   const { data: parties } = useQuery<Party[]>({
     queryKey: ["/api/parties"],

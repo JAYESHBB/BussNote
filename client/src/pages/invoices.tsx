@@ -434,9 +434,22 @@ BussNote Team`;
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => {
-                              setEditingInvoice(invoice);
-                              setIsInvoiceFormOpen(true);
+                            <DropdownMenuItem onClick={async () => {
+                              console.log("Fetching complete invoice data for editing");
+                              try {
+                                // Fetch complete invoice data with items
+                                const res = await apiRequest("GET", `/api/invoices/${invoice.id}`);
+                                const completeInvoice = await res.json();
+                                console.log("Complete invoice data:", completeInvoice);
+                                setEditingInvoice(completeInvoice);
+                                setIsInvoiceFormOpen(true);
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to load invoice data for editing",
+                                  variant: "destructive"
+                                });
+                              }
                             }}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
