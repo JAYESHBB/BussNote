@@ -380,8 +380,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   };
 
   const calculateSubtotal = () => {
+    // Calculate the sum of all items with quantity * rate
     const subtotal = items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    return roundToTwoDecimals(subtotal);
+    // Ensure we get exactly 2 decimal places with proper rounding
+    return parseFloat((Math.round((subtotal + Number.EPSILON) * 100) / 100).toFixed(2));
   };
 
   const brokerageRate = form.watch("brokerageRate");
@@ -390,19 +392,31 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   const currency = form.watch("currency");
 
   const calculateBrokerage = () => {
-    return roundToTwoDecimals(calculateSubtotal() * (brokerageRate / 100));
+    // Use precise calculation for brokerage
+    const result = calculateSubtotal() * (brokerageRate / 100);
+    // Ensure we get exactly 2 decimal places with proper rounding
+    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
   };
 
   const calculateBrokerageInINR = () => {
-    return roundToTwoDecimals(calculateBrokerage() * exchangeRate);
+    // For better precision, do the calc and then format to 2 decimals
+    const result = calculateBrokerage() * exchangeRate;
+    // Ensure we get exactly 2 decimal places with proper rounding
+    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
   };
 
   const calculateBalanceBrokerage = () => {
-    return roundToTwoDecimals(calculateBrokerageInINR() - receivedBrokerage);
+    // Use precise calculation for balance
+    const result = calculateBrokerageInINR() - receivedBrokerage;
+    // Ensure we get exactly 2 decimal places with proper rounding
+    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
   };
 
   const calculateTotal = () => {
-    return roundToTwoDecimals(calculateSubtotal() + calculateBrokerage());
+    // Use precise calculation for total
+    const result = calculateSubtotal() + calculateBrokerage();
+    // Ensure we get exactly 2 decimal places with proper rounding
+    return parseFloat((Math.round((result + Number.EPSILON) * 100) / 100).toFixed(2));
   };
 
   const onSubmit = async (data: FormData) => {
