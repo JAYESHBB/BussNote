@@ -407,10 +407,10 @@ class DatabaseStorage implements IStorage {
     };
   }
   
-  async updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined> {
+  async updateInvoice(id: number, updateData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
     const [updatedInvoice] = await db
       .update(invoices)
-      .set({ notes, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(invoices.id, id))
       .returning();
       
@@ -425,8 +425,29 @@ class DatabaseStorage implements IStorage {
     return {
       ...updatedInvoice,
       partyName: seller?.name || 'Unknown',
-      buyerName: buyer?.name || 'Unknown'
+      buyerName: buyer?.name || 'Unknown',
+      partyEmail: seller?.email,
+      buyerEmail: buyer?.email
     };
+  }
+
+  async updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined> {
+    return this.updateInvoice(id, { notes });
+  }
+  
+  async deleteInvoice(id: number): Promise<boolean> {
+    try {
+      // First delete related invoice items
+      await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+      
+      // Delete the invoice
+      const result = await db.delete(invoices).where(eq(invoices.id, id));
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      return false;
+    }
   }
   
   async getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]> {
