@@ -143,20 +143,28 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     
     // If editing an existing invoice, populate with its data
     if (isEditing && invoice) {
+      console.log("getDefaultValues for editing, invoice:", invoice);
+      
+      // Calculate due days based on invoice date and due date
+      const invoiceDateObj = new Date(invoice.invoiceDate);
+      const dueDateObj = new Date(invoice.dueDate);
+      const diffTime = Math.abs(dueDateObj.getTime() - invoiceDateObj.getTime());
+      const calculatedDueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 15;
+      
       return {
         partyId: invoice.partyId?.toString() || "",
         buyerId: invoice.buyerId?.toString() || "",
-        invoiceNo: invoice.invoiceNumber || "",
+        invoiceNo: invoice.invoiceNo || invoice.invoiceNumber || "",
         invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
-        dueDays: 15, // This would need calculation based on dueDate and invoiceDate
+        dueDays: invoice.dueDays || calculatedDueDays,
         terms: invoice.terms || "Days",
         dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
         currency: invoice.currency || "INR",
         brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
-        exchangeRate: parseFloat(invoice.exchangeRate || "1.00"),
-        receivedBrokerage: parseFloat(invoice.receivedBrokerage || "0"),
+        exchangeRate: parseFloat(invoice.exchangeRate?.toString() || "1.00"),
+        receivedBrokerage: parseFloat(invoice.receivedBrokerage?.toString() || "0"),
         isClosed: invoice.isClosed || false,
-        remarks: invoice.notes || "",
+        remarks: invoice.remarks || invoice.notes || "",
       };
     }
     
@@ -171,22 +179,33 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   // Reset form when invoice changes (for editing)
   useEffect(() => {
     if (isEditing && invoice) {
+      console.log("Resetting form with invoice data:", invoice);
+      
+      // Calculate due days based on invoice date and due date
+      const invoiceDateObj = new Date(invoice.invoiceDate);
+      const dueDateObj = new Date(invoice.dueDate);
+      const diffTime = Math.abs(dueDateObj.getTime() - invoiceDateObj.getTime());
+      const calculatedDueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 15;
+      
       // Reset form with updated values from the invoice
-      form.reset({
+      const formValues = {
         partyId: invoice.partyId?.toString() || "",
         buyerId: invoice.buyerId?.toString() || "",
-        invoiceNo: invoice.invoiceNumber || "",
+        invoiceNo: invoice.invoiceNo || invoice.invoiceNumber || "",
         invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
-        dueDays: 15, // Calculate based on dueDate and invoiceDate
+        dueDays: invoice.dueDays || calculatedDueDays || 15,
         terms: invoice.terms || "Days",
         dueDate: new Date(invoice.dueDate).toISOString().split("T")[0],
         currency: invoice.currency || "INR",
         brokerageRate: parseFloat(invoice.brokerageRate?.toString() || "0"),
-        exchangeRate: parseFloat(invoice.exchangeRate || "1.00"),
-        receivedBrokerage: parseFloat(invoice.receivedBrokerage || "0"),
+        exchangeRate: parseFloat(invoice.exchangeRate?.toString() || "1.00"),
+        receivedBrokerage: parseFloat(invoice.receivedBrokerage?.toString() || "0"),
         isClosed: invoice.isClosed || false,
-        remarks: invoice.notes || "",
-      });
+        remarks: invoice.remarks || invoice.notes || "",
+      };
+      
+      console.log("Setting form values:", formValues);
+      form.reset(formValues);
     }
   }, [isEditing, invoice, form]);
   

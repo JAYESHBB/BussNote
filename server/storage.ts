@@ -289,7 +289,10 @@ class DatabaseStorage implements IStorage {
       .select({
         id: invoices.id,
         invoiceNumber: invoices.invoiceNumber,
+        invoiceNo: invoices.invoiceNo,
         invoiceDate: invoices.invoiceDate,
+        dueDays: invoices.dueDays,
+        terms: invoices.terms,
         dueDate: invoices.dueDate,
         status: invoices.status,
         subtotal: invoices.subtotal,
@@ -302,10 +305,13 @@ class DatabaseStorage implements IStorage {
         buyerId: invoices.buyerId,
         partyName: parties.name,
         currency: invoices.currency,
+        exchangeRate: invoices.exchangeRate,
+        brokerageRate: invoices.brokerageRate,
         brokerageInINR: invoices.brokerageInINR,
         receivedBrokerage: invoices.receivedBrokerage,
         balanceBrokerage: invoices.balanceBrokerage,
         isClosed: invoices.isClosed,
+        remarks: invoices.remarks,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt
       })
