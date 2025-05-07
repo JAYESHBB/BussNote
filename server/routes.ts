@@ -389,28 +389,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const invoiceId = parseInt(req.params.id);
       
-      // Get invoice details before deletion (for activity log)
+      // Get invoice details before deletion
       const invoice = await storage.getInvoiceById(invoiceId);
       
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
       
+      // Store details for the response
+      const invoiceNumber = invoice.invoiceNumber;
+      const partyId = invoice.partyId;
+      
+      // Delete the invoice and all related records
       const success = await storage.deleteInvoice(invoiceId);
       
       if (!success) {
         return res.status(500).json({ message: "Failed to delete invoice" });
       }
       
-      // Log activity
-      await storage.createActivity({
-        userId: req.user!.id,
-        type: "invoice_deleted",
-        title: "Invoice deleted",
-        description: `Deleted invoice #${invoice.invoiceNumber}`,
-        partyId: invoice.partyId,
-        timestamp: new Date()
-      });
+      // We don't log activity to avoid circular foreign key reference
+      // since we just deleted activities related to this invoice
       
       res.status(200).json({ message: "Invoice deleted successfully" });
     } catch (error) {

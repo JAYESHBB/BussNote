@@ -427,16 +427,19 @@ class DatabaseStorage implements IStorage {
   
   async deleteInvoice(id: number): Promise<boolean> {
     try {
-      // First delete related invoice items
+      // First delete related activities that reference this invoice
+      await db.delete(activities).where(eq(activities.invoiceId, id));
+      
+      // Then delete related invoice items
       await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
       
-      // Delete the invoice
+      // Finally delete the invoice
       const result = await db.delete(invoices).where(eq(invoices.id, id));
       
       return result.rowCount ? result.rowCount > 0 : false;
     } catch (error) {
       console.error("Error deleting invoice:", error);
-      return false;
+      throw error; // Re-throw for better error handling upstream
     }
   }
   
