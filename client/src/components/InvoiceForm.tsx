@@ -424,10 +424,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         rate: rest.rate.toString()
       }));
       
-      // Ensure all numeric values are properly rounded
-      const exchangeRateValue = roundToTwoDecimals(parseFloat(data.exchangeRate?.toString() || "1.00"));
-      const receivedBrokerageValue = roundToTwoDecimals(parseFloat(data.receivedBrokerage?.toString() || "0"));
-      const brokerageRateValue = roundToTwoDecimals(parseFloat(data.brokerageRate?.toString() || "0"));
+      // Don't round input values, just convert them to fixed strings for API
+      const exchangeRateValue = parseFloat(data.exchangeRate?.toString() || "1.00").toFixed(2);
+      const receivedBrokerageValue = parseFloat(data.receivedBrokerage?.toString() || "0").toFixed(2);
+      const brokerageRateValue = parseFloat(data.brokerageRate?.toString() || "0").toFixed(2);
       
       // Convert other string values to ensure consistent types
       const partyId = typeof data.partyId === 'string' ? parseInt(data.partyId) : data.partyId;
@@ -454,10 +454,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         // Format numeric values as strings for API
         subtotal: calculateSubtotal().toString(),
         tax: calculateBrokerage().toString(),
-        brokerageRate: brokerageRateValue.toString(),
-        exchangeRate: exchangeRateValue.toString(),
+        brokerageRate: brokerageRateValue,
+        exchangeRate: exchangeRateValue,
         brokerageInINR: calculateBrokerageInINR().toString(),
-        receivedBrokerage: receivedBrokerageValue.toString(),
+        receivedBrokerage: receivedBrokerageValue,
         balanceBrokerage: calculateBalanceBrokerage().toString(),
         total: calculateTotal().toString(),
         
