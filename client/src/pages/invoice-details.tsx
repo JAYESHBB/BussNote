@@ -167,7 +167,7 @@ export default function InvoiceDetailsPage() {
                 <span class="value">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</span>
               </div>
               <div class="flex-row">
-                <span class="label">Brokerage (${invoice.brokerageRate || '0'}%):</span>
+                <span class="label">Brokerage (${Number(invoice.brokerageRate).toFixed(2) || '0.00'}%):</span>
                 <span class="value">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</span>
               </div>
               <div class="flex-row">
@@ -224,7 +224,7 @@ export default function InvoiceDetailsPage() {
                 </tr>
                 <tr class="total-row">
                   <td colspan="2"></td>
-                  <td class="text-right">Brokerage (${invoice.brokerageRate || '0'}%)</td>
+                  <td class="text-right">Brokerage (${Number(invoice.brokerageRate).toFixed(2) || '0.00'}%)</td>
                   <td class="text-right">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</td>
                 </tr>
                 <tr class="total-row">
@@ -468,7 +468,7 @@ export default function InvoiceDetailsPage() {
               </div>
               
               <div className="flex justify-between">
-                <span className="text-neutral-600">Brokerage ({invoice.brokerageRate || '0'}%):</span>
+                <span className="text-neutral-600">Brokerage ({Number(invoice.brokerageRate).toFixed(2) || '0.00'}%):</span>
                 <span className="font-medium">{formatCurrency(invoice.tax, invoice.currency)}</span>
               </div>
 
@@ -564,7 +564,7 @@ export default function InvoiceDetailsPage() {
               </TableRow>
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
-                <TableCell className="text-right font-medium">Brokerage ({invoice.brokerageRate || '0'}%)</TableCell>
+                <TableCell className="text-right font-medium">Brokerage ({Number(invoice.brokerageRate).toFixed(2) || '0.00'}%)</TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(invoice.tax, invoice.currency)}</TableCell>
               </TableRow>
               <TableRow className="bg-neutral-50">
