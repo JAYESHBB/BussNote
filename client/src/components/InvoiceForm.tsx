@@ -901,9 +901,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             placeholder="0.00" 
                             className="h-7 px-2 py-1 text-sm"
                             {...field} 
+                            value={field.value.toFixed(2)}
                             onChange={(e) => {
                               const value = e.target.value === "" ? "0" : e.target.value;
-                              field.onChange(parseFloat(value));
+                              field.onChange(roundToTwoDecimals(parseFloat(value)));
                             }}
                           />
                         </FormControl>
