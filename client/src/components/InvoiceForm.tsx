@@ -442,8 +442,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   const calculateSubtotal = () => subtotalValue;
   const calculateBrokerage = () => brokerageValue;
   const calculateBrokerageInINR = () => {
-    // Apply mathematical rounding here to ensure consistent formatting
-    // This ensures the value is rounded the same way everywhere it's used
+    // Apply standard mathematical rounding for Brokerage in INR calculation
+    // This ensures the value is properly rounded both in display and when saved
     return Math.round(brokerageValue * exchangeRate * 100) / 100;
   };
   const calculateBalanceBrokerage = () => balanceBrokerageValue;
