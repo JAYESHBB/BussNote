@@ -566,7 +566,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Invoice not found" });
         }
         
-        // Log each delete operation and its result
+        // We've discovered that the database operations need to be done in a specific order
+        // First delete related records in child tables
         console.log(`Deleting invoice items for invoice ${invoiceId}...`);
         const itemsResult = await client.query('DELETE FROM invoice_items WHERE invoice_id = $1 RETURNING id', [invoiceId]);
         console.log(`Deleted ${itemsResult.rowCount} invoice items`);
@@ -579,9 +580,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const transactionsResult = await client.query('DELETE FROM transactions WHERE invoice_id = $1 RETURNING id', [invoiceId]);
         console.log(`Deleted ${transactionsResult.rowCount} transactions`);
         
+        // After deleting all related records, delete the invoice itself
         console.log(`Deleting invoice ${invoiceId}...`);
         const invoiceResult = await client.query('DELETE FROM invoices WHERE id = $1 RETURNING id', [invoiceId]);
         console.log(`Deleted invoice result: ${JSON.stringify(invoiceResult.rows)}`);
+        
+        // Confirm invoice was deleted by checking if it still exists
+        const checkDeletedResult = await client.query('SELECT id FROM invoices WHERE id = $1', [invoiceId]);
+        if (checkDeletedResult.rows.length > 0) {
+          // This should never happen if deletion worked
+          await client.query('ROLLBACK');
+          console.error(`Failed to delete invoice ${invoiceId}, it still exists after deletion`);
+          return res.status(500).json({ message: "Failed to delete invoice - it still exists in the database" });
+        }
         
         if (invoiceResult.rowCount === 0) {
           await client.query('ROLLBACK');
