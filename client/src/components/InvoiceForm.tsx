@@ -430,12 +430,12 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
 
   const brokerageInINRValue = React.useMemo(() => {
     // Special rounding ONLY for Brokerage in INR field
-    // First calculate the raw value
+    // First calculate the raw value without any rounding
     const rawValue = brokerageValue * exchangeRate;
     
-    // Truncate to 2 decimal places for INR calculation (no rounding)
-    // This method specifically avoids rounding up for financial accuracy
-    return Math.floor(rawValue * 100) / 100;
+    // Standard mathematical rounding for the Brokerage in INR field
+    // This method is specifically applied ONLY to Brokerage in INR
+    return Math.round(rawValue * 100) / 100;
   }, [brokerageValue, exchangeRate]);
 
   const balanceBrokerageValue = React.useMemo(() => {
