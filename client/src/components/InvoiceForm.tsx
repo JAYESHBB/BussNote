@@ -428,20 +428,15 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     return simpleRound(subtotalValue * (brokerageRate / 100));
   }, [subtotalValue, brokerageRate]);
 
-  const brokerageInINRValue = React.useMemo(() => {
-    // Special rounding ONLY for Brokerage in INR field
-    // First calculate the raw value without any rounding
-    const rawValue = brokerageValue * exchangeRate;
-    
-    // Standard mathematical rounding for the Brokerage in INR field
-    // This method is specifically applied ONLY to Brokerage in INR
-    return Math.round(rawValue * 100) / 100;
-  }, [brokerageValue, exchangeRate]);
+  // Removed this calculated value and will calculate directly where needed
+  const brokerageInINRValue = 0; // Placeholder, not used
 
   const balanceBrokerageValue = React.useMemo(() => {
-    // Use the improved financial rounding method for accurate balance calculation
-    return financialRound(brokerageInINRValue - receivedBrokerage);
-  }, [brokerageInINRValue, receivedBrokerage]);
+    // Calculate brokerageInINR value with proper mathematical rounding
+    const calculatedBrokerageInINR = Math.round(brokerageValue * exchangeRate * 100) / 100;
+    // Calculate balance using the correctly rounded brokerageInINR value
+    return financialRound(calculatedBrokerageInINR - receivedBrokerage);
+  }, [brokerageValue, exchangeRate, receivedBrokerage]);
 
   // Simple getter functions that won't cause stack overflow
   const calculateSubtotal = () => subtotalValue;
@@ -929,7 +924,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-neutral-600">Brokerage in INR:</span>
-                <span className="font-medium">₹{brokerageInINRValue.toFixed(2)}</span>
+                <span className="font-medium">₹{Math.round(brokerageValue * exchangeRate * 100) / 100}</span>
               </div>
               
               <div className="flex justify-between items-center text-sm mt-2">
