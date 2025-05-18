@@ -924,7 +924,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-neutral-600">Brokerage in INR:</span>
-                <span className="font-medium">₹{Math.round(brokerageValue * exchangeRate * 100) / 100}</span>
+                <span className="font-medium">₹{(Math.round(brokerageValue * exchangeRate * 100) / 100).toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between items-center text-sm mt-2">
