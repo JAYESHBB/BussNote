@@ -104,8 +104,22 @@ export default function InvoicesPage() {
   // Mutation for deleting invoice
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/invoices/${id}`);
-      return await res.json();
+      try {
+        const res = await fetch(`/api/direct-delete-invoice/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Failed to delete invoice");
+        }
+        return await res.json();
+      } catch (error) {
+        console.error("Error deleting invoice:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });

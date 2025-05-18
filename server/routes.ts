@@ -533,12 +533,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Delete invoice
+  // Delete invoice - old route kept for compatibility
   app.delete(`${apiPrefix}/invoices/:id`, async (req, res) => {
     try {
       const invoiceId = parseInt(req.params.id);
+      const success = await storage.deleteInvoice(invoiceId);
       
-      // Direct database approach for more reliable deletion
+      if (success) {
+        return res.status(200).json({ message: "Invoice deleted successfully" });
+      } else {
+        return res.status(500).json({ message: "Failed to delete invoice" });
+      }
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+  
+  // Direct invoice deletion endpoint - bypassing ORM for more reliability
+  app.delete(`${apiPrefix}/direct-delete-invoice/:id`, async (req, res) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      
+      // Use the pool directly from the db module
       const client = await pool.connect();
       
       try {
