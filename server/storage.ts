@@ -686,7 +686,7 @@ class DatabaseStorage implements IStorage {
             label,
             invoiceCount: 0,
             grossSales: 0,
-            tax: 0,
+            brokerage: 0,
             netSales: 0
           });
         }
@@ -712,7 +712,7 @@ class DatabaseStorage implements IStorage {
             label,
             invoiceCount: 0,
             grossSales: 0,
-            tax: 0,
+            brokerage: 0,
             netSales: 0
           });
         }
@@ -735,7 +735,7 @@ class DatabaseStorage implements IStorage {
             label,
             invoiceCount: 0,
             grossSales: 0,
-            tax: 0,
+            brokerage: 0,
             netSales: 0
           });
         }
@@ -761,7 +761,7 @@ class DatabaseStorage implements IStorage {
             label,
             invoiceCount: 0,
             grossSales: 0,
-            tax: 0,
+            brokerage: 0,
             netSales: 0
           });
         }
