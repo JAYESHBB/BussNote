@@ -86,7 +86,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             {section.items.map((item, itemIndex) => (
               <Link key={itemIndex} href={item.href}>
                 <a
-                  className={`sidebar-link ${isActive(item.href) ? "active" : ""}`}
+                  className={`sidebar-link dark:text-neutral-300 dark:hover:bg-neutral-800 ${isActive(item.href) ? "active dark:bg-sidebar-accent dark:text-sidebar-accent-foreground" : ""}`}
                   onClick={() => isMobile && setIsOpen(false)}
                 >
                   {item.icon}
