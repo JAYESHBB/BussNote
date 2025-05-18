@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Bell, 
   Menu, 
@@ -45,7 +46,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-neutral-200 px-4 py-2 flex justify-between items-center">
+    <header className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 py-2 flex justify-between items-center">
       <div className="flex items-center">
         <button 
           onClick={toggleSidebar}
@@ -60,8 +61,10 @@ export function Header({ toggleSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center space-x-4">
+        <ThemeToggle />
+        
         <div className="relative">
-          <button className="text-neutral-600 relative p-2 hover:bg-neutral-100 rounded-full">
+          <button className="text-neutral-600 relative p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full">
             <Bell className="h-5 w-5" />
             {notificationCount > 0 && (
               <Badge 
