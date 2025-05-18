@@ -201,7 +201,7 @@ export default function ReportsPage() {
                         <span className="font-bold text-lg">
                           {formatCurrency(
                             outstandingData.reduce((sum: number, invoice: any) => 
-                              sum + (typeof invoice.total === 'string' ? parseFloat(invoice.total) : invoice.total), 0)
+                              sum + Number(invoice.total || 0), 0)
                           )}
                         </span>
                       </div>
@@ -289,7 +289,7 @@ export default function ReportsPage() {
                         <span className="font-medium">Total Closed Amount:</span>
                         <span className="font-bold text-lg">
                           {formatCurrency(
-                            closedData.reduce((sum: number, invoice: any) => sum + invoice.total, 0)
+                            closedData.reduce((sum: number, invoice: any) => sum + Number(invoice.total || 0), 0)
                           )}
                         </span>
                       </div>
