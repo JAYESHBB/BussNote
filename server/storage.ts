@@ -786,7 +786,7 @@ class DatabaseStorage implements IStorage {
     const totals = {
       invoiceCount: periods.reduce((sum, period) => sum + period.invoiceCount, 0),
       grossSales: periods.reduce((sum, period) => sum + period.grossSales, 0),
-      tax: periods.reduce((sum, period) => sum + period.tax, 0),
+      brokerage: periods.reduce((sum, period) => sum + period.brokerage, 0),
       netSales: periods.reduce((sum, period) => sum + period.netSales, 0)
     };
     
