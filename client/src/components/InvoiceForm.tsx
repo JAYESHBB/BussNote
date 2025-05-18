@@ -58,15 +58,12 @@ const financialRound = (value: number): number => {
   return Math.floor(value * 100) / 100;
 };
 
-// Special rounding for INR amounts - specifically formatted for financial display
-// This truncates to 2 decimals without rounding for Brokerage in INR figures
+// Special rounding for INR amounts - specifically formatted for Brokerage in INR
+// This uses proper rounding based on standard mathematical rules (round up at 0.5)
 const inrRound = (value: number): number => {
-  // For large amounts, we need to be precise with the decimal digits
-  // This approach truncates the decimal to 2 places (no rounding)
-  const truncated = Math.trunc(value * 100) / 100;
-  
-  // Format to exactly 2 decimal places for consistency
-  return parseFloat(truncated.toFixed(2));
+  // Using standard rounding to exactly 2 decimal places
+  // This is the correct approach for Brokerage in INR field
+  return Math.round(value * 100) / 100;
 };
 
 interface InvoiceItem {
