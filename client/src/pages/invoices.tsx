@@ -105,17 +105,28 @@ export default function InvoicesPage() {
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (id: number) => {
       try {
-        const res = await fetch(`/api/direct-delete-invoice/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+        // Use the apiRequest helper which handles errors better
+        const res = await apiRequest("DELETE", `/api/invoices/${id}`);
+        // Check if the response is OK
         if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || "Failed to delete invoice");
+          const errorText = await res.text();
+          try {
+            // Try to parse as JSON
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.message || "Failed to delete invoice");
+          } catch (e) {
+            // If parsing fails, use the text as error message
+            throw new Error(errorText.substring(0, 100) || "Failed to delete invoice");
+          }
         }
-        return await res.json();
+        
+        // Try to parse response as JSON or return simple success object
+        try {
+          return await res.json();
+        } catch (e) {
+          // If response is not valid JSON, return a success object anyway
+          return { success: true };
+        }
       } catch (error) {
         console.error("Error deleting invoice:", error);
         throw error;
