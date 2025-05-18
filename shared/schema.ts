@@ -68,7 +68,6 @@ export const invoices = pgTable("invoices", {
   isClosed: boolean("is_closed").default(false), // Added field to track if bill is closed
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   brokerageRate: decimal("brokerage_rate", { precision: 6, scale: 2 }).default("0.75"), // Brokerage rate percentage
-  tax: decimal("tax", { precision: 10, scale: 2 }).notNull(), // Brokerage amount
   brokerageInINR: decimal("brokerage_inr", { precision: 10, scale: 2 }).default("0.00"), // Brokerage in INR
   receivedBrokerage: decimal("received_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Received brokerage amount
   balanceBrokerage: decimal("balance_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Balance brokerage amount
