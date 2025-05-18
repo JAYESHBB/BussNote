@@ -415,14 +415,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedData.buyerId = parseInt(processedData.buyerId);
       }
       
-      // Process numeric fields - ensure all are the right type
-      // Drizzle/zod expects numbers not strings for numeric fields
-      if (processedData.exchangeRate && typeof processedData.exchangeRate === 'string') {
-        processedData.exchangeRate = parseFloat(processedData.exchangeRate);
+      // Ensure numeric fields are in the expected string format
+      // The schema validation is expecting strings for these fields
+      if (processedData.exchangeRate && typeof processedData.exchangeRate === 'number') {
+        processedData.exchangeRate = processedData.exchangeRate.toString();
       }
       
-      if (processedData.brokerageRate && typeof processedData.brokerageRate === 'string') {
-        processedData.brokerageRate = parseFloat(processedData.brokerageRate);
+      if (processedData.brokerageRate && typeof processedData.brokerageRate === 'number') {
+        processedData.brokerageRate = processedData.brokerageRate.toString();
       }
       
       if (processedData.subtotal && typeof processedData.subtotal === 'string') {
