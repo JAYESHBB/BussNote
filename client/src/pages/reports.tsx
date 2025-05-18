@@ -40,6 +40,11 @@ import { Link } from "wouter";
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("outstanding");
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setReportType(value);
+  };
   const [dateRange, setDateRange] = useState<{
     from: Date;
     to: Date;
