@@ -60,9 +60,9 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   return (
     <aside
-      className={`w-64 bg-white border-r border-neutral-200 flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out ${
+      className={`w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out ${
         isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
-      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} bg-gradient-to-b from-white to-primary-50`}
+      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} bg-gradient-to-b from-white to-primary-50 dark:from-neutral-900 dark:to-neutral-800`}
     >
       <div className="p-4 flex-shrink-0">
         <div className="relative">
@@ -70,7 +70,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           <Input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 text-sm border-primary-100 focus:border-primary-300 focus:ring-primary-200 bg-white/80 backdrop-blur-sm"
+            className="w-full pl-10 text-sm border-primary-100 dark:border-primary-900 focus:border-primary-300 dark:focus:border-primary-700 focus:ring-primary-200 dark:focus:ring-primary-900 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm"
           />
         </div>
       </div>
@@ -99,14 +99,14 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 hover:from-primary-200 hover:to-primary-100 transition-all duration-300 cursor-pointer">
-          <div className="w-10 h-10 bg-white text-primary-600 rounded-full flex items-center justify-center shadow-sm">
+      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-800/30 hover:from-primary-200 hover:to-primary-100 dark:hover:from-primary-900/50 dark:hover:to-primary-800/50 transition-all duration-300 cursor-pointer">
+          <div className="w-10 h-10 bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center shadow-sm">
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-primary-700">Need help?</p>
-            <p className="text-xs text-primary-500">Contact support</p>
+            <p className="text-sm font-medium text-primary-700 dark:text-primary-300">Need help?</p>
+            <p className="text-xs text-primary-500 dark:text-primary-400">Contact support</p>
           </div>
         </div>
       </div>
