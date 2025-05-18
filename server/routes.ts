@@ -533,6 +533,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Emergency invoice cleanup endpoint - direct SQL approach
+  app.post(`${apiPrefix}/force-delete-invoice`, async (req, res) => {
+    try {
+      // Get invoice ID from request body
+      const { id } = req.body;
+      const invoiceId = parseInt(id);
+      
+      if (!invoiceId || isNaN(invoiceId)) {
+        return res.status(400).json({ message: "Valid invoice ID is required" });
+      }
+      
+      // Use a direct connection from the pool
+      const client = await pool.connect();
+      
+      try {
+        // Start transaction
+        await client.query('BEGIN');
+        
+        // Directly delete all related data without checks
+        console.log(`Force deleting invoice ${invoiceId} and all related data`);
+        
+        await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM activities WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM transactions WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM invoices WHERE id = $1', [invoiceId]);
+        
+        await client.query('COMMIT');
+        
+        console.log(`Successfully force deleted invoice ${invoiceId}`);
+        return res.status(200).json({ 
+          success: true,
+          message: `Invoice ${invoiceId} and all related data successfully deleted`
+        });
+      } catch (error) {
+        // Rollback transaction on error
+        await client.query('ROLLBACK');
+        console.error("Database error during force delete:", error);
+        return res.status(500).json({
+          message: "Database error during force delete operation",
+          error: error.message
+        });
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error("Error in force delete endpoint:", error);
+      return res.status(500).json({
+        message: "Error processing force delete request",
+        error: error.message
+      });
+    }
+  });
+  
   // Simple invoice deletion endpoint
   app.delete(`${apiPrefix}/invoices/:id`, async (req, res) => {
     try {
