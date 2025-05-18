@@ -58,12 +58,28 @@ const financialRound = (value: number): number => {
   return Math.floor(value * 100) / 100;
 };
 
-// Special rounding for INR amounts - uses traditional rounding (round down)
-// This gives a more conservative value for financial calculations
+// Special rounding for INR amounts - uses traditional rounding approach 
+// Specifically designed for Brokerage in INR calculations with precision
 const inrRound = (value: number): number => {
-  // Round to exactly 2 decimal places, always rounding down
-  // This is commonly used in financial calculations in India
-  return Math.floor(value * 100) / 100;
+  // Convert to string with fixed precision to avoid floating point issues
+  const valueStr = value.toString();
+  
+  // Split into integer and decimal parts
+  const parts = valueStr.split('.');
+  
+  // If no decimal part or decimal part has fewer than 2 digits
+  if (parts.length === 1 || parts[1].length <= 2) {
+    // Convert to fixed 2-decimal format and then to number
+    return parseFloat(parseFloat(valueStr).toFixed(2));
+  }
+  
+  // For numbers with more decimal places, control the rounding
+  // Keep only 2 decimal places with standard rounding
+  const integerPart = parseInt(parts[0]);
+  const decimalPart = parseInt(parts[1].substring(0, 2));
+  
+  // Build the number with exactly 2 decimal places
+  return parseFloat(`${integerPart}.${decimalPart}`);
 };
 
 interface InvoiceItem {
