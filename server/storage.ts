@@ -227,7 +227,6 @@ class DatabaseStorage implements IStorage {
         dueDate: invoices.dueDate,
         status: invoices.status,
         subtotal: invoices.subtotal,
-        tax: invoices.tax,
         total: invoices.total,
         notes: invoices.notes,
         paymentDate: invoices.paymentDate,
@@ -297,7 +296,6 @@ class DatabaseStorage implements IStorage {
         status: invoices.status,
         subtotal: invoices.subtotal,
         tax: invoices.tax,
-        total: invoices.total,
         notes: invoices.notes,
         paymentDate: invoices.paymentDate,
         userId: invoices.userId,
@@ -467,7 +465,6 @@ class DatabaseStorage implements IStorage {
         status: invoices.status,
         subtotal: invoices.subtotal,
         tax: invoices.tax,
-        total: invoices.total,
         notes: invoices.notes,
         paymentDate: invoices.paymentDate,
         userId: invoices.userId,
@@ -660,7 +657,6 @@ class DatabaseStorage implements IStorage {
         invoiceDate: invoices.invoiceDate,
         subtotal: invoices.subtotal,
         brokerageInINR: invoices.brokerageInINR,
-        total: invoices.total,
         status: invoices.status
       })
       .from(invoices)
