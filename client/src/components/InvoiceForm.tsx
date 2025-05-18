@@ -427,26 +427,18 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   }, [items]);
 
   const brokerageValue = React.useMemo(() => {
+    // For Brokerage @ field, continue using standard rounding
     return simpleRound(subtotalValue * (brokerageRate / 100));
   }, [subtotalValue, brokerageRate]);
 
   const brokerageInINRValue = React.useMemo(() => {
-    // Direct approach to truncate decimal places without rounding
-    // This explicitly converts to a string and back to control decimal precision
+    // Special rounding ONLY for Brokerage in INR field
+    // First calculate the raw value
     const rawValue = brokerageValue * exchangeRate;
-    const valueStr = rawValue.toString();
-    const parts = valueStr.split('.');
     
-    // If no decimal part or just zeros, return the value as is
-    if (parts.length === 1 || !parts[1]) {
-      return parseFloat(parts[0]);
-    }
-    
-    // Truncate to exactly 2 decimal places without rounding
-    const integerPart = parts[0];
-    const decimalPart = parts[1].substring(0, 2).padEnd(2, '0');
-    
-    return parseFloat(`${integerPart}.${decimalPart}`);
+    // Truncate to 2 decimal places for INR calculation (no rounding)
+    // This method specifically avoids rounding up for financial accuracy
+    return Math.floor(rawValue * 100) / 100;
   }, [brokerageValue, exchangeRate]);
 
   const balanceBrokerageValue = React.useMemo(() => {
