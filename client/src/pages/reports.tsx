@@ -390,16 +390,16 @@ export default function ReportsPage() {
                         </TableCell>
                       </TableRow>
                     )}
+                    
+                    {salesData?.periods && salesData.periods.length > 0 && (
+                      <TableRow className="bg-neutral-50 font-bold">
+                        <TableCell>Total</TableCell>
+                        <TableCell>{salesData.totals.invoiceCount}</TableCell>
+                        <TableCell>{formatCurrency(salesData.totals.grossSales)}</TableCell>
+                        <TableCell>{formatCurrency(salesData.totals.brokerage)}</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
-                  
-                  {salesData?.periods && salesData.periods.length > 0 && (
-                    <TableRow className="bg-neutral-50 font-bold">
-                      <TableCell>Total</TableCell>
-                      <TableCell>{salesData.totals.invoiceCount}</TableCell>
-                      <TableCell>{formatCurrency(salesData.totals.grossSales)}</TableCell>
-                      <TableCell>{formatCurrency(salesData.totals.brokerage)}</TableCell>
-                    </TableRow>
-                  )}
                 </Table>
               </div>
             </CardContent>
