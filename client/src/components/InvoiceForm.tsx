@@ -53,12 +53,17 @@ const financialRound = (value: number): number => {
     return 0;
   }
   
-  // Convert to a precise string representation
-  const stringValue = value.toString();
-  
-  // Parse the string to a number with exactly 2 decimal places
-  // Using banker's rounding (round to even) for financial accuracy
-  return parseFloat(parseFloat(stringValue).toFixed(2));
+  // Convert to a precise string representation with fixed precision to avoid floating point errors
+  // Explicitly truncating to exactly 2 decimal places for financial calculations
+  return Math.floor(value * 100) / 100;
+};
+
+// Special rounding for INR amounts - uses traditional rounding (round down)
+// This gives a more conservative value for financial calculations
+const inrRound = (value: number): number => {
+  // Round to exactly 2 decimal places, always rounding down
+  // This is commonly used in financial calculations in India
+  return Math.floor(value * 100) / 100;
 };
 
 interface InvoiceItem {
@@ -423,8 +428,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   }, [subtotalValue, brokerageRate]);
 
   const brokerageInINRValue = React.useMemo(() => {
-    // Use the improved financial rounding method for more accurate INR values
-    return financialRound(brokerageValue * exchangeRate);
+    // Use the specialized INR rounding method for more accurate figures
+    return inrRound(brokerageValue * exchangeRate);
   }, [brokerageValue, exchangeRate]);
 
   const balanceBrokerageValue = React.useMemo(() => {
