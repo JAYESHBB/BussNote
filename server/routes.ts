@@ -554,10 +554,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Directly delete all related data without checks
         console.log(`Force deleting invoice ${invoiceId} and all related data`);
         
-        await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [invoiceId]);
-        await client.query('DELETE FROM activities WHERE invoice_id = $1', [invoiceId]);
-        await client.query('DELETE FROM transactions WHERE invoice_id = $1', [invoiceId]);
-        await client.query('DELETE FROM invoices WHERE id = $1', [invoiceId]);
+        // Check if invoice exists
+        const checkResult = await client.query(
+          'SELECT id FROM invoices WHERE id = $1',
+          [invoiceId]
+        );
+        
+        if (checkResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          console.error(`Invoice ${invoiceId} not found for deletion`);
+          return res.status(404).json({ message: "Invoice not found" });
+        }
+        
+        // Log each delete operation and its result
+        console.log(`Deleting invoice items for invoice ${invoiceId}...`);
+        const itemsResult = await client.query('DELETE FROM invoice_items WHERE invoice_id = $1 RETURNING id', [invoiceId]);
+        console.log(`Deleted ${itemsResult.rowCount} invoice items`);
+        
+        console.log(`Deleting activities for invoice ${invoiceId}...`);
+        const activitiesResult = await client.query('DELETE FROM activities WHERE invoice_id = $1 RETURNING id', [invoiceId]);
+        console.log(`Deleted ${activitiesResult.rowCount} activities`);
+        
+        console.log(`Deleting transactions for invoice ${invoiceId}...`);
+        const transactionsResult = await client.query('DELETE FROM transactions WHERE invoice_id = $1 RETURNING id', [invoiceId]);
+        console.log(`Deleted ${transactionsResult.rowCount} transactions`);
+        
+        console.log(`Deleting invoice ${invoiceId}...`);
+        const invoiceResult = await client.query('DELETE FROM invoices WHERE id = $1 RETURNING id', [invoiceId]);
+        console.log(`Deleted invoice result: ${JSON.stringify(invoiceResult.rows)}`);
+        
+        if (invoiceResult.rowCount === 0) {
+          await client.query('ROLLBACK');
+          console.error(`Failed to delete invoice ${invoiceId}`);
+          return res.status(500).json({ message: "Failed to delete invoice record" });
+        }
         
         await client.query('COMMIT');
         
