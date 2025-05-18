@@ -659,7 +659,7 @@ class DatabaseStorage implements IStorage {
         invoiceNumber: invoices.invoiceNumber,
         invoiceDate: invoices.invoiceDate,
         subtotal: invoices.subtotal,
-        tax: invoices.tax,
+        brokerageInINR: invoices.brokerageInINR,
         total: invoices.total,
         status: invoices.status
       })
