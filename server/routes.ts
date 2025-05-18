@@ -538,32 +538,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const invoiceId = parseInt(req.params.id);
       
-      // Get invoice details before deletion
-      const invoice = await storage.getInvoiceById(invoiceId);
+      // Direct database approach for more reliable deletion
+      const client = await pool.connect();
       
-      if (!invoice) {
-        return res.status(404).json({ message: "Invoice not found" });
-      }
-      
-      // Check invoice status - only pending invoices can be deleted
-      if (invoice.status !== "pending") {
-        return res.status(400).json({ 
-          message: "Only pending invoices can be deleted. Please cancel the invoice first if needed." 
+      try {
+        await client.query('BEGIN');
+        
+        // Check if invoice exists and get its status
+        const invoiceResult = await client.query(
+          'SELECT id, status, invoice_number FROM invoices WHERE id = $1',
+          [invoiceId]
+        );
+        
+        if (invoiceResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ message: "Invoice not found" });
+        }
+        
+        const invoice = invoiceResult.rows[0];
+        
+        // Check invoice status - only pending invoices can be deleted
+        if (invoice.status !== "pending") {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ 
+            message: "Only pending invoices can be deleted. Please cancel the invoice first if needed." 
+          });
+        }
+        
+        // Delete in correct order to handle dependencies
+        await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM activities WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM transactions WHERE invoice_id = $1', [invoiceId]);
+        await client.query('DELETE FROM invoices WHERE id = $1', [invoiceId]);
+        
+        await client.query('COMMIT');
+        
+        res.status(200).json({ 
+          message: "Invoice deleted successfully",
+          invoiceNumber: invoice.invoice_number
         });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Transaction failed during invoice deletion:", error);
+        res.status(500).json({ message: "Failed to delete invoice" });
+      } finally {
+        client.release();
       }
-      
-      // Store details for the response
-      const invoiceNumber = invoice.invoiceNumber;
-      const partyId = invoice.partyId;
-      
-      // Delete the invoice and all related records
-      const success = await storage.deleteInvoice(invoiceId);
-      
-      if (!success) {
-        return res.status(500).json({ message: "Failed to delete invoice" });
-      }
-      
-      res.status(200).json({ message: "Invoice deleted successfully" });
     } catch (error) {
       console.error("Error deleting invoice:", error);
       res.status(500).json({ message: "Failed to delete invoice" });
