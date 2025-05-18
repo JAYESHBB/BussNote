@@ -357,7 +357,7 @@ export default function ReportsPage() {
                       />
                       <Legend />
                       <Bar dataKey="grossSales" name="Gross Sales" fill="#8884d8" />
-                      <Bar dataKey="tax" name="Tax" fill="#82ca9d" />
+                      <Bar dataKey="brokerage" name="Brokerage" fill="#82ca9d" />
                       <Bar dataKey="netSales" name="Net Sales" fill="#ffc658" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -371,7 +371,7 @@ export default function ReportsPage() {
                       <TableHead>Period</TableHead>
                       <TableHead>Invoices</TableHead>
                       <TableHead>Gross Sales</TableHead>
-                      <TableHead>Tax</TableHead>
+                      <TableHead>Brokerage</TableHead>
                       <TableHead>Net Sales</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -381,7 +381,7 @@ export default function ReportsPage() {
                         <TableCell className="font-medium">{period.label}</TableCell>
                         <TableCell>{period.invoiceCount}</TableCell>
                         <TableCell>{formatCurrency(period.grossSales)}</TableCell>
-                        <TableCell>{formatCurrency(period.tax)}</TableCell>
+                        <TableCell>{formatCurrency(period.brokerage)}</TableCell>
                         <TableCell className="font-medium">{formatCurrency(period.netSales)}</TableCell>
                       </TableRow>
                     ))}
@@ -400,7 +400,7 @@ export default function ReportsPage() {
                       <TableCell>Total</TableCell>
                       <TableCell>{salesData.totals.invoiceCount}</TableCell>
                       <TableCell>{formatCurrency(salesData.totals.grossSales)}</TableCell>
-                      <TableCell>{formatCurrency(salesData.totals.tax)}</TableCell>
+                      <TableCell>{formatCurrency(salesData.totals.brokerage)}</TableCell>
                       <TableCell>{formatCurrency(salesData.totals.netSales)}</TableCell>
                     </TableRow>
                   )}
