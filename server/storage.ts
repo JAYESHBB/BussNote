@@ -336,26 +336,34 @@ class DatabaseStorage implements IStorage {
   }
   
   async createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice> {
-    // Generate invoice number if not provided
-    let invoiceNumber = data.invoiceNumber;
-    if (!invoiceNumber) {
-      // Generate invoice number
-      const year = new Date().getFullYear();
-      const latestInvoiceResult = await db
-        .select({ maxNumber: sql<string | null>`MAX(${invoices.invoiceNumber})` })
-        .from(invoices);
+    // Use manually entered invoiceNo as the invoiceNumber if provided
+    let invoiceNumber;
+    
+    if (data.invoiceNo) {
+      // If user has provided a manual invoice number, use that
+      invoiceNumber = data.invoiceNo;
+    } else {
+      // Only generate auto invoice number if manual number is not provided
+      invoiceNumber = data.invoiceNumber;
+      if (!invoiceNumber) {
+        // Generate invoice number
+        const year = new Date().getFullYear();
+        const latestInvoiceResult = await db
+          .select({ maxNumber: sql<string | null>`MAX(${invoices.invoiceNumber})` })
+          .from(invoices);
+          
+        let nextNumber = 1;
         
-      let nextNumber = 1;
-      
-      if (latestInvoiceResult[0]?.maxNumber) {
-        const lastNumStr = latestInvoiceResult[0].maxNumber.split('-')[2];
-        if (lastNumStr) {
-          nextNumber = parseInt(lastNumStr) + 1;
+        if (latestInvoiceResult[0]?.maxNumber) {
+          const lastNumStr = latestInvoiceResult[0].maxNumber.split('-')[2];
+          if (lastNumStr) {
+            nextNumber = parseInt(lastNumStr) + 1;
+          }
         }
+        
+        const paddedNumber = nextNumber.toString().padStart(4, '0');
+        invoiceNumber = `INV-${year}-${paddedNumber}`;
       }
-      
-      const paddedNumber = nextNumber.toString().padStart(4, '0');
-      invoiceNumber = `INV-${year}-${paddedNumber}`;
     }
     
     // Create the invoice
