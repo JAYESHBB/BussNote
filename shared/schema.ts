@@ -71,7 +71,7 @@ export const invoices = pgTable("invoices", {
   brokerageInINR: decimal("brokerage_inr", { precision: 10, scale: 2 }).default("0.00"), // Brokerage in INR
   receivedBrokerage: decimal("received_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Received brokerage amount
   balanceBrokerage: decimal("balance_brokerage", { precision: 10, scale: 2 }).default("0.00"), // Balance brokerage amount
-  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  total: decimal("total", { precision: 10, scale: 2 }).default("0.00"),
   notes: text("notes"),
   paymentDate: timestamp("payment_date"),
   userId: integer("user_id").references(() => users.id).notNull(),
