@@ -206,11 +206,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate brokerage rate if not available
       let brokerageRate = invoice.brokerageRate;
-      if (!brokerageRate && invoice.subtotal && invoice.tax) {
+      if (!brokerageRate && invoice.subtotal && invoice.brokerageInINR) {
         const subtotal = parseFloat(invoice.subtotal);
-        const tax = parseFloat(invoice.tax);
-        if (!isNaN(subtotal) && !isNaN(tax) && subtotal > 0) {
-          brokerageRate = ((tax / subtotal) * 100).toFixed(2);
+        const brokerage = parseFloat(invoice.brokerageInINR);
+        if (!isNaN(subtotal) && !isNaN(brokerage) && subtotal > 0) {
+          brokerageRate = ((brokerage / subtotal) * 100).toFixed(2);
         } else {
           brokerageRate = "0.75"; // Default brokerage rate
         }

@@ -694,7 +694,7 @@ class DatabaseStorage implements IStorage {
         const period = periodMap.get(dateStr);
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
-        period.brokerage += Number(parseFloat(invoice.tax as any) || 0);
+        period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
         period.netSales += Number(parseFloat(invoice.total as any) || 0);
       }
     } else if (groupBy === "weekly") {
@@ -720,7 +720,7 @@ class DatabaseStorage implements IStorage {
         const period = periodMap.get(weekKey);
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
-        period.brokerage += Number(parseFloat(invoice.tax as any) || 0);
+        period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
         period.netSales += Number(parseFloat(invoice.total as any) || 0);
       }
     } else if (groupBy === "monthly") {
