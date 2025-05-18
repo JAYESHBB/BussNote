@@ -4,8 +4,19 @@ import { format } from "date-fns";
 import { 
   DownloadCloud,
   Filter,
-  Calendar
+  Calendar, 
+  BarChart as BarChartIcon
 } from "lucide-react";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -313,16 +324,44 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
-                {/* Chart would be rendered here */}
-                <div className="flex items-center justify-center h-full bg-neutral-50 rounded-md">
-                  <div className="text-center p-6">
-                    <Calendar className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-neutral-700">Sales Chart</h3>
-                    <p className="text-neutral-500 max-w-xs mx-auto mt-2">
-                      Chart visualization would appear here showing trends over the selected period
-                    </p>
+                {(!salesData?.periods || salesData.periods.length === 0) ? (
+                  <div className="flex items-center justify-center h-full bg-neutral-50 rounded-md">
+                    <div className="text-center p-6">
+                      <Calendar className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-neutral-700">No Sales Data</h3>
+                      <p className="text-neutral-500 max-w-xs mx-auto mt-2">
+                        There is no sales data available for the selected period
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={salesData.periods}
+                      margin={{
+                        top: 20,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value) => new Intl.NumberFormat('en-IN', {
+                          style: 'currency',
+                          currency: 'INR',
+                          maximumFractionDigits: 0,
+                        }).format(Number(value))}
+                      />
+                      <Legend />
+                      <Bar dataKey="grossSales" name="Gross Sales" fill="#8884d8" />
+                      <Bar dataKey="tax" name="Tax" fill="#82ca9d" />
+                      <Bar dataKey="netSales" name="Net Sales" fill="#ffc658" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
               
               <div className="mt-6">
