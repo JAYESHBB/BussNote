@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { eq, desc, and, gte, lte, isNull, isNotNull } from "drizzle-orm";
 import { db, pool } from "../db";
-import { directDeleteInvoice } from "./directDelete";
+import { rawDeleteInvoice } from "./rawDeleteInvoice";
 import {
   parties,
   invoices,
@@ -628,7 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // New reliable invoice deletion endpoint - allows deleting any invoice regardless of status
+  // New super simple invoice deletion endpoint with raw SQL
   app.delete(`${apiPrefix}/invoices/:id`, async (req, res) => {
     try {
       // Parse the invoice ID from the request parameters
@@ -638,10 +638,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid invoice ID" });
       }
       
-      console.log(`Attempting to delete invoice ${invoiceId} using direct method`);
+      console.log(`Attempting to delete invoice ${invoiceId} using raw SQL method`);
       
-      // Use our direct deletion function that works reliably
-      const success = await directDeleteInvoice(pool, invoiceId);
+      // Use our raw SQL direct deletion function
+      const success = await rawDeleteInvoice(pool, invoiceId);
       
       if (success) {
         console.log(`Successfully deleted invoice ${invoiceId}`);
@@ -654,11 +654,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Invoice not found or could not be deleted" 
         });
       }
-    } catch (error: any) {
-      console.error("Error in invoice deletion endpoint:", error?.message || error);
+    } catch (error) {
+      // Using a very simple error handling approach
+      console.error("Error deleting invoice:", error);
       return res.status(500).json({ 
-        message: "Error deleting invoice",
-        error: error?.message || "Unknown error"
+        message: "Failed to delete invoice"
       });
     }
   });
