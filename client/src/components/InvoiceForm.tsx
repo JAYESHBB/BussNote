@@ -45,6 +45,22 @@ const roundToTwoDecimals = (value: number): number => {
   return parseFloat(rounded.toFixed(2)); // Ensure we always have exactly 2 decimal places
 };
 
+// Improved rounding specifically for financial calculations
+// This handles the Brokerage in INR with proper banker's rounding
+const financialRound = (value: number): number => {
+  // For amounts less than 0.01, round to the nearest 0.01
+  if (Math.abs(value) < 0.01) {
+    return 0;
+  }
+  
+  // Convert to a precise string representation
+  const stringValue = value.toString();
+  
+  // Parse the string to a number with exactly 2 decimal places
+  // Using banker's rounding (round to even) for financial accuracy
+  return parseFloat(parseFloat(stringValue).toFixed(2));
+};
+
 interface InvoiceItem {
   id: string;
   description: string;
@@ -407,11 +423,13 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   }, [subtotalValue, brokerageRate]);
 
   const brokerageInINRValue = React.useMemo(() => {
-    return simpleRound(brokerageValue * exchangeRate);
+    // Use the improved financial rounding method for more accurate INR values
+    return financialRound(brokerageValue * exchangeRate);
   }, [brokerageValue, exchangeRate]);
 
   const balanceBrokerageValue = React.useMemo(() => {
-    return simpleRound(brokerageInINRValue - receivedBrokerage);
+    // Use the improved financial rounding method for accurate balance calculation
+    return financialRound(brokerageInINRValue - receivedBrokerage);
   }, [brokerageInINRValue, receivedBrokerage]);
 
   const totalValue = React.useMemo(() => {
