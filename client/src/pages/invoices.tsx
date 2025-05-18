@@ -101,12 +101,12 @@ export default function InvoicesPage() {
     },
   });
   
-  // Mutation for deleting invoice - using the force delete endpoint for reliability
+  // Updated mutation for deleting invoice - using the standard DELETE endpoint
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (id: number) => {
       try {
-        // Use the force delete endpoint which is more reliable
-        const res = await apiRequest("POST", "/api/force-delete-invoice", { id });
+        // Use the standard DELETE endpoint with our improved reliable backend implementation
+        const res = await apiRequest("DELETE", `/api/invoices/${id}`);
         
         // Check if the response is OK
         if (!res.ok) {
