@@ -184,7 +184,8 @@ export default function ReportsPage() {
                         <span className="font-medium">Total Outstanding:</span>
                         <span className="font-bold text-lg">
                           {formatCurrency(
-                            outstandingData.reduce((sum: number, invoice: any) => sum + invoice.total, 0)
+                            outstandingData.reduce((sum: number, invoice: any) => 
+                              sum + (typeof invoice.total === 'string' ? parseFloat(invoice.total) : invoice.total), 0)
                           )}
                         </span>
                       </div>
