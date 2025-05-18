@@ -332,11 +332,17 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   
   // Watch for currency changes
   useEffect(() => {
+    // Get the current currency value to avoid repeated triggers
+    const currentCurrency = form.getValues('currency');
+    
     const subscription = form.watch((value, { name }) => {
-      if (name === 'currency') {
-        // Set exchange rate to 1.00 if currency is INR, otherwise leave it as is
+      if (name === 'currency' && value.currency !== currentCurrency) {
+        // Set exchange rate to 1.00 if currency is INR, otherwise don't modify it
         if (value.currency === 'INR') {
-          form.setValue('exchangeRate', 1.00);
+          // Use setTimeout to break the potential call stack cycle
+          setTimeout(() => {
+            form.setValue('exchangeRate', 1.00, { shouldValidate: true });
+          }, 0);
         }
         forceUpdate({});
       }
