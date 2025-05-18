@@ -667,10 +667,12 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Note" : "Add New Note"}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm animate-fade-in">
+        <DialogHeader className="animate-slide-in-top" style={{ animationDelay: '100ms' }}>
+          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-pulse-subtle">
+            {isEditing ? "Edit Note" : "Add New Note"}
+          </DialogTitle>
+          <DialogDescription className="animate-fade-in" style={{ animationDelay: '200ms' }}>
             {isEditing
               ? "Edit this note to update sales details between a seller and a buyer."
               : "Create a new note to track sales between a seller and a buyer. Add items, set dates, and include additional information."}
