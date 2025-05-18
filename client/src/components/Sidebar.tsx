@@ -60,51 +60,67 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   return (
     <aside
-      className={`w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out ${
+      className={`w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0 flex flex-col h-full transition-all duration-500 ease-in-out ${
         isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
-      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} bg-gradient-to-b from-white to-primary-50 dark:from-neutral-900 dark:to-neutral-800`}
+      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} animated-gradient bg-gradient-to-b from-white to-primary-50 dark:from-neutral-900 dark:to-neutral-800`}
     >
-      <div className="p-4 flex-shrink-0">
+      <div className="p-4 flex-shrink-0 animate-fade-in">
         <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-primary-500" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-primary-500 animate-pulse-subtle" />
           <Input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 text-sm border-primary-100 dark:border-primary-900 focus:border-primary-300 dark:focus:border-primary-700 focus:ring-primary-200 dark:focus:ring-primary-900 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm"
+            className="w-full pl-10 text-sm border-primary-100 dark:border-primary-900 focus:border-primary-300 dark:focus:border-primary-700 focus:ring-primary-200 dark:focus:ring-primary-900 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm transition-all duration-300 hover:shadow-md"
           />
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto">
         {sidebarItems.map((section, index) => (
-          <div key={index}>
+          <div key={index} className={`animate-slide-in-left`} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="px-4 py-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700">
+              <h3 className="text-xs font-semibold uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 transition-all duration-300">
                 {section.title}
               </h3>
             </div>
             {section.items.map((item, itemIndex) => (
               <Link key={itemIndex} href={item.href}>
-                <a
-                  className={`sidebar-link dark:text-neutral-300 dark:hover:bg-neutral-800 ${isActive(item.href) ? "active dark:bg-sidebar-accent dark:text-sidebar-accent-foreground" : ""}`}
+                <div
+                  className={`sidebar-link dark:text-neutral-300 dark:hover:bg-neutral-800 relative overflow-hidden group transition-all duration-300 ${
+                    isActive(item.href) 
+                      ? "active dark:bg-sidebar-accent dark:text-sidebar-accent-foreground before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-primary before:content-['']" 
+                      : ""
+                  }`}
                   onClick={() => isMobile && setIsOpen(false)}
                 >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </a>
+                  {/* Animated icon background on hover */}
+                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 dark:group-hover:bg-primary/10 transition-all duration-300 transform translate-x-full group-hover:translate-x-0"></div>
+                  
+                  {/* Icon with animation */}
+                  <div className="transform transition-transform duration-300 group-hover:scale-110 group-hover:text-primary-600 dark:group-hover:text-primary-400 relative z-10">
+                    {item.icon}
+                  </div>
+                  
+                  <span className="relative z-10 transition-all duration-300 group-hover:text-primary-700 dark:group-hover:text-primary-300 group-hover:font-medium">
+                    {item.name}
+                  </span>
+                </div>
               </Link>
             ))}
-            {index < sidebarItems.length - 1 && <Separator className="my-2" />}
+            {index < sidebarItems.length - 1 && (
+              <Separator className="my-2 bg-gradient-to-r from-transparent via-primary-200/30 dark:via-primary-800/30 to-transparent opacity-50" />
+            )}
           </div>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
-        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-800/30 hover:from-primary-200 hover:to-primary-100 dark:hover:from-primary-900/50 dark:hover:to-primary-800/50 transition-all duration-300 cursor-pointer">
-          <div className="w-10 h-10 bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center shadow-sm">
-            <HelpCircle className="h-5 w-5" />
+      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 animate-slide-in-bottom" style={{ animationDelay: '400ms' }}>
+        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-800/30 hover:from-primary-200 hover:to-primary-100 dark:hover:from-primary-900/50 dark:hover:to-primary-800/50 transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-1 glow-on-hover">
+          <div className="w-10 h-10 bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden group">
+            <div className="absolute inset-0 bg-primary/10 transform scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
+            <HelpCircle className="h-5 w-5 relative z-10 animate-pulse-subtle" />
           </div>
-          <div>
+          <div className="transform transition-all duration-300 group-hover:translate-x-1">
             <p className="text-sm font-medium text-primary-700 dark:text-primary-300">Need help?</p>
             <p className="text-xs text-primary-500 dark:text-primary-400">Contact support</p>
           </div>

@@ -2,7 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for form inputs */
+/* Enhanced styles with animations */
+
+/* Animated background gradient */
+.animated-gradient {
+  background: linear-gradient(-45deg, 
+    hsl(var(--primary)/0.9),
+    hsl(var(--secondary)/0.9), 
+    hsl(var(--accent)/0.8),
+    hsl(var(--primary)/0.9));
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Shimmer effect for elements */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 bg-card border border-border/40 shadow-sm hover:shadow-md hover:border-primary/20;
+  transform: translateY(0);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+/* Glow effect */
+.glow-on-hover {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.glow-on-hover:before {
+  content: '';
+  background: linear-gradient(45deg, 
+    hsl(var(--primary)), 
+    hsl(var(--secondary)), 
+    hsl(var(--accent)), 
+    hsl(var(--primary)));
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: glowing 20s linear infinite;
+  transition: opacity .3s ease-in-out;
+}
+
+.glow-on-hover:hover:before {
+  opacity: 1;
+}
+
+@keyframes glowing {
+  0% { background-position: 0 0; }
+  50% { background-position: 400% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Custom styles for form inputs with animations */
 input.form-input {
   @apply transition-all duration-300 rounded-md bg-background/80 backdrop-blur-sm;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -18,17 +103,32 @@ input.form-input:hover:not(:focus) {
   box-shadow: 0 0 0 1px rgba(79, 94, 197, 0.2), 0 2px 6px -1px rgba(79, 94, 197, 0.1);
 }
 
+/* Enhanced form styling with animations */
 .form-field {
   @apply transition-all duration-300 relative;
+  transform-origin: left;
 }
 
 .form-field:focus-within {
   transform: translateY(-2px);
+  animation: form-field-focus 0.5s ease;
+}
+
+@keyframes form-field-focus {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(-2px); }
 }
 
 .form-field:hover:not(:focus-within) label {
   color: hsl(var(--primary));
-  text-shadow: 0 0 5px rgba(79, 94, 197, 0.1);
+  text-shadow: 0 0 8px rgba(79, 94, 197, 0.15);
+  animation: label-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes label-pulse {
+  0%, 100% { text-shadow: 0 0 8px rgba(79, 94, 197, 0.15); }
+  50% { text-shadow: 0 0 12px rgba(79, 94, 197, 0.25); }
 }
 
 .form-field:after {
@@ -39,7 +139,7 @@ input.form-input:hover:not(:focus) {
   width: 0;
   height: 2px;
   background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.5) 100%);
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 0 8px rgba(79, 94, 197, 0.25);
 }
 
@@ -50,9 +150,59 @@ input.form-input:hover:not(:focus) {
 .form-field:focus-within label {
   color: hsl(var(--primary));
   font-weight: 500;
-  transform: translateY(-1px);
-  text-shadow: 0 0 5px rgba(79, 94, 197, 0.2);
-  transition: all 0.3s ease;
+  transform: translateY(-1px) scale(1.02);
+  text-shadow: 0 0 8px rgba(79, 94, 197, 0.2);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Button animations */
+button, .button {
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease, transform 0.2s ease;
+}
+
+button:hover, .button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+button:active, .button:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+button:after, .button:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+button:focus:not(:active):after, .button:focus:not(:active):after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
 }
 
 @layer base {
