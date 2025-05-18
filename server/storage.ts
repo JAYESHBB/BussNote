@@ -434,13 +434,19 @@ class DatabaseStorage implements IStorage {
       // With ON DELETE CASCADE in place, we only need to delete the invoice itself
       // All related records (activities, invoice items, transactions) will be automatically deleted
       
-      // Delete the invoice
-      const result = await db.delete(invoices).where(eq(invoices.id, id));
+      // First, delete invoice items
+      await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
       
-      return result.rowCount ? result.rowCount > 0 : false;
+      // Then delete transactions related to this invoice
+      await db.delete(transactions).where(eq(transactions.invoiceId, id));
+      
+      // Finally delete the invoice
+      await db.delete(invoices).where(eq(invoices.id, id));
+      
+      return true;
     } catch (error) {
       console.error("Error deleting invoice:", error);
-      throw error; // Re-throw for better error handling upstream
+      return false;
     }
   }
   
