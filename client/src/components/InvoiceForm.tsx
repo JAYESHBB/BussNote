@@ -446,7 +446,11 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   // Simple getter functions that won't cause stack overflow
   const calculateSubtotal = () => subtotalValue;
   const calculateBrokerage = () => brokerageValue;
-  const calculateBrokerageInINR = () => brokerageInINRValue;
+  const calculateBrokerageInINR = () => {
+    // Apply mathematical rounding here to ensure consistent formatting
+    // This ensures the value is rounded the same way everywhere it's used
+    return Math.round(brokerageValue * exchangeRate * 100) / 100;
+  };
   const calculateBalanceBrokerage = () => balanceBrokerageValue;
 
   const onSubmit = async (data: FormData) => {
