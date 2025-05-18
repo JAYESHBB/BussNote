@@ -431,39 +431,27 @@ class DatabaseStorage implements IStorage {
   
   async deleteInvoice(id: number): Promise<boolean> {
     try {
-      // Check if invoice exists
-      const invoice = await db
-        .select({ id: invoices.id })
-        .from(invoices)
-        .where(eq(invoices.id, id))
-        .then(rows => rows[0]);
+      // We'll use a more direct approach with raw SQL to ensure proper deletion
+      const client = await pool.connect();
       
-      if (!invoice) {
-        console.error("Invoice not found:", id);
+      try {
+        await client.query('BEGIN');
+        
+        // Delete in correct order to handle dependencies
+        await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM activities WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM transactions WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM invoices WHERE id = $1', [id]);
+        
+        await client.query('COMMIT');
+        return true;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Transaction failed:", error);
         return false;
+      } finally {
+        client.release();
       }
-      
-      // First, delete invoice items
-      await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
-      
-      // Then delete activities related to this invoice
-      try {
-        await db.delete(activities).where(eq(activities.invoiceId, id));
-      } catch (e) {
-        console.log("No activities to delete for invoice:", id);
-      }
-      
-      // Then delete transactions related to this invoice
-      try {
-        await db.delete(transactions).where(eq(transactions.invoiceId, id));
-      } catch (e) {
-        console.log("No transactions to delete for invoice:", id);
-      }
-      
-      // Finally delete the invoice
-      await db.delete(invoices).where(eq(invoices.id, id));
-      
-      return true;
     } catch (error) {
       console.error("Error deleting invoice:", error);
       return false;
