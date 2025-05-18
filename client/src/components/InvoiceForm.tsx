@@ -58,28 +58,15 @@ const financialRound = (value: number): number => {
   return Math.floor(value * 100) / 100;
 };
 
-// Special rounding for INR amounts - uses traditional rounding approach 
-// Specifically designed for Brokerage in INR calculations with precision
+// Special rounding for INR amounts - specifically formatted for financial display
+// This truncates to 2 decimals without rounding for Brokerage in INR figures
 const inrRound = (value: number): number => {
-  // Convert to string with fixed precision to avoid floating point issues
-  const valueStr = value.toString();
+  // For large amounts, we need to be precise with the decimal digits
+  // This approach truncates the decimal to 2 places (no rounding)
+  const truncated = Math.trunc(value * 100) / 100;
   
-  // Split into integer and decimal parts
-  const parts = valueStr.split('.');
-  
-  // If no decimal part or decimal part has fewer than 2 digits
-  if (parts.length === 1 || parts[1].length <= 2) {
-    // Convert to fixed 2-decimal format and then to number
-    return parseFloat(parseFloat(valueStr).toFixed(2));
-  }
-  
-  // For numbers with more decimal places, control the rounding
-  // Keep only 2 decimal places with standard rounding
-  const integerPart = parseInt(parts[0]);
-  const decimalPart = parseInt(parts[1].substring(0, 2));
-  
-  // Build the number with exactly 2 decimal places
-  return parseFloat(`${integerPart}.${decimalPart}`);
+  // Format to exactly 2 decimal places for consistency
+  return parseFloat(truncated.toFixed(2));
 };
 
 interface InvoiceItem {
@@ -444,8 +431,22 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   }, [subtotalValue, brokerageRate]);
 
   const brokerageInINRValue = React.useMemo(() => {
-    // Use the specialized INR rounding method for more accurate figures
-    return inrRound(brokerageValue * exchangeRate);
+    // Direct approach to truncate decimal places without rounding
+    // This explicitly converts to a string and back to control decimal precision
+    const rawValue = brokerageValue * exchangeRate;
+    const valueStr = rawValue.toString();
+    const parts = valueStr.split('.');
+    
+    // If no decimal part or just zeros, return the value as is
+    if (parts.length === 1 || !parts[1]) {
+      return parseFloat(parts[0]);
+    }
+    
+    // Truncate to exactly 2 decimal places without rounding
+    const integerPart = parts[0];
+    const decimalPart = parts[1].substring(0, 2).padEnd(2, '0');
+    
+    return parseFloat(`${integerPart}.${decimalPart}`);
   }, [brokerageValue, exchangeRate]);
 
   const balanceBrokerageValue = React.useMemo(() => {
