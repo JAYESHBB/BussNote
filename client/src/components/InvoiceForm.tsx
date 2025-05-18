@@ -437,16 +437,11 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     return financialRound(brokerageInINRValue - receivedBrokerage);
   }, [brokerageInINRValue, receivedBrokerage]);
 
-  const totalValue = React.useMemo(() => {
-    return simpleRound(subtotalValue + brokerageValue);
-  }, [subtotalValue, brokerageValue]);
-
   // Simple getter functions that won't cause stack overflow
   const calculateSubtotal = () => subtotalValue;
   const calculateBrokerage = () => brokerageValue;
   const calculateBrokerageInINR = () => brokerageInINRValue;
   const calculateBalanceBrokerage = () => balanceBrokerageValue;
-  const calculateTotal = () => totalValue;
 
   const onSubmit = async (data: FormData) => {
     if (items.some(item => !item.description)) {
@@ -504,7 +499,6 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         brokerageInINR: calculateBrokerageInINR().toString(),
         receivedBrokerage: receivedBrokerageValue.toString(), // Ensure it's a string
         balanceBrokerage: calculateBalanceBrokerage().toString(),
-        total: calculateTotal().toString(),
         
         // Format dates properly
         invoiceDate: data.invoiceDate,
@@ -961,11 +955,6 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-neutral-600">Balance Brokerage:</span>
                 <span className="font-medium">₹{balanceBrokerageValue.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between items-center font-medium mt-3 border-t pt-2">
-                <span>Total:</span>
-                <span>{getCurrencySymbol(form.getValues().currency || 'INR')}{totalValue.toFixed(2)}</span>
               </div>
             </div>
             
