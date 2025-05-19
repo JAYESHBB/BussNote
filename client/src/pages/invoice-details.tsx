@@ -106,7 +106,7 @@ export default function InvoiceDetailsPage() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Invoice #${invoice.invoiceNumber}</title>
+          <title>Invoice #${invoice.invoiceNo}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
@@ -132,7 +132,7 @@ export default function InvoiceDetailsPage() {
         <body>
           <div class="header">
             <div>
-              <div class="invoice-title">Invoice #${invoice.invoiceNo || invoice.invoiceNumber}</div>
+              <div class="invoice-title">Invoice #${invoice.invoiceNo}</div>
               <div class="invoice-details">Issued on ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
               <div class="invoice-details">Status: ${invoice.status}</div>
               <div class="invoice-details">Bill Closed: ${invoice.isClosed ? 'Yes' : 'No'}</div>
@@ -270,9 +270,9 @@ export default function InvoiceDetailsPage() {
       return;
     }
     
-    const subject = `Invoice #${invoice.invoiceNumber} from BussNote`;
+    const subject = `Invoice #${invoice.invoiceNo} from BussNote`;
     const body = `Dear ${invoice.partyName},\n\n`+
-      `Please find attached invoice #${invoice.invoiceNumber} for your reference.\n\n`+
+      `Please find attached invoice #${invoice.invoiceNo} for your reference.\n\n`+
       `Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}\n`+
       `Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}\n`+
       `Amount Due: ${formatCurrency(Number(invoice.total))}\n\n`+
@@ -309,9 +309,9 @@ export default function InvoiceDetailsPage() {
       return;
     }
     
-    const subject = `REMINDER: Invoice #${invoice.invoiceNumber} Payment Due`;
+    const subject = `REMINDER: Invoice #${invoice.invoiceNo} Payment Due`;
     const body = `Dear ${invoice.partyName},\n\n`+
-      `This is a friendly reminder that payment for invoice #${invoice.invoiceNumber} is due `+
+      `This is a friendly reminder that payment for invoice #${invoice.invoiceNo} is due `+
       `${new Date(invoice.dueDate) < new Date() ? 'was due' : 'is due'} on ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}.\n\n`+
       `Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}\n`+
       `Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}\n`+
