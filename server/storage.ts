@@ -75,6 +75,11 @@ export interface IStorage {
   getSalesReport(fromDate?: Date, toDate?: Date, groupBy?: string): Promise<any>;
   getDashboardStats(dateRange: string): Promise<any>;
   
+  // Advanced Analytics methods
+  getBrokerageAnalytics(fromDate?: Date, toDate?: Date): Promise<any>;
+  getPartySalesAnalytics(fromDate?: Date, toDate?: Date, limit?: number): Promise<any>;
+  getSalesTrends(period?: string): Promise<any>;
+  
   // Session store
   sessionStore: session.SessionStore;
 }
