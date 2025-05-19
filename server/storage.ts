@@ -227,13 +227,12 @@ class DatabaseStorage implements IStorage {
   async getAllInvoices(): Promise<Invoice[]> {
     const allInvoices = await db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDate: invoices.dueDate,
       status: invoices.status,
       subtotal: invoices.subtotal,
       brokerageInINR: invoices.brokerageInINR,
-      total: invoices.total,
       notes: invoices.notes,
       partyId: invoices.partyId,
       buyerId: invoices.buyerId,
