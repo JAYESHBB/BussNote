@@ -56,6 +56,7 @@ export default function Dashboard() {
     totalSales: number;
     salesByCurrency: Record<string, number>;
     outstanding: number;
+    outstandingByCurrency: Record<string, number>;
     totalInvoices: number;
     activeParties: number;
     pendingInvoices: number;
@@ -66,6 +67,7 @@ export default function Dashboard() {
     totalSales: 0,
     salesByCurrency: {},
     outstanding: 0,
+    outstandingByCurrency: {},
     totalInvoices: 0, 
     activeParties: 0,
     pendingInvoices: 0,
@@ -257,17 +259,38 @@ export default function Dashboard() {
           </div>
         </Card>
         
-        <DashboardCard
-          title="Outstanding"
-          value={formatCurrency(dashboardStats.outstanding)}
-          icon={Bell}
-          iconBgClass="bg-destructive-50"
-          iconColor="text-destructive"
-          trend={{
-            value: "Total pending amount",
-            isPositive: false,
-          }}
-        />
+        <Card className="p-4 bg-gradient-to-br from-destructive-50 to-white rounded-lg border border-destructive-100 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-destructive-50 flex items-center justify-center mr-3">
+                <Bell className="h-5 w-5 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-800">Outstanding</h3>
+            </div>
+            <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+              {formatDateRange()}
+            </div>
+          </div>
+          
+          <div className="text-2xl font-bold text-neutral-900 mb-2">
+            {formatCurrency(dashboardStats.outstanding)}
+          </div>
+          
+          <div className="space-y-1 mt-3 border-t pt-2">
+            {dashboardStats.outstandingByCurrency && Object.entries(dashboardStats.outstandingByCurrency || {}).map(([currency, amount]) => (
+              <div key={currency} className="flex justify-between items-center text-sm">
+                <span className="font-medium text-neutral-700">{currency}:</span>
+                <span className="text-neutral-900">{currency === 'INR' 
+                  ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)
+                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount)
+                }</span>
+              </div>
+            ))}
+            {(!dashboardStats.outstandingByCurrency || Object.keys(dashboardStats.outstandingByCurrency).length === 0) && (
+              <div className="text-sm text-neutral-500 italic">No outstanding data available</div>
+            )}
+          </div>
+        </Card>
         
         <DashboardCard
           title="Active Parties"
