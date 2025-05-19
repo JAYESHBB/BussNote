@@ -590,13 +590,12 @@ class DatabaseStorage implements IStorage {
     // Get all pending invoices within the date range
     const outstandingInvoices = await db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDate: invoices.dueDate,
       status: invoices.status,
       subtotal: invoices.subtotal,
       brokerageInINR: invoices.brokerageInINR,
-      total: invoices.total,
       notes: invoices.notes,
       partyId: invoices.partyId,
       buyerId: invoices.buyerId,
@@ -651,13 +650,12 @@ class DatabaseStorage implements IStorage {
     // Build the query based on status filter
     let query = db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDate: invoices.dueDate,
       status: invoices.status,
       subtotal: invoices.subtotal,
       brokerageInINR: invoices.brokerageInINR,
-      total: invoices.total,
       notes: invoices.notes,
       partyId: invoices.partyId,
       buyerId: invoices.buyerId,
