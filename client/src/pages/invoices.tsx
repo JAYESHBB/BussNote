@@ -380,9 +380,7 @@ BussNote Team`;
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center space-x-2 border px-3 py-2 rounded-md">
