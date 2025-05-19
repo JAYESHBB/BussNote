@@ -224,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items,
         brokerageRate: typeof brokerageRate === 'string' ? brokerageRate : "0.75", // Ensure it's a string
         exchangeRate: (parseFloat(invoice.exchangeRate || "1.00")).toFixed(2), // Ensure exchange rate is a string
-        remarks: invoice.notes || "", // Use notes field for remarks if missing
+        notes: invoice.notes || "", // Use notes field
       };
       
       res.json(completeInvoice);
@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Update invoice request body:', JSON.stringify(req.body, null, 2));
       
-      // Extract the items array, notes/remarks and dates from the request body
+      // Extract the items array, notes and dates from the request body
       const { items, notes, invoiceDate, dueDate, ...updateData } = req.body;
       
       // Fix dates if they're strings
