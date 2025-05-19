@@ -326,7 +326,7 @@ BussNote Team`;
     const statusMatch = status === "all" || invoice.status === status;
     
     // Filter by closed/open status
-    const closedMatch = showClosed || !(invoice.isClosed === true);
+    const closedMatch = showClosed ? true : !invoice.isClosed;
     
     return searchMatch && statusMatch && closedMatch;
   });
