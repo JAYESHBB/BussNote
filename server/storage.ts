@@ -916,11 +916,29 @@ class DatabaseStorage implements IStorage {
     const salesByCurrencyResult = await salesByCurrencyQuery;
     
     // Convert to a more usable format for the frontend
-    const salesByCurrency = salesByCurrencyResult.reduce((acc, row) => {
+    let salesByCurrency = salesByCurrencyResult.reduce((acc, row) => {
       const currency = row.currency || 'INR'; // Default to INR if no currency specified
       acc[currency] = Number(row.amount);
       return acc;
     }, {} as Record<string, number>);
+    
+    // If we have outstanding data but no sales data, let's use the same currencies for sales
+    // but with zero values so the UI displays the same currency list for both cards
+    if (Object.keys(salesByCurrency).length === 0) {
+      // Get the outstanding currencies (which we'll check next) and create sales entries with 0
+      const pendingResult = await db
+        .select({ 
+          currency: invoices.currency,
+        })
+        .from(invoices)
+        .where(eq(invoices.status, "pending"))
+        .groupBy(invoices.currency);
+        
+      pendingResult.forEach(row => {
+        const currency = row.currency || 'INR';
+        salesByCurrency[currency] = 0;
+      });
+    }
     
     // Outstanding amount (all pending invoices) - use subtotal when total is zero
     const outstandingResult = await db
