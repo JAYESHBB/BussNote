@@ -115,9 +115,9 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
       SELECT 
         p.id,
         p.name,
-        SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) AS sales_amount,
+        SUM(i.subtotal) AS sales_amount,
         ROUND(
-          (SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) / 
+          (SUM(i.subtotal) / 
            NULLIF((SELECT amount FROM total_sales), 0)) * 100, 
         2) AS contribution_percentage
       FROM invoices i
