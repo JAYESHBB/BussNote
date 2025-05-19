@@ -326,7 +326,7 @@ export default function Dashboard() {
             <DialogDescription>
               {selectedInvoice && (
                 <span className="text-sm text-neutral-600">
-                  Invoice #{selectedInvoice.invoiceNumber} | 
+                  Invoice #{selectedInvoice.invoiceNo} | 
                   {selectedInvoice.partyName} | 
                   {formatCurrency(selectedInvoice.total)}
                 </span>

@@ -396,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         type: "invoice_note_updated",
         title: "Invoice Note Updated",
-        description: `Invoice #${updatedInvoice.invoiceNumber} notes updated`,
+        description: `Invoice #${updatedInvoice.invoiceNo} notes updated`,
         timestamp: new Date(),
         partyId: updatedInvoice.partyId,
         invoiceId: updatedInvoice.id
@@ -545,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         type: "invoice_updated",
         title: "Invoice Updated",
-        description: `Invoice #${updatedInvoice.invoiceNumber} details updated`,
+        description: `Invoice #${updatedInvoice.invoiceNo} details updated`,
         timestamp: new Date(),
         partyId: updatedInvoice.partyId,
         invoiceId: updatedInvoice.id

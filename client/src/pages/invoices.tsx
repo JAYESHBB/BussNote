@@ -583,7 +583,7 @@ BussNote Team`;
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete Invoice #{invoiceToDelete?.invoiceNumber}. This action cannot be undone.
+              This will permanently delete Invoice #{invoiceToDelete?.invoiceNo}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
