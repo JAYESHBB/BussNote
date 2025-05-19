@@ -801,6 +801,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics API routes
+  app.get(`${apiPrefix}/analytics/brokerage`, async (req, res) => {
+    getBrokerageAnalytics(req, res);
+  });
+  
+  app.get(`${apiPrefix}/analytics/party-sales`, async (req, res) => {
+    getPartySalesAnalytics(req, res);
+  });
+  
+  app.get(`${apiPrefix}/analytics/trends`, async (req, res) => {
+    getSalesTrends(req, res);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
