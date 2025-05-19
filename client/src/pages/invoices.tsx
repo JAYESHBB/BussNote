@@ -424,7 +424,6 @@ BussNote Team`;
               <TableBody>
                 {filteredInvoices?.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.invoiceNo || invoice.invoiceNumber}</TableCell>
                     <TableCell>{invoice.partyName || '-'}</TableCell>
                     <TableCell>{invoice.buyerName || '-'}</TableCell>
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
