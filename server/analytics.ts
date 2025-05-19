@@ -94,7 +94,7 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
         p.id,
         p.name,
         COUNT(i.id) AS invoice_count,
-        SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) AS total_sales,
+        SUM(i.subtotal) AS total_sales,
         MAX(i.invoice_date) AS last_invoice_date,
         STRING_AGG(DISTINCT COALESCE(i.currency, 'INR'), ',') AS currencies
       FROM invoices i
@@ -108,7 +108,7 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
     // Party contribution to total sales
     const salesDistribution = await db.execute(sql`
       WITH total_sales AS (
-        SELECT SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS amount
+        SELECT SUM(subtotal) AS amount
         FROM invoices
         WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       )

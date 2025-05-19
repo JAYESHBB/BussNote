@@ -218,7 +218,7 @@ export default function InvoicesPage() {
               <td>Invoice ${invoice.invoiceNo || invoice.invoiceNumber}</td>
               <td>${invoice.currency || 'INR'}</td>
               <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.subtotal || 0).toFixed(2)}</td>
-              <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.tax || 0).toFixed(2)}</td>
+              <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.brokerageInINR || 0).toFixed(2)}</td>
               <td>₹ ${Number(invoice.brokerageInINR || 0).toFixed(2)}</td>
               <td>₹ ${Number(invoice.receivedBrokerage || 0).toFixed(2)}</td>
               <td>₹ ${Number(invoice.balanceBrokerage || 0).toFixed(2)}</td>
@@ -429,7 +429,7 @@ BussNote Team`;
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
-                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.tax || 0).toFixed(2)}</TableCell>
+                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.receivedBrokerage || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.balanceBrokerage || 0).toFixed(2)}</TableCell>
