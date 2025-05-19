@@ -218,7 +218,7 @@ export async function getSalesTrends(req: Request, res: Response) {
     const trendData = await db.execute(sql`
       SELECT 
         ${timeFormat} AS time_period,
-        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS sales,
+        SUM(CAST(subtotal AS NUMERIC)) AS sales,
         COUNT(*) AS invoice_count,
         SUM(CAST(brokerage_inr AS NUMERIC)) AS brokerage,
         ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate

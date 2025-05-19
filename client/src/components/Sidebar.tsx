@@ -34,14 +34,12 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         { name: "Dashboard", icon: <LayoutDashboard className="h-5 w-5 mr-3" />, href: "/" },
         { name: "Party Master", icon: <Users className="h-5 w-5 mr-3" />, href: "/parties" },
         { name: "Add Note", icon: <MessageSquare className="h-5 w-5 mr-3" />, href: "/invoices" },
-        { name: "Transactions", icon: <DollarSign className="h-5 w-5 mr-3" />, href: "/transactions" },
       ],
     },
     {
       title: "Reports",
       items: [
         { name: "All Reports", icon: <BarChart2 className="h-5 w-5 mr-3" />, href: "/reports" },
-        { name: "Business Intelligence", icon: <BarChart className="h-5 w-5 mr-3" />, href: "/analytics" },
       ],
     },
     {
