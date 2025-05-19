@@ -156,7 +156,7 @@ export default function ReportsPage() {
                       <TableCell className="font-medium">
                         <Link href={`/invoices/${invoice.id}`}>
                           <a className="text-primary-500 hover:underline">
-                            #{invoice.invoiceNumber}
+                            #{invoice.invoiceNo}
                           </a>
                         </Link>
                       </TableCell>
@@ -251,7 +251,7 @@ export default function ReportsPage() {
                       <TableCell className="font-medium">
                         <Link href={`/invoices/${invoice.id}`}>
                           <a className="text-primary-500 hover:underline">
-                            #{invoice.invoiceNumber}
+                            #{invoice.invoiceNo}
                           </a>
                         </Link>
                       </TableCell>

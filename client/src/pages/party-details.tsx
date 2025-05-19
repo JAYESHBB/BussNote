@@ -221,7 +221,7 @@ export default function PartyDetailsPage() {
                 <TableBody>
                   {invoices?.map((invoice) => (
                     <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">#{invoice.invoiceNumber}</TableCell>
+                      <TableCell className="font-medium">#{invoice.invoiceNo}</TableCell>
                       <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                       <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
                       <TableCell>{formatCurrency(invoice.total)}</TableCell>
