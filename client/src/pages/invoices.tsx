@@ -418,6 +418,7 @@ BussNote Team`;
                   <TableHead>Brokerage in INR</TableHead>
                   <TableHead>Overdue</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Closed</TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -438,6 +439,17 @@ BussNote Team`;
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={invoice.status as any} />
+                    </TableCell>
+                    <TableCell>
+                      {invoice.isClosed ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          No
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
