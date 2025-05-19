@@ -215,7 +215,7 @@ export default function InvoicesPage() {
           </thead>
           <tbody>
             <tr>
-              <td>Invoice ${invoice.invoiceNo || invoice.invoiceNumber}</td>
+              <td>Invoice ${invoice.invoiceNo}</td>
               <td>${invoice.currency || 'INR'}</td>
               <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.subtotal || 0).toFixed(2)}</td>
               <td>${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.brokerageInINR || 0).toFixed(2)}</td>
@@ -275,14 +275,14 @@ export default function InvoicesPage() {
     }
     
     // Create the reminder email content
-    const subject = `Reminder: Invoice ${invoice.invoiceNo || invoice.invoiceNumber} Payment Due`;
+    const subject = `Reminder: Invoice ${invoice.invoiceNo} Payment Due`;
     
     const body = `Dear ${invoice.buyerName || invoice.partyName},
 
-This is a friendly reminder that invoice ${invoice.invoiceNo || invoice.invoiceNumber} for ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)} is currently ${invoice.status}.
+This is a friendly reminder that invoice ${invoice.invoiceNo} for ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)} is currently ${invoice.status}.
 
 Invoice Details:
-- Invoice No.: ${invoice.invoiceNo || invoice.invoiceNumber}
+- Invoice No.: ${invoice.invoiceNo}
 - Invoice Date: ${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
 - Due Date: ${format(new Date(invoice.dueDate), "MMM dd, yyyy")}
 - Amount Due: ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)}

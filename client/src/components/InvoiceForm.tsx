@@ -245,7 +245,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const values = {
         partyId: invoice.partyId?.toString() || "",
         buyerId: invoice.buyerId?.toString() || "",
-        invoiceNo: invoice.invoiceNo || invoice.invoiceNumber || "",
+        invoiceNo: invoice.invoiceNo || "",
         invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
         dueDays: invoice.dueDays || calculatedDueDays,
         terms: invoice.terms || "Days",
@@ -314,7 +314,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const formValues = {
         partyId: invoice.partyId?.toString() || "",
         buyerId: invoice.buyerId?.toString() || "",
-        invoiceNo: invoice.invoiceNo || invoice.invoiceNumber || "",
+        invoiceNo: invoice.invoiceNo || "",
         invoiceDate: new Date(invoice.invoiceDate).toISOString().split("T")[0],
         dueDays: invoice.dueDays || calculatedDueDays || 15,
         terms: invoice.terms || "Days",
