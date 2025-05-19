@@ -332,7 +332,30 @@ class DatabaseStorage implements IStorage {
   }
   
   async getInvoiceById(id: number): Promise<Invoice | undefined> {
-    const result = await db.select().from(invoices).where(eq(invoices.id, id));
+    // Use explicit field selection to avoid schema mismatches
+    const result = await db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
+      invoiceDate: invoices.invoiceDate,
+      dueDays: invoices.dueDays,
+      terms: invoices.terms,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      isClosed: invoices.isClosed,
+      currency: invoices.currency,
+      exchangeRate: invoices.exchangeRate,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      receivedBrokerage: invoices.receivedBrokerage,
+      balanceBrokerage: invoices.balanceBrokerage,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt
+    }).from(invoices).where(eq(invoices.id, id));
     
     if (result.length === 0) {
       return undefined;
