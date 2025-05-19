@@ -23,7 +23,7 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
         SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
         SUM(CAST(brokerage_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
-        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total_sales,
+        SUM(CAST(subtotal AS NUMERIC)) AS total_sales,
         ROUND(
           (SUM(CAST(brokerage_inr AS NUMERIC)) / 
           NULLIF(SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END), 0)) * 100, 
@@ -41,7 +41,7 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
         SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
         SUM(CAST(brokerage_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
-        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total_sales,
+        SUM(CAST(subtotal AS NUMERIC)) AS total_sales,
         ROUND(
           (SUM(CAST(brokerage_inr AS NUMERIC)) / 
           NULLIF(SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END), 0)) * 100, 

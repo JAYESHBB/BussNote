@@ -751,7 +751,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
+        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "weekly") {
       // Group by week
@@ -777,7 +777,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
+        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "monthly") {
       // Group by month
@@ -800,7 +800,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
+        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "quarterly") {
       // Group by quarter
@@ -826,7 +826,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
+        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
       }
     }
     
