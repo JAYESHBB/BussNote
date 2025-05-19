@@ -54,6 +54,7 @@ export default function Dashboard() {
 
   interface DashboardStats {
     totalSales: number;
+    salesByCurrency: Record<string, number>;
     outstanding: number;
     totalInvoices: number;
     activeParties: number;
@@ -63,6 +64,7 @@ export default function Dashboard() {
   
   const { data: dashboardStats = {
     totalSales: 0,
+    salesByCurrency: {},
     outstanding: 0,
     totalInvoices: 0, 
     activeParties: 0,
@@ -222,17 +224,38 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <DashboardCard
-          title="Total Sales"
-          value={formatCurrency(dashboardStats.totalSales)}
-          icon={LineChart}
-          iconBgClass="bg-primary-50"
-          iconColor="text-primary-500"
-          trend={{
-            value: formatDateRange(),
-            isPositive: true,
-          }}
-        />
+        <Card className="p-4 bg-gradient-to-br from-primary-50 to-white rounded-lg border border-primary-100 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mr-3">
+                <LineChart className="h-5 w-5 text-primary-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-800">Total Sales</h3>
+            </div>
+            <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+              {formatDateRange()}
+            </div>
+          </div>
+          
+          <div className="text-2xl font-bold text-neutral-900 mb-2">
+            {formatCurrency(dashboardStats.totalSales)}
+          </div>
+          
+          <div className="space-y-1 mt-3 border-t pt-2">
+            {dashboardStats.salesByCurrency && Object.entries(dashboardStats.salesByCurrency || {}).map(([currency, amount]) => (
+              <div key={currency} className="flex justify-between items-center text-sm">
+                <span className="font-medium text-neutral-700">{currency}:</span>
+                <span className="text-neutral-900">{currency === 'INR' 
+                  ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)
+                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount)
+                }</span>
+              </div>
+            ))}
+            {(!dashboardStats.salesByCurrency || Object.keys(dashboardStats.salesByCurrency).length === 0) && (
+              <div className="text-sm text-neutral-500 italic">No sales data available</div>
+            )}
+          </div>
+        </Card>
         
         <DashboardCard
           title="Outstanding"

@@ -858,6 +858,28 @@ class DatabaseStorage implements IStorage {
       
     const totalSales = Number(salesResult[0]?.totalSales || 0);
     
+    // Get sales by currency
+    const salesByCurrencyQuery = db
+      .select({ 
+        currency: invoices.currency,
+        amount: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
+      })
+      .from(invoices)
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, today)
+      ))
+      .groupBy(invoices.currency);
+    
+    const salesByCurrencyResult = await salesByCurrencyQuery;
+    
+    // Convert to a more usable format for the frontend
+    const salesByCurrency = salesByCurrencyResult.reduce((acc, row) => {
+      const currency = row.currency || 'INR'; // Default to INR if no currency specified
+      acc[currency] = Number(row.amount);
+      return acc;
+    }, {} as Record<string, number>);
+    
     // Outstanding amount (all pending invoices) - use subtotal when total is zero
     const outstandingResult = await db
       .select({ 
@@ -904,6 +926,7 @@ class DatabaseStorage implements IStorage {
     
     return {
       totalSales,
+      salesByCurrency,
       outstanding,
       totalInvoices,
       activeParties,
