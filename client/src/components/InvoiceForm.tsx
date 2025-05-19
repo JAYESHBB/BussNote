@@ -856,7 +856,16 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Currency</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // If INR is selected, set exchange rate to 1.00
+                        if (value === "INR") {
+                          form.setValue("exchangeRate", 1.0);
+                        }
+                      }} 
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select currency" />
