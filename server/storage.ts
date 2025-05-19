@@ -398,8 +398,11 @@ class DatabaseStorage implements IStorage {
   }
   
   async createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice> {
-    // Insert the invoice
-    const result = await db.insert(invoices).values(data).returning();
+    // Remove the invoiceNumber field if it exists in the data
+    const { invoiceNumber, ...invoiceData } = data as any;
+    
+    // Insert the invoice with clean data
+    const result = await db.insert(invoices).values(invoiceData).returning();
     const invoice = result[0];
     
     // Insert the invoice items

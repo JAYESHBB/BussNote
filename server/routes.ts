@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         type: "invoice_created",
         title: "New note created",
-        description: `Note #${newInvoice.invoiceNumber} between seller ${newInvoice.partyName} and buyer ${newInvoice.buyerName}`,
+        description: `Note #${newInvoice.invoiceNo} between seller ${newInvoice.partyName} and buyer ${newInvoice.buyerName}`,
         invoiceId: newInvoice.id,
         partyId: newInvoice.partyId,
         timestamp: new Date() // Add timestamp explicitly
@@ -355,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userId: userId,
             type: "payment_received",
             title: "Payment received",
-            description: `Payment received for invoice #${updatedInvoice.invoiceNumber}`,
+            description: `Payment received for invoice #${updatedInvoice.invoiceNo}`,
             invoiceId: updatedInvoice.id,
             partyId: updatedInvoice.partyId,
             timestamp: new Date()
