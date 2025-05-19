@@ -408,7 +408,7 @@ BussNote Team`;
             <Table>
               <TableHeader className="bg-neutral-50">
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Invoice No.</TableHead>
                   <TableHead>Party Name</TableHead>
                   <TableHead>Buyer Name</TableHead>
                   <TableHead>Date</TableHead>
