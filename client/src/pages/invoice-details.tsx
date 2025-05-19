@@ -336,7 +336,7 @@ export default function InvoiceDetailsPage() {
         
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-neutral-800">Invoice #{invoice.invoiceNumber}</h1>
+            <h1 className="text-2xl font-bold text-neutral-800">Invoice #{invoice.invoiceNo}</h1>
             <div className="flex items-center mt-1">
               <StatusBadge status={invoice.status as any} />
               <span className="text-neutral-500 ml-2">
@@ -415,7 +415,7 @@ export default function InvoiceDetailsPage() {
             <div className="flex items-start space-x-3">
               <FileText className="h-5 w-5 text-neutral-500 mt-0.5" />
               <div>
-                <p className="font-medium">{invoice.invoiceNo || invoice.invoiceNumber}</p>
+                <p className="font-medium">{invoice.invoiceNo}</p>
                 <p className="text-sm text-neutral-500">Invoice No.</p>
               </div>
             </div>
