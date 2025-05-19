@@ -928,13 +928,15 @@ class DatabaseStorage implements IStorage {
     }
     
     // Get all invoices with their full details for accurate calculation
+    // Make sure to include all necessary fields that exist in the current schema
     const allInvoices = await db
       .select({
         id: invoices.id,
         currency: invoices.currency,
         subtotal: invoices.subtotal,
-        total: invoices.total,
-        status: invoices.status
+        brokerageInINR: invoices.brokerageInINR,
+        status: invoices.status,
+        isClosed: invoices.isClosed
       })
       .from(invoices);
     
@@ -946,8 +948,8 @@ class DatabaseStorage implements IStorage {
     
     // Process each invoice for accurate calculations
     allInvoices.forEach(invoice => {
-      // Calculate actual amount (use subtotal if total is zero)
-      const amount = Number(invoice.total) > 0 ? Number(invoice.total) : Number(invoice.subtotal);
+      // Use subtotal as the primary amount since total column might not exist or be renamed
+      const amount = Number(invoice.subtotal);
       const currency = invoice.currency || "INR"; // Default to INR if no currency specified
       
       if (invoice.status === "paid") {
