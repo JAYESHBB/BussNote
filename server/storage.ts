@@ -588,7 +588,7 @@ class DatabaseStorage implements IStorage {
       
       return {
         ...transaction,
-        invoiceNumber: "N/A"
+        invoiceNo: "N/A"
       };
     }));
     
@@ -607,13 +607,13 @@ class DatabaseStorage implements IStorage {
       
       return {
         ...transaction,
-        invoiceNumber: invoice[0]?.invoiceNo || "Unknown Invoice"
+        invoiceNo: invoice[0]?.invoiceNo || "Unknown Invoice"
       };
     }
     
     return {
       ...transaction,
-      invoiceNumber: "N/A"
+      invoiceNo: "N/A"
     };
   }
   

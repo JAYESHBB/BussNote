@@ -141,7 +141,7 @@ async function seed() {
         // Generate invoice number
         const year = new Date().getFullYear();
         const paddedNumber = (index + 38).toString().padStart(4, '0');
-        const invoiceNumber = `INV-${year}-${paddedNumber}`;
+        const invoiceNo = `INV-${year}-${paddedNumber}`;
         
         // Calculate tax and subtotal
         const subtotal = data.total / 1.18; // Assuming 18% tax
@@ -149,7 +149,7 @@ async function seed() {
         
         // Create the invoice
         const [invoice] = await db.insert(schema.invoices).values({
-          invoiceNumber,
+          invoiceNo,
           invoiceDate: data.invoiceDate,
           dueDate: data.dueDate,
           status: data.status,
@@ -162,7 +162,7 @@ async function seed() {
           notes: "Thank you for your business!"
         }).returning();
         
-        console.log(`Created invoice: ${invoice.invoiceNumber} with id: ${invoice.id}`);
+        console.log(`Created invoice: ${invoice.invoiceNo} with id: ${invoice.id}`);
         
         // Add invoice items
         for (const item of data.items) {
@@ -186,7 +186,7 @@ async function seed() {
             userId: adminUser.id
           }).returning();
           
-          console.log(`Created transaction for invoice: ${invoice.invoiceNumber}`);
+          console.log(`Created transaction for invoice: ${invoice.invoiceNo}`);
           
           // Log activity for payment
           await db.insert(schema.activities).values({
