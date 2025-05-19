@@ -241,7 +241,8 @@ class DatabaseStorage implements IStorage {
     }).from(invoices)
       .orderBy(desc(invoices.invoiceDate));
 
-    // Get party names for each invoice
+    // Get party names for each invoice and calculate days overdue
+    const today = new Date();
     const invoicesWithPartyNames = await Promise.all(allInvoices.map(async (invoice) => {
       const party = await db.select({
         name: parties.name,
@@ -253,12 +254,21 @@ class DatabaseStorage implements IStorage {
         email: parties.email
       }).from(parties).where(eq(parties.id, invoice.buyerId));
       
+      // Calculate days overdue if due date is in the past and status is pending
+      let daysOverdue: number | undefined = undefined;
+      if (invoice.status === 'pending' && invoice.dueDate && new Date(invoice.dueDate) < today) {
+        const dueDate = new Date(invoice.dueDate);
+        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+        daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+      
       return {
         ...invoice,
         partyName: party[0]?.name || "Unknown Party",
         partyEmail: party[0]?.email || null,
         buyerName: buyer[0]?.name || "Unknown Buyer",
-        buyerEmail: buyer[0]?.email || null
+        buyerEmail: buyer[0]?.email || null,
+        daysOverdue
       };
     }));
     
@@ -283,7 +293,8 @@ class DatabaseStorage implements IStorage {
       .orderBy(desc(invoices.createdAt))
       .limit(limit);
     
-    // Get party names for each invoice
+    // Get party names for each invoice and calculate days overdue
+    const today = new Date();
     const invoicesWithPartyNames = await Promise.all(recentInvoices.map(async (invoice) => {
       const party = await db.select({
         name: parties.name,
@@ -295,12 +306,21 @@ class DatabaseStorage implements IStorage {
         email: parties.email
       }).from(parties).where(eq(parties.id, invoice.buyerId));
       
+      // Calculate days overdue if due date is in the past and status is pending
+      let daysOverdue: number | undefined = undefined;
+      if (invoice.status === 'pending' && invoice.dueDate && new Date(invoice.dueDate) < today) {
+        const dueDate = new Date(invoice.dueDate);
+        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+        daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+      
       return {
         ...invoice,
         partyName: party[0]?.name || "Unknown Party",
         partyEmail: party[0]?.email || null,
         buyerName: buyer[0]?.name || "Unknown Buyer",
-        buyerEmail: buyer[0]?.email || null
+        buyerEmail: buyer[0]?.email || null,
+        daysOverdue
       };
     }));
     
