@@ -553,10 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the updated invoice with items
       const fullUpdatedInvoice = await storage.getInvoiceById(invoiceId);
       
-      if (fullUpdatedInvoice) {
-        // Map notes to remarks for the response
-        fullUpdatedInvoice.remarks = fullUpdatedInvoice.notes || "";
-      }
+      // Get full updated invoice with items and return it
       
       res.json(fullUpdatedInvoice);
     } catch (error) {

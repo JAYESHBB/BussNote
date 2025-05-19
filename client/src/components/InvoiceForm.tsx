@@ -235,11 +235,10 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         parseFloat(invoice.receivedBrokerage?.toString() || "0"),
       );
 
-      const remarksOrNotes = invoice.remarks || invoice.notes || "";
-      console.log("Remarks/Notes value from invoice:", {
-        remarks: invoice.remarks,
+      const notesValue = invoice.notes || "";
+      console.log("Notes value from invoice:", {
         notes: invoice.notes,
-        finalValue: remarksOrNotes,
+        finalValue: notesValue,
       });
 
       const values = {
@@ -255,7 +254,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         exchangeRate: exchangeRateValue,
         receivedBrokerage: receivedBrokerageValue,
         isClosed: invoice.isClosed || false,
-        remarks: remarksOrNotes,
+        notes: notesValue,
       };
 
       console.log("Setting form values:", values);
@@ -284,19 +283,13 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       const calculatedDueDays =
         Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 15;
 
-      // Get remarks value, checking both invoice.remarks and invoice.notes
+      // Get notes value, handling null/undefined
       // Make sure to convert any null values to empty string
-      const remarksValue =
-        invoice.remarks !== undefined && invoice.remarks !== null
-          ? invoice.remarks
-          : invoice.notes !== undefined && invoice.notes !== null
-            ? invoice.notes
-            : "";
+      const notesValue = invoice.notes || "";
 
-      console.log("Remarks/Notes value from invoice:", {
-        remarks: invoice.remarks,
+      console.log("Notes value from invoice:", {
         notes: invoice.notes,
-        finalValue: remarksValue,
+        finalValue: notesValue,
       });
 
       // Round all decimal values properly for display
