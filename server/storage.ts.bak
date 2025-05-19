@@ -452,6 +452,10 @@ class DatabaseStorage implements IStorage {
         await client.query('BEGIN');
         
         // Delete in correct order to handle dependencies
+        await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM activities WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM transactions WHERE invoice_id = $1', [id]);
+        await client.query('DELETE FROM invoices WHERE id = $1', [id]);
         
         await client.query('COMMIT');
         return true;
@@ -848,6 +852,7 @@ class DatabaseStorage implements IStorage {
     // Total sales amount for the period - use subtotal when total is zero
     const salesResult = await db
       .select({ 
+        totalSales: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(and(
@@ -862,6 +867,7 @@ class DatabaseStorage implements IStorage {
     const salesByCurrencyQuery = db
       .select({ 
         currency: invoices.currency,
+        amount: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(and(
@@ -882,6 +888,7 @@ class DatabaseStorage implements IStorage {
     // Outstanding amount (all pending invoices) - use subtotal when total is zero
     const outstandingResult = await db
       .select({ 
+        outstanding: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(eq(invoices.status, "pending"));
@@ -935,21 +942,51 @@ class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+      SELECT 
+        COALESCE(currency, 'INR') AS currency,
+        SUM(CAST(brokerage_amount AS NUMERIC)) AS total_brokerage,
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS total_brokerage_inr,
+        SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
+        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total_sales,
         ROUND(
+          (SUM(CAST(brokerage_in_inr AS NUMERIC)) / 
+           NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
         2) AS brokerage_percentage
+      FROM invoices
+      WHERE invoice_date BETWEEN $1 AND $2
+      GROUP BY currency
+      ORDER BY total_sales DESC
     `), [fromDate, toDate]);
     
     // Total metrics across all currencies
     const totalsResult = await db.execute(sql.raw(`
+      SELECT 
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS total_brokerage_inr,
+        SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
+        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total_sales,
         ROUND(
+          (SUM(CAST(brokerage_in_inr AS NUMERIC)) / 
+           NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
         2) AS average_brokerage_percentage
+      FROM invoices
+      WHERE invoice_date BETWEEN $1 AND $2
     `), [fromDate, toDate]);
     
     // Monthly trend of brokerage vs sales
     const monthlyTrend = await db.execute(sql.raw(`
+      SELECT 
         TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM') AS month,
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage_inr,
+        SUM(CAST(received_brokerage AS NUMERIC)) AS received_brokerage,
+        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales
+      FROM invoices
+      WHERE invoice_date BETWEEN $1 AND $2
+      GROUP BY month
+      ORDER BY month
     `), [fromDate, toDate]);
     
     return {
@@ -968,23 +1005,41 @@ export const storage = new DatabaseStorage();
     
     // Top parties by sales amount
     const topParties = await db.execute(sql.raw(`
+      SELECT 
         p.id,
         p.name,
         COUNT(i.id) AS invoice_count,
+        SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) AS total_sales,
         MAX(i.invoice_date) AS last_invoice_date,
+        STRING_AGG(DISTINCT COALESCE(i.currency, 'INR'), ',') AS currencies
+      FROM invoices i
       JOIN parties p ON i.party_id = p.id
+      WHERE i.invoice_date BETWEEN $1 AND $2
+      GROUP BY p.id, p.name
+      ORDER BY total_sales DESC
       LIMIT $3
     `), [fromDate, toDate, limit]);
     
     // Party contribution to total sales
     const salesDistribution = await db.execute(sql.raw(`
       WITH total_sales AS (
+        SELECT SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS amount
+        FROM invoices
+        WHERE invoice_date BETWEEN $1 AND $2
       )
+      SELECT 
         p.id,
         p.name,
+        SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) AS sales_amount,
         ROUND(
+          (SUM(CASE WHEN i.total > 0 THEN i.total ELSE i.subtotal END) / 
+           NULLIF((SELECT amount FROM total_sales), 0)) * 100, 
         2) AS contribution_percentage
+      FROM invoices i
       JOIN parties p ON i.party_id = p.id
+      WHERE i.invoice_date BETWEEN $1 AND $2
+      GROUP BY p.id, p.name
+      ORDER BY sales_amount DESC
       LIMIT $3
     `), [fromDate, toDate, limit]);
     
@@ -1050,9 +1105,16 @@ export const storage = new DatabaseStorage();
     
     // Get sales trends data
     const trendData = await db.execute(sql.raw(`
+      SELECT 
         ${timeFormat} AS time_period,
+        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales,
         COUNT(*) AS invoice_count,
+        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage,
         ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
+      FROM invoices
+      WHERE invoice_date >= $1
+      GROUP BY ${timeGroup}
+      ORDER BY ${timeGroup}
     `), [fromDate]);
     
     // Get year-over-year or period-over-period comparison
@@ -1086,13 +1148,22 @@ export const storage = new DatabaseStorage();
     
     const comparisonData = await db.execute(sql.raw(`
       WITH sales_data AS (
+        SELECT 
           DATE_PART('year', invoice_date::date) AS year,
           ${compareGroup} AS period_num,
           ${compareFormat} AS period,
+          SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total
+        FROM invoices
+        WHERE invoice_date >= $1
+        GROUP BY year, period_num, period
       )
+      SELECT 
         period,
         period_num,
         jsonb_object_agg(year::text, total) AS yearly_sales
+      FROM sales_data
+      GROUP BY period, period_num
+      ORDER BY period_num
     `), [fromDate]);
     
     return {
