@@ -844,9 +844,11 @@ class DatabaseStorage implements IStorage {
         fromDate = startOfMonth(today);
     }
     
-    // Total sales amount for the period
+    // Total sales amount for the period - use subtotal when total is zero
     const salesResult = await db
-      .select({ totalSales: sum(invoices.total) })
+      .select({ 
+        totalSales: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
+      })
       .from(invoices)
       .where(and(
         gte(invoices.invoiceDate, fromDate),
@@ -856,9 +858,11 @@ class DatabaseStorage implements IStorage {
       
     const totalSales = Number(salesResult[0]?.totalSales || 0);
     
-    // Outstanding amount (all pending invoices)
+    // Outstanding amount (all pending invoices) - use subtotal when total is zero
     const outstandingResult = await db
-      .select({ outstanding: sum(invoices.total) })
+      .select({ 
+        outstanding: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
+      })
       .from(invoices)
       .where(eq(invoices.status, "pending"));
       
