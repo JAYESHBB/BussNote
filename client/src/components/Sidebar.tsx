@@ -41,6 +41,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       title: "Reports",
       items: [
         { name: "All Reports", icon: <BarChart2 className="h-5 w-5 mr-3" />, href: "/reports" },
+        { name: "Business Intelligence", icon: <BarChart className="h-5 w-5 mr-3" />, href: "/analytics" },
       ],
     },
     {
