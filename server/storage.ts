@@ -918,8 +918,8 @@ class DatabaseStorage implements IStorage {
         }
         salesByCurrency[currency] += amount;
       } 
-      else if (invoice.status === "pending") {
-        // Add to outstanding
+      else if (invoice.status !== "paid" && invoice.status !== "closed") {
+        // Add to outstanding (any status that's not paid or closed)
         outstanding += amount;
         
         // Add to currency breakdown
