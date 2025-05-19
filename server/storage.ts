@@ -931,6 +931,25 @@ class DatabaseStorage implements IStorage {
       
     const outstanding = Number(outstandingResult[0]?.outstanding || 0);
     
+    // Get outstanding by currency
+    const outstandingByCurrencyQuery = db
+      .select({ 
+        currency: invoices.currency,
+        amount: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
+      })
+      .from(invoices)
+      .where(eq(invoices.status, "pending"))
+      .groupBy(invoices.currency);
+    
+    const outstandingByCurrencyResult = await outstandingByCurrencyQuery;
+    
+    // Convert outstanding by currency to a usable format for the frontend
+    const outstandingByCurrency = outstandingByCurrencyResult.reduce((acc, row) => {
+      const currency = row.currency || 'INR'; // Default to INR if no currency specified
+      acc[currency] = Number(row.amount);
+      return acc;
+    }, {} as Record<string, number>);
+    
     // Total invoices for the period
     const invoiceCountResult = await db
       .select({ count: count() })
@@ -972,6 +991,7 @@ class DatabaseStorage implements IStorage {
       totalSales,
       salesByCurrency,
       outstanding,
+      outstandingByCurrency,
       totalInvoices,
       activeParties,
       pendingInvoices,
