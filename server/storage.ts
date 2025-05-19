@@ -160,7 +160,7 @@ class DatabaseStorage implements IStorage {
     
     // Calculate outstanding amount
     const outstandingResult = await db
-      .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
+      .select({ total: sql`SUM(${invoices.subtotal})` })
       .from(invoices)
       .where(and(
         eq(invoices.partyId, party.id),
@@ -203,7 +203,7 @@ class DatabaseStorage implements IStorage {
     
     // Calculate outstanding amount
     const outstandingResult = await db
-      .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
+      .select({ total: sql`SUM(${invoices.subtotal})` })
       .from(invoices)
       .where(and(
         eq(invoices.partyId, id),
