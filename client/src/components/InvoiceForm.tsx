@@ -96,7 +96,7 @@ const formSchema = z
       .min(0, "Received brokerage cannot be negative")
       .default(0),
     isClosed: z.boolean().default(false),
-    remarks: z.string().optional(),
+    notes: z.string().optional(),
   })
   .refine((data) => data.partyId !== data.buyerId, {
     message: "Seller and buyer cannot be the same party",
@@ -208,7 +208,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
       exchangeRate: 1.0, // Default exchange rate is 1.0
       receivedBrokerage: 0,
       isClosed: false,
-      remarks: "",
+      notes: "",
     };
 
     // If editing an existing invoice, populate with its data
@@ -317,7 +317,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         exchangeRate: exchangeRateValue,
         receivedBrokerage: receivedBrokerageValue,
         isClosed: invoice.isClosed || false,
-        remarks: remarksValue,
+        notes: notesValue,
       };
 
       console.log("Setting form values:", formValues);
@@ -339,7 +339,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         exchangeRate: 0.0,
         receivedBrokerage: 0,
         isClosed: false,
-        remarks: "",
+        notes: "",
       };
 
       // Reset form with default values
@@ -1104,13 +1104,13 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
 
             <FormField
               control={form.control}
-              name="remarks"
+              name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Remarks</FormLabel>
+                  <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter any specific remarks or additional information..."
+                      placeholder="Enter any specific notes or additional information..."
                       className="resize-none"
                       {...field}
                     />
