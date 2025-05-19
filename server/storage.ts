@@ -518,7 +518,7 @@ class DatabaseStorage implements IStorage {
   async getInvoicesByPartyId(partyId: number): Promise<Invoice[]> {
     const partyInvoices = await db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDate: invoices.dueDate,
       status: invoices.status,
@@ -585,7 +585,7 @@ class DatabaseStorage implements IStorage {
         
         return {
           ...transaction,
-          invoiceNumber: invoice[0]?.invoiceNo || "Unknown Invoice"
+          invoiceNo: invoice[0]?.invoiceNo || "Unknown Invoice"
         };
       }
       

@@ -117,7 +117,7 @@ export const transactions = pgTable("transactions", {
 
 export const transactionsInsertSchema = createInsertSchema(transactions);
 export type InsertTransaction = z.infer<typeof transactionsInsertSchema>;
-export type Transaction = typeof transactions.$inferSelect & { invoiceNumber?: string };
+export type Transaction = typeof transactions.$inferSelect & { invoiceNo?: string };
 
 // Activities table
 export const activities = pgTable("activities", {
