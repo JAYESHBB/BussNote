@@ -428,8 +428,8 @@ BussNote Team`;
                     <TableCell>{invoice.buyerName || '-'}</TableCell>
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
-                    <TableCell>{invoice.currency === 'INR' ? '₹' : invoice.currency} {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
+                    <TableCell>{invoice.currency === 'INR' ? '₹ ' : `${invoice.currency} `}{Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
+                    <TableCell>{invoice.currency === 'INR' ? '₹ ' : `${invoice.currency} `}{Number(invoice.brokerage || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.receivedBrokerage || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.balanceBrokerage || 0).toFixed(2)}</TableCell>
