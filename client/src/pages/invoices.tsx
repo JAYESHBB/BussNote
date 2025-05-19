@@ -169,7 +169,7 @@ export default function InvoicesPage() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Invoice ${invoice.invoiceNo || invoice.invoiceNumber}</title>
+        <title>Invoice ${invoice.invoiceNo}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 30px; }
           .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; }
@@ -186,7 +186,7 @@ export default function InvoicesPage() {
       <body>
         <div class="invoice-header">
           <div>
-            <div class="invoice-title">Invoice ${invoice.invoiceNo || invoice.invoiceNumber}</div>
+            <div class="invoice-title">Invoice ${invoice.invoiceNo}</div>
             <div>BussNote - Invoice Management System</div>
           </div>
           <div>

@@ -55,8 +55,8 @@ export type Party = typeof parties.$inferSelect & { outstanding?: number; lastTr
 // Invoices table
 export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
-  invoiceNumber: text("invoice_number").notNull().unique(),
-  invoiceNo: text("invoice_no"), // Added custom invoice number field
+  // Only using invoice_no as our primary invoice identifier
+  invoiceNo: text("invoice_no").notNull(), // Invoice number field
   invoiceDate: timestamp("invoice_date").notNull(),
   dueDays: integer("due_days").default(0), // Added due days field
   terms: text("terms").default("Days"), // Added terms field (Days, Days Fix, Days D/A, Days B/D, Days A/D)

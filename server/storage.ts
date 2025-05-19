@@ -335,7 +335,6 @@ class DatabaseStorage implements IStorage {
     // Use explicit field selection to avoid schema mismatches
     const result = await db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
       invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDays: invoices.dueDays,
