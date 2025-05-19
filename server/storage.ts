@@ -908,7 +908,8 @@ class DatabaseStorage implements IStorage {
       .from(invoices)
       .where(and(
         gte(invoices.invoiceDate, fromDate),
-        lte(invoices.invoiceDate, today)
+        lte(invoices.invoiceDate, today),
+        eq(invoices.status, "paid")
       ))
       .groupBy(invoices.currency);
     
