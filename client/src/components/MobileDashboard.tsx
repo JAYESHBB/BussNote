@@ -232,7 +232,7 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
               return (
                 <div key={invoice.id} className="p-3 flex justify-between items-center">
                   <div>
-                    <div className="font-medium text-sm">#{invoice.invoiceNumber}</div>
+                    <div className="font-medium text-sm">#{invoice.invoiceNo}</div>
                     <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
                     <div className="text-xs text-neutral-400 mt-0.5">
                       {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
@@ -364,7 +364,7 @@ export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: Mob
             <DialogDescription>
               {selectedInvoice && (
                 <span className="text-sm text-neutral-600">
-                  Invoice #{selectedInvoice.invoiceNumber} | 
+                  Invoice #{selectedInvoice.invoiceNo} | 
                   {selectedInvoice.partyName} | 
                   {formatCurrency(selectedInvoice.total)}
                 </span>

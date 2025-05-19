@@ -279,10 +279,10 @@ export default function PartyDetailsPage() {
                       <TableCell>{transaction.type}</TableCell>
                       <TableCell>{formatCurrency(transaction.amount)}</TableCell>
                       <TableCell>
-                        {transaction.invoiceNumber 
+                        {transaction.invoiceNo 
                           ? <Link href={`/invoices/${transaction.invoiceId}`}>
                               <a className="text-primary hover:underline">
-                                #{transaction.invoiceNumber}
+                                #{transaction.invoiceNo}
                               </a>
                             </Link>
                           : "-"
