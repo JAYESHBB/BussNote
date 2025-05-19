@@ -2,9 +2,10 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { eq, desc, and, gte, lte, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, and, gte, lte, isNull, isNotNull, sql } from "drizzle-orm";
 import { db, pool } from "../db";
 import { rawDeleteInvoice } from "./rawDeleteInvoice";
+import { getBrokerageAnalytics, getPartySalesAnalytics, getSalesTrends } from './analytics';
 import {
   parties,
   invoices,

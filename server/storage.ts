@@ -75,11 +75,6 @@ export interface IStorage {
   getSalesReport(fromDate?: Date, toDate?: Date, groupBy?: string): Promise<any>;
   getDashboardStats(dateRange: string): Promise<any>;
   
-  // Advanced Analytics methods
-  getBrokerageAnalytics(fromDate?: Date, toDate?: Date): Promise<any>;
-  getPartySalesAnalytics(fromDate?: Date, toDate?: Date, limit?: number): Promise<any>;
-  getSalesTrends(period?: string): Promise<any>;
-  
   // Session store
   sessionStore: session.SessionStore;
 }
@@ -88,299 +83,282 @@ const PostgresSessionStore = connectPg(session);
 
 class DatabaseStorage implements IStorage {
   sessionStore: session.SessionStore;
-  
+
   constructor() {
     this.sessionStore = new PostgresSessionStore({
       pool,
-      createTableIfMissing: true,
-      tableName: 'session'
+      createTableIfMissing: true
     });
   }
-  
-  // User methods
+
   async getUser(id: number): Promise<User> {
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    if (!result.length) {
-      throw new Error(`User not found: ${id}`);
-    }
+    const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    const result = await db.select().from(users).where(eq(users.username, username));
     return result[0];
   }
   
   async createUser(data: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(data).returning();
-    return user;
+    const result = await db.insert(users).values(data).returning();
+    return result[0];
   }
   
-  // Party methods
   async getAllParties(): Promise<Party[]> {
-    const partyList = await db.select().from(parties).orderBy(asc(parties.name));
+    const allParties = await db.select().from(parties).orderBy(asc(parties.name));
     
-    // For each party, calculate outstanding amount
-    const partiesWithOutstanding = await Promise.all(
-      partyList.map(async (party) => {
-        const outstandingResult = await db
-          .select({ total: sum(invoices.total) })
-          .from(invoices)
-          .where(and(
-            eq(invoices.partyId, party.id),
-            eq(invoices.status, "pending")
-          ));
-          
-        const outstanding = outstandingResult[0]?.total || 0;
-        
-        // Get last transaction date
-        const lastTransactionResult = await db
-          .select({ date: max(transactions.date) })
-          .from(transactions)
-          .where(eq(transactions.partyId, party.id));
-          
-        const lastTransactionDate = lastTransactionResult[0]?.date;
-        
-        return {
-          ...party,
-          outstanding: outstanding as number,
-          lastTransactionDate
-        };
-      })
-    );
+    // Get outstanding amounts for each party
+    const partiesWithExtras = await Promise.all(allParties.map(async (party) => {
+      // Get last transaction date
+      const lastTransaction = await db
+        .select({ date: transactions.date })
+        .from(transactions)
+        .where(eq(transactions.partyId, party.id))
+        .orderBy(desc(transactions.date))
+        .limit(1);
+      
+      // Calculate outstanding amount
+      const outstandingResult = await db
+        .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
+        .from(invoices)
+        .where(and(
+          eq(invoices.partyId, party.id),
+          eq(invoices.status, "pending")
+        ));
+      
+      const outstanding = Number(outstandingResult[0]?.total || 0);
+      const lastTransactionDate = lastTransaction.length > 0 ? lastTransaction[0].date : null;
+      
+      return {
+        ...party,
+        outstanding,
+        lastTransactionDate
+      };
+    }));
     
-    return partiesWithOutstanding;
+    return partiesWithExtras;
   }
   
   async getPartyById(id: number): Promise<Party | undefined> {
-    const result = await db.select().from(parties).where(eq(parties.id, id)).limit(1);
+    const result = await db.select().from(parties).where(eq(parties.id, id));
     
-    if (!result.length) {
+    if (result.length === 0) {
       return undefined;
     }
     
     const party = result[0];
     
+    // Get last transaction date
+    const lastTransaction = await db
+      .select({ date: transactions.date })
+      .from(transactions)
+      .where(eq(transactions.partyId, party.id))
+      .orderBy(desc(transactions.date))
+      .limit(1);
+    
     // Calculate outstanding amount
     const outstandingResult = await db
-      .select({ total: sum(invoices.total) })
+      .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
       .from(invoices)
       .where(and(
         eq(invoices.partyId, party.id),
         eq(invoices.status, "pending")
       ));
-      
-    const outstanding = outstandingResult[0]?.total || 0;
     
-    // Get last transaction date
-    const lastTransactionResult = await db
-      .select({ date: max(transactions.date) })
-      .from(transactions)
-      .where(eq(transactions.partyId, party.id));
-      
-    const lastTransactionDate = lastTransactionResult[0]?.date;
+    const outstanding = Number(outstandingResult[0]?.total || 0);
+    const lastTransactionDate = lastTransaction.length > 0 ? lastTransaction[0].date : null;
     
     return {
       ...party,
-      outstanding: outstanding as number,
+      outstanding,
       lastTransactionDate
     };
   }
   
   async createParty(data: InsertParty): Promise<Party> {
-    const [party] = await db.insert(parties).values(data).returning();
-    return party;
+    const result = await db.insert(parties).values(data).returning();
+    return {
+      ...result[0],
+      outstanding: 0,
+      lastTransactionDate: undefined
+    };
   }
   
   async updateParty(id: number, data: Partial<InsertParty>): Promise<Party | undefined> {
-    const [updatedParty] = await db
-      .update(parties)
-      .set(data)
-      .where(eq(parties.id, id))
-      .returning();
-      
-    return updatedParty;
+    const result = await db.update(parties).set(data).where(eq(parties.id, id)).returning();
+    
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    // Get last transaction date
+    const lastTransaction = await db
+      .select({ date: transactions.date })
+      .from(transactions)
+      .where(eq(transactions.partyId, id))
+      .orderBy(desc(transactions.date))
+      .limit(1);
+    
+    // Calculate outstanding amount
+    const outstandingResult = await db
+      .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
+      .from(invoices)
+      .where(and(
+        eq(invoices.partyId, id),
+        eq(invoices.status, "pending")
+      ));
+    
+    const outstanding = Number(outstandingResult[0]?.total || 0);
+    const lastTransactionDate = lastTransaction.length > 0 ? lastTransaction[0].date : null;
+    
+    return {
+      ...result[0],
+      outstanding,
+      lastTransactionDate
+    };
   }
   
   async deleteParty(id: number): Promise<void> {
-    // First check if there are any invoices or transactions for this party
-    const invoiceCount = await db
-      .select({ count: count() })
-      .from(invoices)
-      .where(eq(invoices.partyId, id));
-    
-    const transactionCount = await db
-      .select({ count: count() })
-      .from(transactions)
-      .where(eq(transactions.partyId, id));
-    
-    // If there are related records, throw an error
-    if (invoiceCount[0].count > 0 || transactionCount[0].count > 0) {
-      throw new Error("Cannot delete party with related invoices or transactions.");
-    }
-    
-    // Delete the party
     await db.delete(parties).where(eq(parties.id, id));
   }
   
-  // Invoice methods
   async getAllInvoices(): Promise<Invoice[]> {
-    const invoiceList = await db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
-        subtotal: invoices.subtotal,
-        total: invoices.total,
-        notes: invoices.notes,
-        paymentDate: invoices.paymentDate,
-        userId: invoices.userId,
-        partyId: invoices.partyId,
-        buyerId: invoices.buyerId,
-        partyName: parties.name,
-        currency: invoices.currency,
-        brokerageInINR: invoices.brokerageInINR,
-        receivedBrokerage: invoices.receivedBrokerage,
-        balanceBrokerage: invoices.balanceBrokerage,
-        isClosed: invoices.isClosed,
-        createdAt: invoices.createdAt,
-        updatedAt: invoices.updatedAt
-      })
-      .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
+    const allInvoices = await db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt,
+    }).from(invoices)
       .orderBy(desc(invoices.invoiceDate));
 
-    // Add buyer names and party emails to all invoices
-    const enhancedInvoices = await Promise.all(
-      invoiceList.map(async (invoice) => {
-        const buyer = await this.getPartyById(invoice.buyerId);
-        const party = await this.getPartyById(invoice.partyId);
-        return {
-          ...invoice,
-          buyerName: buyer?.name || 'Unknown',
-          buyerEmail: buyer?.email || undefined,
-          partyEmail: party?.email || undefined
-        };
-      })
-    );
+    // Get party names for each invoice
+    const invoicesWithPartyNames = await Promise.all(allInvoices.map(async (invoice) => {
+      const party = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.partyId));
       
-    return enhancedInvoices as Invoice[];
+      const buyer = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.buyerId));
+      
+      return {
+        ...invoice,
+        partyName: party[0]?.name || "Unknown Party",
+        partyEmail: party[0]?.email || null,
+        buyerName: buyer[0]?.name || "Unknown Buyer",
+        buyerEmail: buyer[0]?.email || null
+      };
+    }));
+    
+    return invoicesWithPartyNames;
   }
   
   async getRecentInvoices(limit: number): Promise<Invoice[]> {
-    const invoiceList = await db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
-        total: invoices.total,
-        partyId: invoices.partyId,
-        partyName: parties.name
-      })
-      .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
+    const recentInvoices = await db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt,
+    }).from(invoices)
       .orderBy(desc(invoices.createdAt))
       .limit(limit);
+    
+    // Get party names for each invoice
+    const invoicesWithPartyNames = await Promise.all(recentInvoices.map(async (invoice) => {
+      const party = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.partyId));
       
-    return invoiceList as Invoice[];
+      const buyer = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.buyerId));
+      
+      return {
+        ...invoice,
+        partyName: party[0]?.name || "Unknown Party",
+        partyEmail: party[0]?.email || null,
+        buyerName: buyer[0]?.name || "Unknown Buyer",
+        buyerEmail: buyer[0]?.email || null
+      };
+    }));
+    
+    return invoicesWithPartyNames;
   }
   
   async getInvoiceById(id: number): Promise<Invoice | undefined> {
-    const result = await db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceNo: invoices.invoiceNo,
-        invoiceDate: invoices.invoiceDate,
-        dueDays: invoices.dueDays,
-        terms: invoices.terms,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
-        subtotal: invoices.subtotal,
-        tax: invoices.tax,
-        notes: invoices.notes,
-        paymentDate: invoices.paymentDate,
-        userId: invoices.userId,
-        partyId: invoices.partyId,
-        buyerId: invoices.buyerId,
-        partyName: parties.name,
-        currency: invoices.currency,
-        exchangeRate: invoices.exchangeRate,
-        brokerageRate: invoices.brokerageRate,
-        brokerageInINR: invoices.brokerageInINR,
-        receivedBrokerage: invoices.receivedBrokerage,
-        balanceBrokerage: invoices.balanceBrokerage,
-        isClosed: invoices.isClosed,
-        remarks: invoices.remarks,
-        createdAt: invoices.createdAt,
-        updatedAt: invoices.updatedAt
-      })
-      .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
-      .where(eq(invoices.id, id))
-      .limit(1);
-
-    // Get buyer name if there is a buyerId
-    let invoice = result[0];
-    if (invoice) {
-      const buyer = invoice.buyerId ? await this.getPartyById(invoice.buyerId) : null;
-      const party = await this.getPartyById(invoice.partyId);
-      invoice = {
-        ...invoice,
-        buyerName: buyer?.name || 'Unknown',
-        buyerEmail: buyer?.email || undefined,
-        partyEmail: party?.email || undefined
-      };
+    const result = await db.select().from(invoices).where(eq(invoices.id, id));
+    
+    if (result.length === 0) {
+      return undefined;
     }
-      
-    return invoice as Invoice | undefined;
+    
+    const invoice = result[0];
+    
+    // Get party name
+    const party = await db.select({
+      name: parties.name,
+      email: parties.email
+    }).from(parties).where(eq(parties.id, invoice.partyId));
+    
+    // Get buyer name
+    const buyer = await db.select({
+      name: parties.name,
+      email: parties.email
+    }).from(parties).where(eq(parties.id, invoice.buyerId));
+    
+    // Get invoice items
+    const items = await this.getInvoiceItems(id);
+    
+    // Calculate days overdue if status is pending and due date is in the past
+    let daysOverdue: number | undefined = undefined;
+    if (invoice.status === "pending" && invoice.dueDate && isBefore(new Date(invoice.dueDate), new Date())) {
+      const today = new Date();
+      const dueDate = new Date(invoice.dueDate);
+      const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+      daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    
+    return {
+      ...invoice,
+      partyName: party[0]?.name || "Unknown Party",
+      partyEmail: party[0]?.email || null,
+      buyerName: buyer[0]?.name || "Unknown Buyer",
+      buyerEmail: buyer[0]?.email || null,
+      items,
+      daysOverdue
+    };
   }
   
   async createInvoice(data: InsertInvoice, items: Array<Omit<InsertInvoiceItem, "invoiceId">>): Promise<Invoice> {
-    // Use manually entered invoiceNo as the invoiceNumber if provided
-    let invoiceNumber;
+    // Insert the invoice
+    const result = await db.insert(invoices).values(data).returning();
+    const invoice = result[0];
     
-    if (data.invoiceNo) {
-      // If user has provided a manual invoice number, use that
-      invoiceNumber = data.invoiceNo;
-    } else {
-      // Only generate auto invoice number if manual number is not provided
-      invoiceNumber = data.invoiceNumber;
-      if (!invoiceNumber) {
-        // Generate invoice number
-        const year = new Date().getFullYear();
-        const latestInvoiceResult = await db
-          .select({ maxNumber: sql<string | null>`MAX(${invoices.invoiceNumber})` })
-          .from(invoices);
-          
-        let nextNumber = 1;
-        
-        if (latestInvoiceResult[0]?.maxNumber) {
-          const lastNumStr = latestInvoiceResult[0].maxNumber.split('-')[2];
-          if (lastNumStr) {
-            nextNumber = parseInt(lastNumStr) + 1;
-          }
-        }
-        
-        const paddedNumber = nextNumber.toString().padStart(4, '0');
-        invoiceNumber = `INV-${year}-${paddedNumber}`;
-      }
-    }
-    
-    // Create the invoice
-    const [invoice] = await db
-      .insert(invoices)
-      .values({
-        ...data,
-        invoiceNumber
-      })
-      .returning();
-      
-    // Add invoice items
+    // Insert the invoice items
     if (items.length > 0) {
       const itemsWithInvoiceId = items.map(item => ({
         ...item,
@@ -390,78 +368,96 @@ class DatabaseStorage implements IStorage {
       await db.insert(invoiceItems).values(itemsWithInvoiceId);
     }
     
-    // Get seller and buyer names for response
-    const seller = await this.getPartyById(invoice.partyId);
-    const buyer = await this.getPartyById(invoice.buyerId);
+    // Get party name
+    const party = await db.select({
+      name: parties.name,
+      email: parties.email
+    }).from(parties).where(eq(parties.id, data.partyId));
     
+    // Get buyer name
+    const buyer = await db.select({
+      name: parties.name,
+      email: parties.email
+    }).from(parties).where(eq(parties.id, data.buyerId));
+    
+    // Return the invoice with party name and items
     return {
       ...invoice,
-      partyName: seller?.name || 'Unknown',
-      buyerName: buyer?.name || 'Unknown',
-      partyEmail: seller?.email || undefined,
-      buyerEmail: buyer?.email || undefined
-    } as Invoice;
+      partyName: party[0]?.name || "Unknown Party",
+      partyEmail: party[0]?.email || null,
+      buyerName: buyer[0]?.name || "Unknown Buyer",
+      buyerEmail: buyer[0]?.email || null,
+      items: [] // Empty array for now, items just inserted
+    };
   }
   
   async updateInvoiceStatus(id: number, status: string): Promise<Invoice | undefined> {
-    const updateData: any = {
-      status
-    };
+    // Get current invoice to check if it needs closing date
+    const currentInvoice = await db.select().from(invoices).where(eq(invoices.id, id));
     
-    if (status === 'paid') {
-      updateData.paymentDate = new Date();
-    }
-    
-    return this.updateInvoice(id, updateData);
-  }
-  
-  async updateInvoice(id: number, updateData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
-    const [updatedInvoice] = await db
-      .update(invoices)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(invoices.id, id))
-      .returning();
-      
-    if (!updatedInvoice) {
+    if (currentInvoice.length === 0) {
       return undefined;
     }
     
-    // Get seller and buyer names
-    const seller = await this.getPartyById(updatedInvoice.partyId);
-    const buyer = await this.getPartyById(updatedInvoice.buyerId);
+    // If status changed to paid/closed, set payment date to today
+    let updateData: Partial<Invoice> = { status };
+    if ((status === "paid" || status === "closed") && currentInvoice[0].status !== "paid" && currentInvoice[0].status !== "closed") {
+      updateData.paymentDate = new Date();
+    }
     
-    return {
-      ...updatedInvoice,
-      partyName: seller?.name || 'Unknown',
-      buyerName: buyer?.name || 'Unknown',
-      partyEmail: seller?.email || undefined,
-      buyerEmail: buyer?.email || undefined
-    } as Invoice;
+    // If status changed from paid/closed to something else, clear payment date
+    if (status !== "paid" && status !== "closed" && (currentInvoice[0].status === "paid" || currentInvoice[0].status === "closed")) {
+      updateData.paymentDate = null;
+    }
+    
+    // Update the invoice
+    const result = await db.update(invoices).set(updateData).where(eq(invoices.id, id)).returning();
+    
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    return this.getInvoiceById(id);
   }
-
+  
+  async updateInvoice(id: number, updateData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
+    const result = await db.update(invoices).set(updateData).where(eq(invoices.id, id)).returning();
+    
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    return this.getInvoiceById(id);
+  }
+  
   async updateInvoiceNotes(id: number, notes: string): Promise<Invoice | undefined> {
-    return this.updateInvoice(id, { notes });
+    const result = await db.update(invoices).set({ notes }).where(eq(invoices.id, id)).returning();
+    
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    return this.getInvoiceById(id);
   }
   
   async deleteInvoice(id: number): Promise<boolean> {
     try {
-      // We'll use a more direct approach with raw SQL to ensure proper deletion
-      const client = await pool.connect();
+      // Start a transaction
+      await db.transaction(async (tx) => {
+        // Delete invoice items first (foreign key constraint)
+        await tx.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+        
+        // Delete transactions related to this invoice
+        await tx.delete(transactions).where(eq(transactions.invoiceId, id));
+        
+        // Delete activities related to this invoice
+        await tx.delete(activities).where(eq(activities.invoiceId, id));
+        
+        // Finally, delete the invoice
+        await tx.delete(invoices).where(eq(invoices.id, id));
+      });
       
-      try {
-        await client.query('BEGIN');
-        
-        // Delete in correct order to handle dependencies
-        
-        await client.query('COMMIT');
-        return true;
-      } catch (error) {
-        await client.query('ROLLBACK');
-        console.error("Transaction failed:", error);
-        return false;
-      } finally {
-        client.release();
-      }
+      return true;
     } catch (error) {
       console.error("Error deleting invoice:", error);
       return false;
@@ -469,240 +465,284 @@ class DatabaseStorage implements IStorage {
   }
   
   async getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]> {
-    const items = await db
-      .select()
-      .from(invoiceItems)
-      .where(eq(invoiceItems.invoiceId, invoiceId))
-      .orderBy(asc(invoiceItems.id));
-      
-    return items;
+    return db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId)).orderBy(asc(invoiceItems.id));
   }
   
   async getInvoicesByPartyId(partyId: number): Promise<Invoice[]> {
-    // Get invoices where party is either seller or buyer
-    const invoiceList = await db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
-        subtotal: invoices.subtotal,
-        tax: invoices.tax,
-        notes: invoices.notes,
-        paymentDate: invoices.paymentDate,
-        userId: invoices.userId,
-        partyId: invoices.partyId,
-        buyerId: invoices.buyerId,
-        createdAt: invoices.createdAt,
-        updatedAt: invoices.updatedAt
-      })
-      .from(invoices)
-      .where(or(eq(invoices.partyId, partyId), eq(invoices.buyerId, partyId)))
+    const partyInvoices = await db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt,
+    }).from(invoices)
+      .where(or(
+        eq(invoices.partyId, partyId),
+        eq(invoices.buyerId, partyId)
+      ))
       .orderBy(desc(invoices.invoiceDate));
+    
+    // Get party names for each invoice
+    const invoicesWithPartyNames = await Promise.all(partyInvoices.map(async (invoice) => {
+      const party = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.partyId));
       
-    // Enhance with party names
-    const enhancedInvoices = await Promise.all(invoiceList.map(async (invoice) => {
-      const seller = await this.getPartyById(invoice.partyId);
-      const buyer = await this.getPartyById(invoice.buyerId);
+      const buyer = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.buyerId));
+      
+      // Calculate days overdue if status is pending and due date is in the past
+      let daysOverdue: number | undefined = undefined;
+      if (invoice.status === "pending" && invoice.dueDate && isBefore(new Date(invoice.dueDate), new Date())) {
+        const today = new Date();
+        const dueDate = new Date(invoice.dueDate);
+        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+        daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+      
       return {
         ...invoice,
-        partyName: seller?.name || 'Unknown',
-        buyerName: buyer?.name || 'Unknown'
+        partyName: party[0]?.name || "Unknown Party",
+        partyEmail: party[0]?.email || null,
+        buyerName: buyer[0]?.name || "Unknown Buyer",
+        buyerEmail: buyer[0]?.email || null,
+        daysOverdue
       };
     }));
     
-    return enhancedInvoices as Invoice[];
+    return invoicesWithPartyNames;
   }
   
-  // Transaction methods
   async getTransactionsByPartyId(partyId: number): Promise<Transaction[]> {
-    const transactionList = await db
-      .select({
-        id: transactions.id,
-        amount: transactions.amount,
-        date: transactions.date,
-        type: transactions.type,
-        notes: transactions.notes,
-        partyId: transactions.partyId,
-        invoiceId: transactions.invoiceId,
-        userId: transactions.userId,
-        createdAt: transactions.createdAt,
-        updatedAt: transactions.updatedAt,
-        invoiceNumber: invoices.invoiceNumber
-      })
-      .from(transactions)
-      .leftJoin(invoices, eq(transactions.invoiceId, invoices.id))
+    const partyTransactions = await db.select().from(transactions)
       .where(eq(transactions.partyId, partyId))
       .orderBy(desc(transactions.date));
+    
+    // Get invoice numbers for each transaction
+    const transactionsWithInvoiceNumbers = await Promise.all(partyTransactions.map(async (transaction) => {
+      if (transaction.invoiceId) {
+        const invoice = await db.select({
+          invoiceNumber: invoices.invoiceNumber
+        }).from(invoices).where(eq(invoices.id, transaction.invoiceId));
+        
+        return {
+          ...transaction,
+          invoiceNumber: invoice[0]?.invoiceNumber || "Unknown Invoice"
+        };
+      }
       
-    return transactionList as Transaction[];
+      return {
+        ...transaction,
+        invoiceNumber: "N/A"
+      };
+    }));
+    
+    return transactionsWithInvoiceNumbers;
   }
   
   async createTransaction(data: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await db
-      .insert(transactions)
-      .values(data)
-      .returning();
-      
-    // If related to an invoice, get the invoice number
-    let invoiceNumber: string | undefined;
+    const result = await db.insert(transactions).values(data).returning();
+    const transaction = result[0];
     
+    // Fetch invoice number if this transaction is related to an invoice
     if (transaction.invoiceId) {
-      const invoice = await this.getInvoiceById(transaction.invoiceId);
-      invoiceNumber = invoice?.invoiceNumber;
+      const invoice = await db.select({
+        invoiceNumber: invoices.invoiceNumber
+      }).from(invoices).where(eq(invoices.id, transaction.invoiceId));
+      
+      return {
+        ...transaction,
+        invoiceNumber: invoice[0]?.invoiceNumber || "Unknown Invoice"
+      };
     }
     
     return {
       ...transaction,
-      invoiceNumber
-    } as Transaction;
+      invoiceNumber: "N/A"
+    };
   }
   
-  // Activity methods
   async createActivity(data: InsertActivity): Promise<Activity> {
-    const [activity] = await db
-      .insert(activities)
-      .values({
-        ...data,
-        timestamp: new Date() // Fix: Pass a Date object directly, not a string
-      })
-      .returning();
-      
-    return activity;
+    const result = await db.insert(activities).values(data).returning();
+    return result[0];
   }
   
   async getRecentActivities(limit: number): Promise<Activity[]> {
-    const activityList = await db
-      .select()
-      .from(activities)
-      .orderBy(desc(activities.timestamp))
-      .limit(limit);
-      
-    return activityList;
+    return db.select().from(activities).orderBy(desc(activities.createdAt)).limit(limit);
   }
   
-  // Report methods
   async getOutstandingInvoices(fromDate?: Date, toDate?: Date): Promise<Invoice[]> {
-    let query = db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        dueDate: invoices.dueDate,
-        status: invoices.status,
-        total: invoices.total,
-        partyId: invoices.partyId,
-        partyName: parties.name
-      })
-      .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
-      .where(eq(invoices.status, "pending"));
-      
-    if (fromDate) {
-      query = query
-        .where(gte(invoices.invoiceDate, fromDate)) as any;
-    }
-    
-    if (toDate) {
-      query = query
-        .where(lte(invoices.invoiceDate, toDate)) as any;
-    }
-    
-    const invoiceList = await query.orderBy(asc(invoices.dueDate));
-    
-    // Calculate days overdue
     const today = new Date();
-    const result = invoiceList.map(invoice => {
-      const dueDate = new Date(invoice.dueDate);
-      const daysOverdue = isBefore(dueDate, today) 
-        ? Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)) 
-        : 0;
+    fromDate = fromDate || new Date(today.getFullYear() - 1, today.getMonth(), 1);
+    toDate = toDate || today;
+    
+    // Get all pending invoices within the date range
+    const outstandingInvoices = await db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt,
+    }).from(invoices)
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, toDate),
+        eq(invoices.status, "pending")
+      ))
+      .orderBy(asc(invoices.dueDate));
+    
+    // Get party names for each invoice
+    const invoicesWithPartyNames = await Promise.all(outstandingInvoices.map(async (invoice) => {
+      const party = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.partyId));
+      
+      const buyer = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.buyerId));
+      
+      // Calculate days overdue if due date is in the past
+      let daysOverdue: number | undefined = undefined;
+      if (invoice.dueDate && isBefore(new Date(invoice.dueDate), today)) {
+        const dueDate = new Date(invoice.dueDate);
+        const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+        daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
       
       return {
         ...invoice,
+        partyName: party[0]?.name || "Unknown Party",
+        partyEmail: party[0]?.email || null,
+        buyerName: buyer[0]?.name || "Unknown Buyer",
+        buyerEmail: buyer[0]?.email || null,
         daysOverdue
       };
-    });
+    }));
     
-    return result as Invoice[];
+    return invoicesWithPartyNames;
   }
   
   async getClosedInvoices(fromDate?: Date, toDate?: Date, status: string = "all"): Promise<Invoice[]> {
-    let statusCondition: SQL<unknown>;
+    const today = new Date();
+    fromDate = fromDate || new Date(today.getFullYear() - 1, today.getMonth(), 1);
+    toDate = toDate || today;
     
-    if (status === "paid") {
-      statusCondition = eq(invoices.status, "paid");
-    } else if (status === "cancelled") {
-      statusCondition = eq(invoices.status, "cancelled");
+    // Build the query based on status filter
+    let query = db.select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      dueDate: invoices.dueDate,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      brokerageInINR: invoices.brokerageInINR,
+      total: invoices.total,
+      notes: invoices.notes,
+      partyId: invoices.partyId,
+      buyerId: invoices.buyerId,
+      createdAt: invoices.createdAt,
+      updatedAt: invoices.updatedAt,
+      paymentDate: invoices.paymentDate
+    }).from(invoices)
+      .where(and(
+        gte(invoices.invoiceDate, fromDate),
+        lte(invoices.invoiceDate, toDate)
+      ));
+    
+    // Add status filter if not "all"
+    if (status !== "all") {
+      query = query.where(eq(invoices.status, status));
     } else {
-      statusCondition = sql`${invoices.status} IN ('paid', 'cancelled')`;
+      // For "all", only include paid, closed, and cancelled
+      query = query.where(or(
+        eq(invoices.status, "paid"),
+        eq(invoices.status, "closed"),
+        eq(invoices.status, "cancelled")
+      ));
     }
     
-    let query = db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        closedDate: invoices.paymentDate,
-        status: invoices.status,
-        total: invoices.total,
-        partyId: invoices.partyId,
-        partyName: parties.name
-      })
-      .from(invoices)
-      .leftJoin(parties, eq(invoices.partyId, parties.id))
-      .where(statusCondition);
+    const closedInvoices = await query.orderBy(desc(invoices.paymentDate));
+    
+    // Get party names for each invoice
+    const invoicesWithPartyNames = await Promise.all(closedInvoices.map(async (invoice) => {
+      const party = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.partyId));
       
-    if (fromDate) {
-      query = query
-        .where(gte(invoices.paymentDate, fromDate)) as any;
-    }
+      const buyer = await db.select({
+        name: parties.name,
+        email: parties.email
+      }).from(parties).where(eq(parties.id, invoice.buyerId));
+      
+      return {
+        ...invoice,
+        partyName: party[0]?.name || "Unknown Party",
+        partyEmail: party[0]?.email || null,
+        buyerName: buyer[0]?.name || "Unknown Buyer",
+        buyerEmail: buyer[0]?.email || null,
+        closedDate: invoice.paymentDate
+      };
+    }));
     
-    if (toDate) {
-      query = query
-        .where(lte(invoices.paymentDate, toDate)) as any;
-    }
-    
-    const invoiceList = await query.orderBy(desc(invoices.paymentDate));
-    return invoiceList as Invoice[];
+    return invoicesWithPartyNames;
   }
   
   async getSalesReport(fromDate?: Date, toDate?: Date, groupBy: string = "monthly"): Promise<any> {
-    // Default date range: current month
-    const start = fromDate || startOfMonth(new Date());
-    const end = toDate || endOfMonth(new Date());
+    const today = new Date();
+    fromDate = fromDate || new Date(today.getFullYear() - 1, today.getMonth(), 1);
+    toDate = toDate || today;
     
-    // Base query to get all relevant invoices
-    const relevantInvoices = await db
-      .select({
-        id: invoices.id,
-        invoiceNumber: invoices.invoiceNumber,
-        invoiceDate: invoices.invoiceDate,
-        subtotal: invoices.subtotal,
-        brokerageInINR: invoices.brokerageInINR,
-        status: invoices.status
-      })
+    // Group by options: monthly, quarterly, yearly
+    const start = fromDate;
+    const end = toDate;
+    
+    // Get all invoices in the date range with status 'paid'
+    const allInvoices = await db
+      .select()
       .from(invoices)
       .where(and(
         gte(invoices.invoiceDate, start),
         lte(invoices.invoiceDate, end),
-        sql`${invoices.status} != 'cancelled'`
+        eq(invoices.status, "paid")
       ));
     
-    // Group the data according to the specified grouping
-    const periods: any[] = [];
+    const relevantInvoices = allInvoices;
+    
+    // Group the invoices by period based on the groupBy parameter
     const periodMap = new Map();
+    const periods = [];
     
     if (groupBy === "daily") {
       // Group by day
       for (const invoice of relevantInvoices) {
-        const dateStr = format(new Date(invoice.invoiceDate), "yyyy-MM-dd");
+        const dayKey = format(new Date(invoice.invoiceDate), "yyyy-MM-dd");
         const label = format(new Date(invoice.invoiceDate), "MMM dd, yyyy");
         
-        if (!periodMap.has(dateStr)) {
-          periodMap.set(dateStr, {
-            id: dateStr,
+        if (!periodMap.has(dayKey)) {
+          periodMap.set(dayKey, {
+            id: dayKey,
             label,
             invoiceCount: 0,
             grossSales: 0,
@@ -711,11 +751,11 @@ class DatabaseStorage implements IStorage {
           });
         }
         
-        const period = periodMap.get(dateStr);
+        const period = periodMap.get(dayKey);
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.total as any) || 0);
+        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "weekly") {
       // Group by week
@@ -741,7 +781,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.total as any) || 0);
+        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "monthly") {
       // Group by month
@@ -764,7 +804,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.total as any) || 0);
+        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
       }
     } else if (groupBy === "quarterly") {
       // Group by quarter
@@ -790,7 +830,7 @@ class DatabaseStorage implements IStorage {
         period.invoiceCount += 1;
         period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.total as any) || 0);
+        period.netSales += Number(invoice.total > 0 ? parseFloat(invoice.total as any) : parseFloat(invoice.subtotal as any)) || 0;
       }
     }
     
@@ -848,6 +888,7 @@ class DatabaseStorage implements IStorage {
     // Total sales amount for the period - use subtotal when total is zero
     const salesResult = await db
       .select({ 
+        totalSales: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(and(
@@ -862,6 +903,7 @@ class DatabaseStorage implements IStorage {
     const salesByCurrencyQuery = db
       .select({ 
         currency: invoices.currency,
+        amount: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(and(
@@ -882,6 +924,7 @@ class DatabaseStorage implements IStorage {
     // Outstanding amount (all pending invoices) - use subtotal when total is zero
     const outstandingResult = await db
       .select({ 
+        outstanding: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`
       })
       .from(invoices)
       .where(eq(invoices.status, "pending"));
@@ -913,12 +956,15 @@ class DatabaseStorage implements IStorage {
     
     // Active parties in the period
     const activePartiesResult = await db
-      .select({ count: count(invoices.partyId) })
-      .from(invoices)
-      .where(and(
-        gte(invoices.invoiceDate, fromDate),
-        lte(invoices.invoiceDate, today)
-      ));
+      .select({ count: count() })
+      .from(parties)
+      .where(
+        sql`EXISTS (
+          SELECT 1 FROM ${invoices}
+          WHERE ${invoices.partyId} = ${parties.id}
+          AND ${invoices.invoiceDate} BETWEEN ${fromDate} AND ${today}
+        )`
+      );
       
     const activeParties = Number(activePartiesResult[0].count);
     
@@ -930,179 +976,6 @@ class DatabaseStorage implements IStorage {
       activeParties,
       pendingInvoices,
       dateRange
-    };
-  }
-}
-
-export const storage = new DatabaseStorage();
-        COUNT(*) AS invoice_count,
-        ROUND(
-        2) AS brokerage_percentage
-    `), [fromDate, toDate]);
-    
-    // Total metrics across all currencies
-    const totalsResult = await db.execute(sql.raw(`
-        COUNT(*) AS invoice_count,
-        ROUND(
-        2) AS average_brokerage_percentage
-    `), [fromDate, toDate]);
-    
-    // Monthly trend of brokerage vs sales
-    const monthlyTrend = await db.execute(sql.raw(`
-        TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM') AS month,
-    `), [fromDate, toDate]);
-    
-    return {
-      byCurrency: result.rows,
-      totals: totalsResult.rows[0],
-      monthlyTrend: monthlyTrend.rows,
-      fromDate,
-      toDate
-    };
-  }
-  
-  async getPartySalesAnalytics(fromDate?: Date, toDate?: Date, limit: number = 10): Promise<any> {
-    const today = new Date();
-    fromDate = fromDate || new Date(today.getFullYear() - 1, today.getMonth(), 1);
-    toDate = toDate || today;
-    
-    // Top parties by sales amount
-    const topParties = await db.execute(sql.raw(`
-        p.id,
-        p.name,
-        COUNT(i.id) AS invoice_count,
-        MAX(i.invoice_date) AS last_invoice_date,
-      JOIN parties p ON i.party_id = p.id
-      LIMIT $3
-    `), [fromDate, toDate, limit]);
-    
-    // Party contribution to total sales
-    const salesDistribution = await db.execute(sql.raw(`
-      WITH total_sales AS (
-      )
-        p.id,
-        p.name,
-        ROUND(
-        2) AS contribution_percentage
-      JOIN parties p ON i.party_id = p.id
-      LIMIT $3
-    `), [fromDate, toDate, limit]);
-    
-    return {
-      topParties: topParties.rows,
-      salesDistribution: salesDistribution.rows,
-      fromDate,
-      toDate
-    };
-  }
-  
-  async getSalesTrends(period: string = "yearly"): Promise<any> {
-    // Get the trend data based on the specified period
-    let timeGroup: string;
-    let timeFormat: string;
-    let periodCount: number;
-    const today = new Date();
-    
-    switch (period) {
-      case "weekly":
-        timeGroup = `DATE_TRUNC('week', invoice_date::date)`;
-        timeFormat = `TO_CHAR(DATE_TRUNC('week', invoice_date::date), 'YYYY-WW')`;
-        periodCount = 12; // Last 12 weeks
-        break;
-      case "monthly":
-        timeGroup = `DATE_TRUNC('month', invoice_date::date)`;
-        timeFormat = `TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM')`;
-        periodCount = 12; // Last 12 months
-        break;
-      case "quarterly":
-        timeGroup = `DATE_TRUNC('quarter', invoice_date::date)`;
-        timeFormat = `TO_CHAR(DATE_TRUNC('quarter', invoice_date::date), 'YYYY-Q"Q"')`;
-        periodCount = 8; // Last 8 quarters
-        break;
-      case "yearly":
-      default:
-        timeGroup = `DATE_TRUNC('year', invoice_date::date)`;
-        timeFormat = `TO_CHAR(DATE_TRUNC('year', invoice_date::date), 'YYYY')`;
-        periodCount = 5; // Last 5 years
-        break;
-    }
-    
-    let fromDate;
-    switch (period) {
-      case "weekly":
-        fromDate = new Date(today);
-        fromDate.setDate(today.getDate() - (7 * periodCount));
-        break;
-      case "monthly":
-        fromDate = new Date(today);
-        fromDate.setMonth(today.getMonth() - periodCount);
-        break;
-      case "quarterly":
-        fromDate = new Date(today);
-        fromDate.setMonth(today.getMonth() - (3 * periodCount));
-        break;
-      case "yearly":
-      default:
-        fromDate = new Date(today);
-        fromDate.setFullYear(today.getFullYear() - periodCount);
-        break;
-    }
-    
-    // Get sales trends data
-    const trendData = await db.execute(sql.raw(`
-        ${timeFormat} AS time_period,
-        COUNT(*) AS invoice_count,
-        ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
-    `), [fromDate]);
-    
-    // Get year-over-year or period-over-period comparison
-    let compareFormat = '';
-    let compareGroup = '';
-    let compareLabel = '';
-    
-    switch (period) {
-      case "weekly":
-        compareGroup = `DATE_PART('week', invoice_date::date)`;
-        compareFormat = `TO_CHAR(invoice_date::date, 'WW')`;
-        compareLabel = 'week';
-        break;
-      case "monthly":
-        compareGroup = `DATE_PART('month', invoice_date::date)`;
-        compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
-        compareLabel = 'month';
-        break;
-      case "quarterly":
-        compareGroup = `DATE_PART('quarter', invoice_date::date)`;
-        compareFormat = `TO_CHAR(DATE_TRUNC('quarter', invoice_date::date), 'Q')`;
-        compareLabel = 'quarter';
-        break;
-      case "yearly":
-      default:
-        compareGroup = `DATE_PART('month', invoice_date::date)`;
-        compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
-        compareLabel = 'month';
-        break;
-    }
-    
-    const comparisonData = await db.execute(sql.raw(`
-      WITH sales_data AS (
-          DATE_PART('year', invoice_date::date) AS year,
-          ${compareGroup} AS period_num,
-          ${compareFormat} AS period,
-      )
-        period,
-        period_num,
-        jsonb_object_agg(year::text, total) AS yearly_sales
-    `), [fromDate]);
-    
-    return {
-      trends: trendData.rows,
-      comparison: {
-        data: comparisonData.rows,
-        periodType: compareLabel
-      },
-      period,
-      fromDate
     };
   }
 }

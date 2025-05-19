@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "@db";
 import { sql } from "drizzle-orm";
-import { invoices, parties } from "@shared/schema";
-
-// Analytics API endpoints handler functions
+import { addMonths, format, subMonths, subYears } from "date-fns";
 
 /**
  * Generate brokerage analytics data
@@ -13,11 +11,11 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
     const fromDateStr = req.query.fromDate as string;
     const toDateStr = req.query.toDate as string;
     
-    const fromDate = fromDateStr ? new Date(fromDateStr) : new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1);
+    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
     const toDate = toDateStr ? new Date(toDateStr) : new Date();
     
-    // Brokerage metrics with currency grouping
-    const result = await db.execute(sql.raw(`
+    // Generate brokerage analytics with SQL
+    const result = await db.execute(sql`
       SELECT 
         COALESCE(currency, 'INR') AS currency,
         SUM(CAST(brokerage_amount AS NUMERIC)) AS total_brokerage,
@@ -31,13 +29,13 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
           NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
         2) AS brokerage_percentage
       FROM invoices
-      WHERE invoice_date BETWEEN $1 AND $2
+      WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY currency
       ORDER BY total_sales DESC
-    `), [fromDate, toDate]);
+    `);
     
     // Total metrics across all currencies
-    const totalsResult = await db.execute(sql.raw(`
+    const totalsResult = await db.execute(sql`
       SELECT 
         SUM(CAST(brokerage_in_inr AS NUMERIC)) AS total_brokerage_inr,
         SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
@@ -49,21 +47,21 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
           NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
         2) AS average_brokerage_percentage
       FROM invoices
-      WHERE invoice_date BETWEEN $1 AND $2
-    `), [fromDate, toDate]);
+      WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
+    `);
     
     // Monthly trend of brokerage vs sales
-    const monthlyTrend = await db.execute(sql.raw(`
+    const monthlyTrend = await db.execute(sql`
       SELECT 
         TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM') AS month,
         SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage_inr,
         SUM(CAST(received_brokerage AS NUMERIC)) AS received_brokerage,
         SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales
       FROM invoices
-      WHERE invoice_date BETWEEN $1 AND $2
+      WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY month
       ORDER BY month
-    `), [fromDate, toDate]);
+    `);
     
     res.json({
       byCurrency: result.rows,
@@ -87,11 +85,11 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
     const toDateStr = req.query.toDate as string;
     const limit = parseInt(req.query.limit as string) || 10;
     
-    const fromDate = fromDateStr ? new Date(fromDateStr) : new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1);
+    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
     const toDate = toDateStr ? new Date(toDateStr) : new Date();
     
     // Top parties by sales amount
-    const topParties = await db.execute(sql.raw(`
+    const topParties = await db.execute(sql`
       SELECT 
         p.id,
         p.name,
@@ -101,18 +99,18 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
         STRING_AGG(DISTINCT COALESCE(i.currency, 'INR'), ',') AS currencies
       FROM invoices i
       JOIN parties p ON i.party_id = p.id
-      WHERE i.invoice_date BETWEEN $1 AND $2
+      WHERE i.invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY p.id, p.name
       ORDER BY total_sales DESC
-      LIMIT $3
-    `), [fromDate, toDate, limit]);
+      LIMIT ${limit}
+    `);
     
     // Party contribution to total sales
-    const salesDistribution = await db.execute(sql.raw(`
+    const salesDistribution = await db.execute(sql`
       WITH total_sales AS (
         SELECT SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS amount
         FROM invoices
-        WHERE invoice_date BETWEEN $1 AND $2
+        WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       )
       SELECT 
         p.id,
@@ -124,11 +122,11 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
         2) AS contribution_percentage
       FROM invoices i
       JOIN parties p ON i.party_id = p.id
-      WHERE i.invoice_date BETWEEN $1 AND $2
+      WHERE i.invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY p.id, p.name
       ORDER BY sales_amount DESC
-      LIMIT $3
-    `), [fromDate, toDate, limit]);
+      LIMIT ${limit}
+    `);
     
     res.json({
       topParties: topParties.rows,
@@ -158,6 +156,14 @@ export async function getSalesTrends(req: Request, res: Response) {
     let compareLabel;
     const today = new Date();
     
+    // Default to monthly periods
+    timeGroup = `DATE_TRUNC('month', invoice_date::date)`;
+    timeFormat = `TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM')`;
+    periodCount = 12; // Last 12 months
+    compareGroup = `DATE_PART('month', invoice_date::date)`;
+    compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
+    compareLabel = 'month';
+    
     switch (period) {
       case "weekly":
         timeGroup = `DATE_TRUNC('week', invoice_date::date)`;
@@ -168,12 +174,7 @@ export async function getSalesTrends(req: Request, res: Response) {
         compareLabel = 'week';
         break;
       case "monthly":
-        timeGroup = `DATE_TRUNC('month', invoice_date::date)`;
-        timeFormat = `TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM')`;
-        periodCount = 12; // Last 12 months
-        compareGroup = `DATE_PART('month', invoice_date::date)`;
-        compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
-        compareLabel = 'month';
+        // Use defaults (already set)
         break;
       case "quarterly":
         timeGroup = `DATE_TRUNC('quarter', invoice_date::date)`;
@@ -184,13 +185,12 @@ export async function getSalesTrends(req: Request, res: Response) {
         compareLabel = 'quarter';
         break;
       case "yearly":
-      default:
         timeGroup = `DATE_TRUNC('year', invoice_date::date)`;
         timeFormat = `TO_CHAR(DATE_TRUNC('year', invoice_date::date), 'YYYY')`;
         periodCount = 5; // Last 5 years
-        compareGroup = `DATE_PART('month', invoice_date::date)`;
-        compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
-        compareLabel = 'month';
+        compareGroup = `DATE_PART('year', invoice_date::date)`;
+        compareFormat = `TO_CHAR(invoice_date::date, 'YYYY')`;
+        compareLabel = 'year';
         break;
     }
     
@@ -202,22 +202,20 @@ export async function getSalesTrends(req: Request, res: Response) {
         fromDate.setDate(today.getDate() - (7 * periodCount));
         break;
       case "monthly":
-        fromDate = new Date(today);
-        fromDate.setMonth(today.getMonth() - periodCount);
+        fromDate = subMonths(today, periodCount);
         break;
       case "quarterly":
-        fromDate = new Date(today);
-        fromDate.setMonth(today.getMonth() - (3 * periodCount));
+        fromDate = subMonths(today, 3 * periodCount);
         break;
       case "yearly":
-      default:
-        fromDate = new Date(today);
-        fromDate.setFullYear(today.getFullYear() - periodCount);
+        fromDate = subYears(today, periodCount);
         break;
+      default:
+        fromDate = subMonths(today, periodCount);
     }
     
     // Get sales trends data
-    const trendData = await db.execute(sql.raw(`
+    const trendData = await db.execute(sql`
       SELECT 
         ${timeFormat} AS time_period,
         SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales,
@@ -225,13 +223,13 @@ export async function getSalesTrends(req: Request, res: Response) {
         SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage,
         ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
       FROM invoices
-      WHERE invoice_date >= $1
+      WHERE invoice_date >= ${fromDate}
       GROUP BY ${timeGroup}
       ORDER BY ${timeGroup}
-    `), [fromDate]);
+    `);
     
-    // Get year-over-year comparison
-    const comparisonData = await db.execute(sql.raw(`
+    // Get year-over-year comparison data
+    const comparisonData = await db.execute(sql`
       WITH sales_data AS (
         SELECT 
           DATE_PART('year', invoice_date::date) AS year,
@@ -239,7 +237,7 @@ export async function getSalesTrends(req: Request, res: Response) {
           ${compareFormat} AS period,
           SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total
         FROM invoices
-        WHERE invoice_date >= $1
+        WHERE invoice_date >= ${fromDate}
         GROUP BY year, period_num, period
       )
       SELECT 
@@ -249,7 +247,7 @@ export async function getSalesTrends(req: Request, res: Response) {
       FROM sales_data
       GROUP BY period, period_num
       ORDER BY period_num
-    `), [fromDate]);
+    `);
     
     res.json({
       trends: trendData.rows,
