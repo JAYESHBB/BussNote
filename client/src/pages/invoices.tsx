@@ -429,7 +429,7 @@ BussNote Team`;
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{invoice.currency === 'INR' ? '₹ ' : (invoice.currency ? `${invoice.currency} ` : '')}{Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
-                    <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
+                    <TableCell>₹ {Math.round(Number(invoice.brokerageInINR || 0))}</TableCell>
                     <TableCell>
                       {invoice.status === 'pending' && invoice.daysOverdue 
                         ? `${invoice.daysOverdue} days` 
