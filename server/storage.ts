@@ -121,7 +121,7 @@ class DatabaseStorage implements IStorage {
       
       // Calculate outstanding amount
       const outstandingResult = await db
-        .select({ total: sql`SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END)` })
+        .select({ total: sql`SUM(${invoices.subtotal})` })
         .from(invoices)
         .where(and(
           eq(invoices.partyId, party.id),
@@ -268,13 +268,12 @@ class DatabaseStorage implements IStorage {
   async getRecentInvoices(limit: number): Promise<Invoice[]> {
     const recentInvoices = await db.select({
       id: invoices.id,
-      invoiceNumber: invoices.invoiceNumber,
+      invoiceNo: invoices.invoiceNo,
       invoiceDate: invoices.invoiceDate,
       dueDate: invoices.dueDate,
       status: invoices.status,
       subtotal: invoices.subtotal,
       brokerageInINR: invoices.brokerageInINR,
-      total: invoices.total,
       notes: invoices.notes,
       partyId: invoices.partyId,
       buyerId: invoices.buyerId,
@@ -532,12 +531,12 @@ class DatabaseStorage implements IStorage {
     const transactionsWithInvoiceNumbers = await Promise.all(partyTransactions.map(async (transaction) => {
       if (transaction.invoiceId) {
         const invoice = await db.select({
-          invoiceNumber: invoices.invoiceNumber
+          invoiceNo: invoices.invoiceNo
         }).from(invoices).where(eq(invoices.id, transaction.invoiceId));
         
         return {
           ...transaction,
-          invoiceNumber: invoice[0]?.invoiceNumber || "Unknown Invoice"
+          invoiceNumber: invoice[0]?.invoiceNo || "Unknown Invoice"
         };
       }
       
@@ -557,12 +556,12 @@ class DatabaseStorage implements IStorage {
     // Fetch invoice number if this transaction is related to an invoice
     if (transaction.invoiceId) {
       const invoice = await db.select({
-        invoiceNumber: invoices.invoiceNumber
+        invoiceNo: invoices.invoiceNo
       }).from(invoices).where(eq(invoices.id, transaction.invoiceId));
       
       return {
         ...transaction,
-        invoiceNumber: invoice[0]?.invoiceNumber || "Unknown Invoice"
+        invoiceNumber: invoice[0]?.invoiceNo || "Unknown Invoice"
       };
     }
     
