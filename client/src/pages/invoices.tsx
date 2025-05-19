@@ -408,17 +408,15 @@ BussNote Team`;
             <Table>
               <TableHeader className="bg-neutral-50">
                 <TableRow>
-                  <TableHead>Party Name</TableHead>
-                  <TableHead>Buyer Name</TableHead>
+                  <TableHead>Seller</TableHead>
+                  <TableHead>Buyer</TableHead>
+                  <TableHead>Invoice No.</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Due Date</TableHead>
-                  <TableHead>Subtotal</TableHead>
-                  <TableHead>Brokerage</TableHead>
+                  <TableHead>Sub Total</TableHead>
                   <TableHead>Brokerage in INR</TableHead>
-                  <TableHead>Received</TableHead>
-                  <TableHead>Balance</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -426,13 +424,11 @@ BussNote Team`;
                   <TableRow key={invoice.id}>
                     <TableCell>{invoice.partyName || '-'}</TableCell>
                     <TableCell>{invoice.buyerName || '-'}</TableCell>
+                    <TableCell>{invoice.invoiceNo || '-'}</TableCell>
                     <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{invoice.currency === 'INR' ? '₹ ' : (invoice.currency ? `${invoice.currency} ` : '')}{Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
-                    <TableCell>{invoice.currency === 'INR' ? '₹ ' : (invoice.currency ? `${invoice.currency} ` : '')}{Number(invoice.brokerageRate || 0).toFixed(2)}%</TableCell>
                     <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
-                    <TableCell>₹ {Number(invoice.receivedBrokerage || 0).toFixed(2)}</TableCell>
-                    <TableCell>₹ {Number(invoice.balanceBrokerage || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <StatusBadge status={invoice.status as any} />
                     </TableCell>
