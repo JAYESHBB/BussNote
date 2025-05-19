@@ -312,7 +312,7 @@ BussNote Team`;
     });
   };
   
-  const { data: invoices } = useQuery<Invoice[]>({
+  const { data: invoices, refetch } = useQuery<Invoice[]>({
     queryKey: ["/api/invoices"],
   });
   
@@ -387,7 +387,10 @@ BussNote Team`;
               <Switch 
                 id="show-closed" 
                 checked={showClosed} 
-                onCheckedChange={setShowClosed} 
+                onCheckedChange={(value) => {
+                  setShowClosed(value);
+                  refetch(); // Re-fetch data when toggle changes
+                }} 
               />
               <Label htmlFor="show-closed" className="cursor-pointer text-sm">
                 Show Closed Bills
