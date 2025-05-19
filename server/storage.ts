@@ -854,7 +854,15 @@ class DatabaseStorage implements IStorage {
         eq(invoices.status, "paid")
       ));
       
-    const totalSales = salesResult[0]?.totalSales || 0;
+    const totalSales = Number(salesResult[0]?.totalSales || 0);
+    
+    // Outstanding amount (all pending invoices)
+    const outstandingResult = await db
+      .select({ outstanding: sum(invoices.total) })
+      .from(invoices)
+      .where(eq(invoices.status, "pending"));
+      
+    const outstanding = Number(outstandingResult[0]?.outstanding || 0);
     
     // Total invoices for the period
     const invoiceCountResult = await db
@@ -865,7 +873,7 @@ class DatabaseStorage implements IStorage {
         lte(invoices.invoiceDate, today)
       ));
       
-    const totalInvoices = invoiceCountResult[0].count;
+    const totalInvoices = Number(invoiceCountResult[0].count);
     
     // Pending invoices
     const pendingCountResult = await db
@@ -877,7 +885,7 @@ class DatabaseStorage implements IStorage {
         eq(invoices.status, "pending")
       ));
       
-    const pendingInvoices = pendingCountResult[0].count;
+    const pendingInvoices = Number(pendingCountResult[0].count);
     
     // Active parties in the period
     const activePartiesResult = await db
@@ -888,10 +896,11 @@ class DatabaseStorage implements IStorage {
         lte(invoices.invoiceDate, today)
       ));
       
-    const activeParties = activePartiesResult[0].count;
+    const activeParties = Number(activePartiesResult[0].count);
     
     return {
       totalSales,
+      outstanding,
       totalInvoices,
       activeParties,
       pendingInvoices,

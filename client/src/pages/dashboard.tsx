@@ -52,7 +52,23 @@ export default function Dashboard() {
   const isMobile = useMobile();
   const { toast } = useToast();
 
-  const { data: dashboardStats } = useQuery({
+  interface DashboardStats {
+    totalSales: number;
+    outstanding: number;
+    totalInvoices: number;
+    activeParties: number;
+    pendingInvoices: number;
+    dateRange: string;
+  }
+  
+  const { data: dashboardStats = {
+    totalSales: 0,
+    outstanding: 0,
+    totalInvoices: 0, 
+    activeParties: 0,
+    pendingInvoices: 0,
+    dateRange: ""
+  } } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats", dateRange],
   });
 
