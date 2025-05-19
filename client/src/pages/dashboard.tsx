@@ -134,6 +134,23 @@ export default function Dashboard() {
     setIsNoteDialogOpen(true);
   };
   
+  const formatDateRange = () => {
+    switch(dateRange) {
+      case "today":
+        return "Today";
+      case "yesterday":
+        return "Yesterday";
+      case "week":
+        return "This Week";
+      case "month":
+        return "This Month";
+      case "year":
+        return "This Year";
+      default:
+        return "Current Period";
+    }
+  };
+  
   const handleCloseNoteDialog = () => {
     setIsNoteDialogOpen(false);
     setSelectedInvoice(null);
@@ -207,49 +224,49 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <DashboardCard
           title="Total Sales"
-          value={formatCurrency(dashboardStats?.totalSales || 27500)}
+          value={formatCurrency(dashboardStats.totalSales)}
           icon={LineChart}
           iconBgClass="bg-primary-50"
           iconColor="text-primary-500"
           trend={{
-            value: "12% from last month",
+            value: formatDateRange(),
             isPositive: true,
           }}
         />
         
         <DashboardCard
           title="Outstanding"
-          value={formatCurrency(dashboardStats?.outstanding || 12450)}
+          value={formatCurrency(dashboardStats.outstanding)}
           icon={Bell}
           iconBgClass="bg-destructive-50"
           iconColor="text-destructive"
           trend={{
-            value: "8% from last month",
+            value: "Total pending amount",
             isPositive: false,
           }}
         />
         
         <DashboardCard
           title="Active Parties"
-          value={dashboardStats?.activeParties || 32}
+          value={dashboardStats.activeParties}
           icon={Users}
           iconBgClass="bg-secondary-50"
           iconColor="text-secondary-500"
           trend={{
-            value: "3 new this month",
+            value: formatDateRange(),
             isPositive: true,
           }}
         />
         
         <DashboardCard
           title="Pending Invoices"
-          value={dashboardStats?.pendingInvoices || 7}
+          value={dashboardStats.pendingInvoices}
           icon={AlertTriangle}
           iconBgClass="bg-accent-50"
           iconColor="text-accent-500"
           trend={{
-            value: "Due in next 7 days",
-            isPositive: true,
+            value: formatDateRange(),
+            isPositive: false,
           }}
         />
       </div>
