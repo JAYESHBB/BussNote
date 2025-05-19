@@ -576,7 +576,6 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
 
         // Format numeric values as strings for API
         subtotal: calculateSubtotal().toString(),
-        tax: calculateBrokerage().toString(),
         brokerageRate: brokerageRateValue.toString(), // Ensure it's a string
         exchangeRate: exchangeRateValue.toString(), // Ensure it's a string
         brokerageInINR: calculateBrokerageInINR().toString(),
