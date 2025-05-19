@@ -325,7 +325,7 @@ BussNote Team`;
     // Filter by status
     const statusMatch = status === "all" || invoice.status === status;
     
-    // Filter by closed/open status
+    // Filter by closed/open status - show all when 'showClosed' is true, otherwise only show open invoices
     const closedMatch = showClosed ? true : !invoice.isClosed;
     
     return searchMatch && statusMatch && closedMatch;
