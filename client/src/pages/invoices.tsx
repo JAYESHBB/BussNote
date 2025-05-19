@@ -415,6 +415,7 @@ BussNote Team`;
                   <TableHead>Due Date</TableHead>
                   <TableHead>Sub Total</TableHead>
                   <TableHead>Brokerage in INR</TableHead>
+                  <TableHead>Overdue</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
@@ -429,6 +430,11 @@ BussNote Team`;
                     <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{invoice.currency === 'INR' ? '₹ ' : (invoice.currency ? `${invoice.currency} ` : '')}{Number(invoice.subtotal || 0).toFixed(2)}</TableCell>
                     <TableCell>₹ {Number(invoice.brokerageInINR || 0).toFixed(2)}</TableCell>
+                    <TableCell>
+                      {invoice.status === 'pending' && invoice.daysOverdue 
+                        ? `${invoice.daysOverdue} days` 
+                        : '-'}
+                    </TableCell>
                     <TableCell>
                       <StatusBadge status={invoice.status as any} />
                     </TableCell>
