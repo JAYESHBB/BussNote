@@ -63,7 +63,6 @@ export const invoices = pgTable("invoices", {
   dueDate: timestamp("due_date").notNull(),
   currency: text("currency").default("INR"), // Added currency field (INR, USD, EUR, etc.)
   exchangeRate: decimal("exchange_rate", { precision: 10, scale: 2 }).default("1.00"), // Exchange rate against INR
-  remarks: text("remarks"), // Added remarks field for additional information
   status: text("status").notNull().default("pending"), // pending, paid, cancelled
   isClosed: boolean("is_closed").default(false), // Added field to track if bill is closed
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),

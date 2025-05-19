@@ -522,9 +522,6 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     }
 
     try {
-      // Separate notes/remarks handling
-      const { remarks, ...restData } = data;
-
       // Format items correctly, removing temp id
       const formattedItems = items.map(({ id, ...rest }) => ({
         description: rest.description,
@@ -568,8 +565,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         currency: data.currency,
         isClosed: data.isClosed,
 
-        // Explicitly set notes field to remarks value (that's how it's stored in DB)
-        notes: remarks || "",
+        // Store any additional comments in the notes field
+        notes: data.notes || "",
 
         // Include correctly formatted items
         items: formattedItems,
