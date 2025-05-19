@@ -18,15 +18,15 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
     const result = await db.execute(sql`
       SELECT 
         COALESCE(currency, 'INR') AS currency,
-        SUM(CAST(brokerage_amount AS NUMERIC)) AS total_brokerage,
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS total_brokerage_inr,
+        SUM(CAST(brokerage_rate AS NUMERIC)) AS total_brokerage_rate,
+        SUM(CAST(brokerage_inr AS NUMERIC)) AS total_brokerage_inr,
         SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
+        SUM(CAST(brokerage_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
-        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total_sales,
+        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total_sales,
         ROUND(
-          (SUM(CAST(brokerage_in_inr AS NUMERIC)) / 
-          NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
+          (SUM(CAST(brokerage_inr AS NUMERIC)) / 
+          NULLIF(SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END), 0)) * 100, 
         2) AS brokerage_percentage
       FROM invoices
       WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
@@ -37,14 +37,14 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
     // Total metrics across all currencies
     const totalsResult = await db.execute(sql`
       SELECT 
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS total_brokerage_inr,
+        SUM(CAST(brokerage_inr AS NUMERIC)) AS total_brokerage_inr,
         SUM(CAST(received_brokerage AS NUMERIC)) AS total_received,
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
+        SUM(CAST(brokerage_inr AS NUMERIC)) - SUM(CAST(received_brokerage AS NUMERIC)) AS total_pending,
         COUNT(*) AS invoice_count,
-        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total_sales,
+        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total_sales,
         ROUND(
-          (SUM(CAST(brokerage_in_inr AS NUMERIC)) / 
-          NULLIF(SUM(CASE WHEN total > 0 THEN total ELSE subtotal END), 0)) * 100, 
+          (SUM(CAST(brokerage_inr AS NUMERIC)) / 
+          NULLIF(SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END), 0)) * 100, 
         2) AS average_brokerage_percentage
       FROM invoices
       WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
@@ -54,9 +54,9 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
     const monthlyTrend = await db.execute(sql`
       SELECT 
         TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM') AS month,
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage_inr,
+        SUM(CAST(brokerage_inr AS NUMERIC)) AS brokerage_inr,
         SUM(CAST(received_brokerage AS NUMERIC)) AS received_brokerage,
-        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales
+        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS sales
       FROM invoices
       WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY month
@@ -218,9 +218,9 @@ export async function getSalesTrends(req: Request, res: Response) {
     const trendData = await db.execute(sql`
       SELECT 
         ${timeFormat} AS time_period,
-        SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS sales,
+        SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS sales,
         COUNT(*) AS invoice_count,
-        SUM(CAST(brokerage_in_inr AS NUMERIC)) AS brokerage,
+        SUM(CAST(brokerage_inr AS NUMERIC)) AS brokerage,
         ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
       FROM invoices
       WHERE invoice_date >= ${fromDate}
@@ -235,7 +235,7 @@ export async function getSalesTrends(req: Request, res: Response) {
           DATE_PART('year', invoice_date::date) AS year,
           ${compareGroup} AS period_num,
           ${compareFormat} AS period,
-          SUM(CASE WHEN total > 0 THEN total ELSE subtotal END) AS total
+          SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total
         FROM invoices
         WHERE invoice_date >= ${fromDate}
         GROUP BY year, period_num, period
