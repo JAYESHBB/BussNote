@@ -906,7 +906,7 @@ class DatabaseStorage implements IStorage {
     allInvoices.forEach(invoice => {
       // Calculate actual amount (use subtotal if total is zero)
       const amount = Number(invoice.total) > 0 ? Number(invoice.total) : Number(invoice.subtotal);
-      const currency = invoice.currency || "USD";
+      const currency = invoice.currency || "INR"; // Default to INR if no currency specified
       
       if (invoice.status === "paid") {
         // Add to total sales
@@ -922,7 +922,7 @@ class DatabaseStorage implements IStorage {
         // Add to outstanding (any status that's not paid or closed)
         outstanding += amount;
         
-        // Add to currency breakdown
+        // Add to currency breakdown for outstanding
         if (!outstandingByCurrency[currency]) {
           outstandingByCurrency[currency] = 0;
         }
@@ -930,30 +930,22 @@ class DatabaseStorage implements IStorage {
       }
     });
     
-    // Total invoices for the period
+    // Total invoices for the period - count all invoices, no date restriction
     const invoiceCountResult = await db
       .select({ count: count() })
-      .from(invoices)
-      .where(and(
-        gte(invoices.invoiceDate, fromDate),
-        lte(invoices.invoiceDate, today)
-      ));
+      .from(invoices);
       
     const totalInvoices = Number(invoiceCountResult[0].count);
     
-    // Pending invoices
+    // Pending invoices - count all pending invoices
     const pendingCountResult = await db
       .select({ count: count() })
       .from(invoices)
-      .where(and(
-        gte(invoices.invoiceDate, fromDate),
-        lte(invoices.invoiceDate, today),
-        eq(invoices.status, "pending")
-      ));
+      .where(eq(invoices.status, "pending"));
       
     const pendingInvoices = Number(pendingCountResult[0].count);
     
-    // Active parties in the period
+    // Active parties - count all parties that have any invoices
     const activePartiesResult = await db
       .select({ count: count() })
       .from(parties)
@@ -961,7 +953,6 @@ class DatabaseStorage implements IStorage {
         sql`EXISTS (
           SELECT 1 FROM ${invoices}
           WHERE ${invoices.partyId} = ${parties.id}
-          AND ${invoices.invoiceDate} BETWEEN ${fromDate} AND ${today}
         )`
       );
       
