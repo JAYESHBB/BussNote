@@ -246,10 +246,9 @@ export default function Dashboard() {
             {dashboardStats.salesByCurrency && Object.entries(dashboardStats.salesByCurrency || {}).map(([currency, amount]) => (
               <div key={currency} className="flex justify-between items-center text-sm">
                 <span className="font-medium text-neutral-700">{currency}:</span>
-                <span className="text-neutral-900">{currency === 'INR' 
-                  ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)
-                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount)
-                }</span>
+                <span className="text-neutral-900">
+                  {formatCurrency(amount)}
+                </span>
               </div>
             ))}
             {(!dashboardStats.salesByCurrency || Object.keys(dashboardStats.salesByCurrency).length === 0) && (
@@ -279,10 +278,9 @@ export default function Dashboard() {
             {dashboardStats.outstandingByCurrency && Object.entries(dashboardStats.outstandingByCurrency || {}).map(([currency, amount]) => (
               <div key={currency} className="flex justify-between items-center text-sm">
                 <span className="font-medium text-neutral-700">{currency}:</span>
-                <span className="text-neutral-900">{currency === 'INR' 
-                  ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)
-                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount)
-                }</span>
+                <span className="text-neutral-900">
+                  {formatCurrency(amount)}
+                </span>
               </div>
             ))}
             {(!dashboardStats.outstandingByCurrency || Object.keys(dashboardStats.outstandingByCurrency).length === 0) && (
