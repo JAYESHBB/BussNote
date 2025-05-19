@@ -15,6 +15,7 @@ import InvoicesPage from "@/pages/invoices";
 import PartyDetailsPage from "@/pages/party-details";
 import InvoiceDetailsPage from "@/pages/invoice-details";
 import ReportsPage from "@/pages/reports";
+import AnalyticsPage from "@/pages/analytics";
 import { PageLayout } from "@/components/PageLayout";
 
 function Router() {
@@ -75,6 +76,12 @@ function Router() {
       <ProtectedRoute path="/reports/sales">
         <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
           <ReportsPage />
+        </PageLayout>
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/analytics">
+        <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+          <AnalyticsPage />
         </PageLayout>
       </ProtectedRoute>
       
