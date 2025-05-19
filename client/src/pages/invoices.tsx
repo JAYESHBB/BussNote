@@ -319,7 +319,7 @@ BussNote Team`;
   const filteredInvoices = invoices?.filter((invoice) => {
     // Filter by search
     const searchMatch = 
-      invoice.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
+      (invoice.invoiceNo ? invoice.invoiceNo.toLowerCase().includes(search.toLowerCase()) : false) ||
       (invoice.partyName ? invoice.partyName.toLowerCase().includes(search.toLowerCase()) : false);
       
     // Filter by status
