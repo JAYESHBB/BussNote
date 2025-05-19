@@ -885,76 +885,50 @@ class DatabaseStorage implements IStorage {
         fromDate = startOfMonth(today);
     }
     
-    // For demonstration purposes, get all invoice data regardless of status to show in the dashboard
-    const allInvoicesResult = await db
-      .select({ 
-        totalAmount: sql`COALESCE(SUM(CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END), 0)`,
-        status: invoices.status
-      })
-      .from(invoices)
-      .groupBy(invoices.status);
-    
-    // Find total sales (paid invoices)
-    let totalSales = 0;
-    let outstanding = 0;
-    
-    allInvoicesResult.forEach(row => {
-      if (row.status === "paid") {
-        totalSales = Number(row.totalAmount);
-      } else if (row.status === "pending") {
-        outstanding = Number(row.totalAmount);
-      }
-    });
-    
-    // If we don't have real data, use demo data
-    if (totalSales === 0 && outstanding === 0) {
-      // Demo data for visualization
-      totalSales = 399282.71;
-      outstanding = 399282.71;
-    }
-    
-    // Get all invoices to determine currencies
+    // Get all invoices with their full details for accurate calculation
     const allInvoices = await db
       .select({
         id: invoices.id,
         currency: invoices.currency,
-        amount: sql`CASE WHEN ${invoices.total} > 0 THEN ${invoices.total} ELSE ${invoices.subtotal} END`,
+        subtotal: invoices.subtotal,
+        total: invoices.total,
         status: invoices.status
       })
       .from(invoices);
     
-    // Create currency breakdowns
+    // Prepare data structures for calculations
+    let totalSales = 0;
+    let outstanding = 0;
     let salesByCurrency: Record<string, number> = {};
     let outstandingByCurrency: Record<string, number> = {};
     
-    // Process invoices
-    if (allInvoices.length > 0) {
-      // Group by currency
-      allInvoices.forEach(invoice => {
-        const currency = invoice.currency || "USD";
-        const amount = Number(invoice.amount);
+    // Process each invoice for accurate calculations
+    allInvoices.forEach(invoice => {
+      // Calculate actual amount (use subtotal if total is zero)
+      const amount = Number(invoice.total) > 0 ? Number(invoice.total) : Number(invoice.subtotal);
+      const currency = invoice.currency || "USD";
+      
+      if (invoice.status === "paid") {
+        // Add to total sales
+        totalSales += amount;
         
-        if (invoice.status === "paid") {
-          salesByCurrency[currency] = (salesByCurrency[currency] || 0) + amount;
-        } else if (invoice.status === "pending") {
-          outstandingByCurrency[currency] = (outstandingByCurrency[currency] || 0) + amount;
+        // Add to currency breakdown
+        if (!salesByCurrency[currency]) {
+          salesByCurrency[currency] = 0;
         }
-      });
-    }
-    
-    // Ensure we always have at least some currency values for visualization
-    // This ensures the dashboard will always display currency-wise breakdowns
-    salesByCurrency = {
-      "USD": totalSales * 0.7,
-      "EUR": totalSales * 0.2,
-      "INR": totalSales * 0.1
-    };
-    
-    outstandingByCurrency = {
-      "USD": outstanding * 0.6,
-      "EUR": outstanding * 0.3,
-      "INR": outstanding * 0.1
-    };
+        salesByCurrency[currency] += amount;
+      } 
+      else if (invoice.status === "pending") {
+        // Add to outstanding
+        outstanding += amount;
+        
+        // Add to currency breakdown
+        if (!outstandingByCurrency[currency]) {
+          outstandingByCurrency[currency] = 0;
+        }
+        outstandingByCurrency[currency] += amount;
+      }
+    });
     
     // Total invoices for the period
     const invoiceCountResult = await db
