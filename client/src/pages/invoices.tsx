@@ -316,7 +316,7 @@ BussNote Team`;
     });
   };
   
-  const { data: invoices, refetch } = useQuery<Invoice[]>({
+  const { data: invoices, isLoading: isLoadingInvoices, refetch } = useQuery<Invoice[]>({
     queryKey: ["/api/invoices"],
   });
   
