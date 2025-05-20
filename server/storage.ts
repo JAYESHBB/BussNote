@@ -455,8 +455,12 @@ class DatabaseStorage implements IStorage {
       updateData.paymentDate = new Date();
       updateData.isClosed = true;
     } else {
-      // For other statuses like "pending", mark as not closed
-      updateData.isClosed = false;
+      // For other statuses like "pending"
+      // Only set isClosed to false if current status is "paid" and new status is "pending" (marking as unpaid)
+      // This ensures we only auto-change isClosed when changing a paid invoice to unpaid
+      if (currentInvoice[0].status === "paid" && status === "pending") {
+        updateData.isClosed = false;
+      }
       updateData.paymentDate = null;
     }
     
