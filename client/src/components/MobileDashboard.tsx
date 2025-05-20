@@ -165,111 +165,168 @@ export function MobileDashboard({
           </Button>
         </div>
         
-        {/* Sales Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="colorful-card overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-primary-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative min-h-[115px]">
-              {isLoadingStats ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <LoadingState 
-                    type="data" 
-                    title="Loading"
-                    size="sm"
-                  />
-                </div>
-              ) : (
-                <>
-                  <LineChart className="h-6 w-6 text-primary-500 mb-2 animate-pulse-subtle" />
-                  <p className="text-xs text-neutral-500 mb-1">Total Sales</p>
-                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
-                    {formatCurrency(stats?.totalSales || 0)}
-                  </h3>
-                  <div className="text-xs font-medium text-green-600 mt-1 animate-slide-in-bottom">
-                    ↑ 12% from last month
+        {/* Dashboard Cards */}
+        <div className="grid grid-cols-1 gap-4">
+          {/* Total Sales Card */}
+          <Card className="p-4 bg-gradient-to-br from-primary-50 to-white rounded-lg border border-primary-100 shadow-sm">
+            {isLoadingStats ? (
+              <div className="h-[150px] flex items-center justify-center">
+                <LoadingState 
+                  type="data" 
+                  title="Loading Sales Data"
+                  message="Please wait..." 
+                  size="sm"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center mr-2 animate-pulse-subtle">
+                      <LineChart className="h-4 w-4 text-primary-500" />
+                    </div>
+                    <h3 className="text-base font-semibold text-neutral-800">Total Sales</h3>
                   </div>
-                </>
-              )}
-            </CardContent>
+                  <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+                    This Month
+                  </div>
+                </div>
+                
+                <div className="text-xl font-bold text-neutral-900 mb-2 animate-fade-in">
+                  {formatCurrency(stats?.totalSales || 0)}
+                </div>
+                
+                <div className="space-y-1 mt-2 border-t pt-2">
+                  {stats?.salesByCurrency && Object.entries(stats.salesByCurrency || {}).map(([currency, amount], index) => (
+                    <div key={currency} className="flex justify-between items-center text-xs animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <span className="font-medium text-neutral-700">{currency}:</span>
+                      <span className="text-neutral-900">
+                        {formatCurrency(amount)}
+                      </span>
+                    </div>
+                  ))}
+                  {(!stats?.salesByCurrency || Object.keys(stats?.salesByCurrency || {}).length === 0) && (
+                    <div className="text-xs text-neutral-500 italic animate-fade-in">No sales data available</div>
+                  )}
+                </div>
+              </>
+            )}
           </Card>
           
-          <Card className="colorful-card overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-destructive-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative min-h-[115px]">
-              {isLoadingStats ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <LoadingState 
-                    type="data" 
-                    title="Loading"
-                    size="sm"
-                  />
-                </div>
-              ) : (
-                <>
-                  <Bell className="h-6 w-6 text-destructive-500 mb-2 animate-pulse-subtle" />
-                  <p className="text-xs text-neutral-500 mb-1">Outstanding</p>
-                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
-                    {formatCurrency(stats?.outstanding || 0)}
-                  </h3>
-                  <div className="text-xs font-medium text-destructive-600 mt-1 animate-slide-in-bottom">
-                    ↑ 8% from last month
+          {/* Outstanding Card */}
+          <Card className="p-4 bg-gradient-to-br from-destructive-50 to-white rounded-lg border border-destructive-100 shadow-sm">
+            {isLoadingStats ? (
+              <div className="h-[150px] flex items-center justify-center">
+                <LoadingState 
+                  type="data" 
+                  title="Loading Outstanding Data"
+                  message="Please wait..." 
+                  size="sm"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-destructive-50 flex items-center justify-center mr-2 animate-pulse-subtle">
+                      <Bell className="h-4 w-4 text-destructive" />
+                    </div>
+                    <h3 className="text-base font-semibold text-neutral-800">Outstanding</h3>
                   </div>
-                </>
-              )}
-            </CardContent>
+                  <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+                    This Month
+                  </div>
+                </div>
+                
+                <div className="text-xl font-bold text-neutral-900 mb-2 animate-fade-in">
+                  {formatCurrency(stats?.outstanding || 0)}
+                </div>
+                
+                <div className="space-y-1 mt-2 border-t pt-2">
+                  {stats?.outstandingByCurrency && Object.entries(stats.outstandingByCurrency || {}).map(([currency, amount], index) => (
+                    <div key={currency} className="flex justify-between items-center text-xs animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <span className="font-medium text-neutral-700">{currency}:</span>
+                      <span className="text-neutral-900">
+                        {formatCurrency(amount)}
+                      </span>
+                    </div>
+                  ))}
+                  {(!stats?.outstandingByCurrency || Object.keys(stats?.outstandingByCurrency || {}).length === 0) && (
+                    <div className="text-xs text-neutral-500 italic animate-fade-in">No outstanding data available</div>
+                  )}
+                </div>
+              </>
+            )}
           </Card>
           
-          <Card className="colorful-card overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-secondary-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative min-h-[115px]">
-              {isLoadingStats ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <LoadingState 
-                    type="data" 
-                    title="Loading"
-                    size="sm"
-                  />
-                </div>
-              ) : (
-                <>
-                  <Users className="h-6 w-6 text-secondary-500 mb-2" />
-                  <p className="text-xs text-neutral-500 mb-1">Active Parties</p>
-                  <h3 className="text-lg font-bold text-neutral-800">
-                    {stats?.activeParties || 0}
-                  </h3>
-                  <div className="text-xs font-medium text-green-600 mt-1">
-                    3 new this month
+          {/* Bottom Row Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Active Parties */}
+            <Card className="overflow-hidden border border-secondary-100">
+              <CardContent className="p-4 relative min-h-[110px]">
+                {isLoadingStats ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <LoadingState
+                      type="data"
+                      title="Loading"
+                      size="sm"
+                    />
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="colorful-card overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-accent-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative min-h-[115px]">
-              {isLoadingStats ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <LoadingState 
-                    type="data" 
-                    title="Loading"
-                    size="sm"
-                  />
-                </div>
-              ) : (
-                <>
-                  <FileText className="h-6 w-6 text-accent-500 mb-2" />
-                  <p className="text-xs text-neutral-500 mb-1">Pending Invoices</p>
-                  <h3 className="text-lg font-bold text-neutral-800">
-                    {stats?.pendingInvoices || 0}
-                  </h3>
-                  <div className="text-xs font-medium text-accent-600 mt-1">
-                    Due in next 7 days
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-neutral-600">Active Parties</h3>
+                      <div className="p-1.5 bg-secondary-50 text-secondary-500 rounded-full">
+                        <Users className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-xl font-bold text-neutral-800">{stats?.activeParties || 0}</p>
+                        <p className="text-xs text-secondary opacity-90">
+                          <span className="mr-1">↑</span>
+                          <span>This Month</span>
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Pending Invoices */}
+            <Card className="overflow-hidden border border-accent-100">
+              <CardContent className="p-4 relative min-h-[110px]">
+                {isLoadingStats ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <LoadingState
+                      type="data"
+                      title="Loading"
+                      size="sm"
+                    />
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-neutral-600">Pending Invoices</h3>
+                      <div className="p-1.5 bg-accent-50 text-accent-500 rounded-full">
+                        <AlertTriangle className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-xl font-bold text-neutral-800">{stats?.pendingInvoices || 0}</p>
+                        <p className="text-xs text-accent-600 opacity-90">
+                          <span className="mr-1">⚠</span>
+                          <span>Need Attention</span>
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
       
