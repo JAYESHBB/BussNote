@@ -129,18 +129,15 @@ export function MobileDashboard({
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <h2 className="text-lg font-bold mb-3 ml-1 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">
-        Quick Actions
-      </h2>
-      <div className="mb-5">
-        <MobileTile 
-          icon={FileText} 
-          title="New Invoice" 
-          bgClass="bg-gradient-to-br from-primary-500 to-primary-700" 
-          href="#" 
+      {/* Create Invoice Button */}
+      <div className="mb-6">
+        <Button
           onClick={handleNewInvoice}
-        />
+          className="w-full py-6 text-base font-medium flex items-center justify-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-md"
+        >
+          <FileText className="h-5 w-5 mr-1" />
+          Create New Invoice
+        </Button>
       </div>
       
       {/* Stats Cards */}
