@@ -232,12 +232,12 @@ export function MobileDashboard({
                 </div>
               ) : (
                 <>
-                  <Users className="h-6 w-6 text-secondary-500 mb-2 animate-pulse-subtle" />
+                  <Users className="h-6 w-6 text-secondary-500 mb-2" />
                   <p className="text-xs text-neutral-500 mb-1">Active Parties</p>
-                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                  <h3 className="text-lg font-bold text-neutral-800">
                     {stats?.activeParties || 0}
                   </h3>
-                  <div className="text-xs font-medium text-green-600 mt-1 animate-slide-in-bottom">
+                  <div className="text-xs font-medium text-green-600 mt-1">
                     3 new this month
                   </div>
                 </>
@@ -258,12 +258,12 @@ export function MobileDashboard({
                 </div>
               ) : (
                 <>
-                  <FileText className="h-6 w-6 text-accent-500 mb-2 animate-pulse-subtle" />
+                  <FileText className="h-6 w-6 text-accent-500 mb-2" />
                   <p className="text-xs text-neutral-500 mb-1">Pending Invoices</p>
-                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                  <h3 className="text-lg font-bold text-neutral-800">
                     {stats?.pendingInvoices || 0}
                   </h3>
-                  <div className="text-xs font-medium text-accent-600 mt-1 animate-slide-in-bottom">
+                  <div className="text-xs font-medium text-accent-600 mt-1">
                     Due in next 7 days
                   </div>
                 </>

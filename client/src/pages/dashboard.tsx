@@ -323,31 +323,81 @@ export default function Dashboard() {
           )}
         </Card>
         
-        <DashboardCard
-          title="Active Parties"
-          value={dashboardStats.activeParties}
-          icon={Users}
-          iconBgClass="bg-secondary-50"
-          iconColor="text-secondary-500"
-          trend={{
-            value: formatDateRange(),
-            isPositive: true,
-          }}
-          isLoading={isLoadingStats}
-        />
+        <Card className="overflow-hidden card-hover glow-on-hover group">
+          <CardContent className="p-5 relative min-h-[150px]">
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-primary via-secondary to-accent rounded-lg transition-opacity duration-500"></div>
+            
+            {isLoadingStats ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <LoadingState
+                  type="data"
+                  title="Loading Active Parties"
+                  message="Please wait..."
+                  size="sm"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-neutral-600 font-medium group-hover:text-primary transition-colors duration-300">Active Parties</h3>
+                  <div className="p-2 bg-secondary-50 text-secondary-500 rounded-full transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                    <Users className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
+                    <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.activeParties}</p>
+                    <p className="text-sm flex items-center text-secondary opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="mr-1 transition-transform duration-300 group-hover:transform group-hover:translate-y-[-2px]">
+                        ↑
+                      </span>
+                      <span>{formatDateRange()}</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
         
-        <DashboardCard
-          title="Pending Invoices"
-          value={dashboardStats.pendingInvoices}
-          icon={AlertTriangle}
-          iconBgClass="bg-accent-50"
-          iconColor="text-accent-500"
-          trend={{
-            value: formatDateRange(),
-            isPositive: false,
-          }}
-          isLoading={isLoadingStats}
-        />
+        <Card className="overflow-hidden card-hover glow-on-hover group">
+          <CardContent className="p-5 relative min-h-[150px]">
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-primary via-secondary to-accent rounded-lg transition-opacity duration-500"></div>
+            
+            {isLoadingStats ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <LoadingState
+                  type="data"
+                  title="Loading Pending Invoices"
+                  message="Please wait..."
+                  size="sm"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-neutral-600 font-medium group-hover:text-primary transition-colors duration-300">Pending Invoices</h3>
+                  <div className="p-2 bg-accent-50 text-accent-500 rounded-full transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
+                    <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.pendingInvoices}</p>
+                    <p className="text-sm flex items-center text-destructive opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="mr-1 transition-transform duration-300 group-hover:transform group-hover:translate-y-[2px]">
+                        ↓
+                      </span>
+                      <span>{formatDateRange()}</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Party Overview, Recent Activities and Recent Invoices sections have been removed as requested */}
