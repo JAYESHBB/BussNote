@@ -1191,10 +1191,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
               control={form.control}
               name="isClosed"
               render={({ field }) => {
-                // Get balance brokerage value directly from the form
-                const balanceValue = form.watch("balanceBrokerage");
-                const balanceBrokerage = parseFloat(balanceValue || "0");
-                const isBalanceZero = balanceBrokerage === 0 || balanceBrokerage === 0.00;
+                // Use the balanceBrokerageValue directly which is calculated properly
+                const isBalanceZero = balanceBrokerageValue === 0 || balanceBrokerageValue === 0.00;
                 
                 return (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-2">
