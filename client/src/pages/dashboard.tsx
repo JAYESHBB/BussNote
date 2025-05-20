@@ -232,35 +232,48 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="p-4 bg-gradient-to-br from-primary-50 to-white rounded-lg border border-primary-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mr-3">
-                <LineChart className="h-5 w-5 text-primary-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-neutral-800">Total Sales</h3>
+          {isLoadingStats ? (
+            <div className="h-[180px] flex items-center justify-center">
+              <LoadingState 
+                type="data" 
+                title="Loading Sales Data"
+                message="Please wait..." 
+                size="md"
+              />
             </div>
-            <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
-              {formatDateRange()}
-            </div>
-          </div>
-          
-          <div className="text-2xl font-bold text-neutral-900 mb-2">
-            {formatCurrency(dashboardStats.totalSales)}
-          </div>
-          
-          <div className="space-y-1 mt-3 border-t pt-2">
-            {dashboardStats.salesByCurrency && Object.entries(dashboardStats.salesByCurrency || {}).map(([currency, amount]) => (
-              <div key={currency} className="flex justify-between items-center text-sm">
-                <span className="font-medium text-neutral-700">{currency}:</span>
-                <span className="text-neutral-900">
-                  {formatCurrency(amount)}
-                </span>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mr-3 animate-pulse-subtle">
+                    <LineChart className="h-5 w-5 text-primary-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-neutral-800">Total Sales</h3>
+                </div>
+                <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+                  {formatDateRange()}
+                </div>
               </div>
-            ))}
-            {(!dashboardStats.salesByCurrency || Object.keys(dashboardStats.salesByCurrency).length === 0) && (
-              <div className="text-sm text-neutral-500 italic">No sales data available</div>
-            )}
-          </div>
+              
+              <div className="text-2xl font-bold text-neutral-900 mb-2 animate-fade-in">
+                {formatCurrency(dashboardStats.totalSales)}
+              </div>
+              
+              <div className="space-y-1 mt-3 border-t pt-2">
+                {dashboardStats.salesByCurrency && Object.entries(dashboardStats.salesByCurrency || {}).map(([currency, amount], index) => (
+                  <div key={currency} className="flex justify-between items-center text-sm animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <span className="font-medium text-neutral-700">{currency}:</span>
+                    <span className="text-neutral-900">
+                      {formatCurrency(amount)}
+                    </span>
+                  </div>
+                ))}
+                {(!dashboardStats.salesByCurrency || Object.keys(dashboardStats.salesByCurrency).length === 0) && (
+                  <div className="text-sm text-neutral-500 italic animate-fade-in">No sales data available</div>
+                )}
+              </div>
+            </>
+          )}
         </Card>
         
         <Card className="p-4 bg-gradient-to-br from-destructive-50 to-white rounded-lg border border-destructive-100 shadow-sm">
