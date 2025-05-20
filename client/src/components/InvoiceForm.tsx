@@ -527,7 +527,24 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   }, [brokerageValue, exchangeRate, receivedBrokerage]);
 
   // Simple getter functions that won't cause stack overflow
-  const calculateSubtotal = () => subtotalValue;
+  const calculateSubtotal = () => {
+    // Calculate subtotal from items for accurate conversion of brokerageRate
+    const calculatedSubtotal = items.reduce((sum, item) => {
+      // Convert possible string values to numbers for calculation
+      const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity;
+      const rate = typeof item.rate === 'string' ? parseFloat(item.rate) : item.rate;
+      
+      // Only add if both values are valid numbers
+      if (!isNaN(quantity) && !isNaN(rate)) {
+        return sum + quantity * rate;
+      }
+      return sum;
+    }, 0);
+    
+    // If subtotalValue is already calculated from the form, use that
+    // Otherwise use the calculated value from items
+    return subtotalValue > 0 ? subtotalValue : calculatedSubtotal;
+  };
   const calculateBrokerage = () => brokerageValue;
   const calculateBrokerageInINR = () => {
     // Apply standard mathematical rounding for Brokerage in INR calculation
@@ -1042,8 +1059,27 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             step="0.01"
                             placeholder="0.00"
                             className="h-7 px-2 py-1 text-sm"
-                            {...field}
-                            value={isNaN(field.value) ? 0 : field.value}
+                            value={
+                              // Fix for high values being displayed (greater than 100%)
+                              (() => {
+                                let val = field.value;
+                                // If value is greater than 100, it's likely to be an absolute value not a percentage
+                                if (val > 100) {
+                                  // Get subtotal for calculation
+                                  const subtotal = calculateSubtotal();
+                                  if (subtotal > 0) {
+                                    // Convert to percentage: (amount / subtotal) * 100
+                                    val = (val / subtotal) * 100;
+                                    // Round to 2 decimal places
+                                    val = Math.round((val + Number.EPSILON) * 100) / 100;
+                                    // Update the form value with corrected percentage
+                                    setTimeout(() => field.onChange(val), 0);
+                                    return val;
+                                  }
+                                }
+                                return isNaN(val) ? 0 : val;
+                              })()
+                            }
                             onChange={(e) => {
                               const value =
                                 e.target.value === "" ? "0" : e.target.value;
