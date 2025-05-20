@@ -952,18 +952,17 @@ class DatabaseStorage implements IStorage {
       const amount = Number(invoice.subtotal);
       const currency = invoice.currency || "INR"; // Default to INR if no currency specified
       
-      if (invoice.status === "paid") {
-        // Add to total sales
-        totalSales += amount;
-        
-        // Add to currency breakdown
-        if (!salesByCurrency[currency]) {
-          salesByCurrency[currency] = 0;
-        }
-        salesByCurrency[currency] += amount;
-      } 
-      else if (invoice.status !== "paid" && invoice.status !== "closed") {
-        // Add to outstanding (any status that's not paid or closed)
+      // Add to total sales regardless of status - we want to show all sales
+      totalSales += amount;
+      
+      // Add to currency breakdown for total sales
+      if (!salesByCurrency[currency]) {
+        salesByCurrency[currency] = 0;
+      }
+      salesByCurrency[currency] += amount;
+      
+      // Only add to outstanding if status is pending
+      if (invoice.status === "pending") {
         outstanding += amount;
         
         // Add to currency breakdown for outstanding
