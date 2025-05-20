@@ -59,20 +59,22 @@ export default function PartiesPage() {
   // Function to check if a party has invoices
   const checkPartyHasInvoices = async (partyId: number) => {
     try {
-      const response = await apiRequest("GET", `/api/parties/${partyId}/has-invoices`);
+      const response = await fetch(`/api/parties/${partyId}/has-invoices`);
       if (response.ok) {
         const data = await response.json();
         
+        // Update state
         setPartiesWithInvoices(prev => ({
           ...prev,
           [partyId]: data.hasInvoices
         }));
         
+        console.log(`Party ${partyId} has invoices:`, data.hasInvoices);
         return data.hasInvoices;
       }
       return false;
     } catch (error) {
-      console.error("Error checking if party has invoices:", error);
+      console.error(`Error checking if party ${partyId} has invoices:`, error);
       return false;
     }
   };
@@ -92,16 +94,19 @@ export default function PartiesPage() {
         
         for (const party of parties) {
           try {
-            const response = await apiRequest("GET", `/api/parties/${party.id}/has-invoices`);
+            // Use standard fetch API for better reliability
+            const response = await fetch(`/api/parties/${party.id}/has-invoices`);
             if (response.ok) {
               const data = await response.json();
               invoiceStatus[party.id] = data.hasInvoices;
+              console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
             }
           } catch (error) {
             console.error(`Error checking if party ${party.id} has invoices:`, error);
           }
         }
         
+        // Set the state with all checked parties at once
         setPartiesWithInvoices(invoiceStatus);
       };
       
@@ -161,20 +166,32 @@ export default function PartiesPage() {
   });
   
   const handleDeleteParty = async (party: Party) => {
-    // First check if the party has invoices
-    const hasInvoices = await checkPartyHasInvoices(party.id);
-    
-    if (hasInvoices) {
+    try {
+      // Directly check with the server if party has invoices
+      const response = await fetch(`/api/parties/${party.id}/has-invoices`);
+      const data = await response.json();
+      
+      if (data.hasInvoices) {
+        // Show error message if party has invoices
+        toast({
+          title: "Cannot delete party",
+          description: "This party has associated invoices and cannot be deleted. Please delete all related invoices first.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // No invoices found, proceed with delete confirmation
+      setPartyToDelete(party);
+      setDeleteDialogOpen(true);
+    } catch (error) {
+      console.error("Error checking if party has invoices:", error);
       toast({
-        title: "Cannot delete party",
-        description: "This party has associated invoices and cannot be deleted. Please delete all related invoices first.",
+        title: "Error",
+        description: "Could not verify if party can be deleted. Please try again.",
         variant: "destructive"
       });
-      return;
     }
-    
-    setPartyToDelete(party);
-    setDeleteDialogOpen(true);
   };
   
   const confirmDelete = () => {
