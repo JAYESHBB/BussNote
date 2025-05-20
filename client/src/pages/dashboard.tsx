@@ -340,15 +340,15 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-neutral-600 font-medium group-hover:text-primary transition-colors duration-300">Active Parties</h3>
-                  <div className="p-2 bg-secondary-50 text-secondary-500 rounded-full transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                  <h3 className="text-neutral-600 font-medium">Active Parties</h3>
+                  <div className="p-2 bg-secondary-50 text-secondary-500 rounded-full">
                     <Users className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
-                  <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
-                    <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.activeParties}</p>
-                    <p className="text-sm flex items-center text-secondary opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                  <div>
+                    <p className="text-3xl font-bold text-neutral-800">{dashboardStats.activeParties}</p>
+                    <p className="text-sm flex items-center text-secondary">
                       <span>{formatDateRange()}</span>
                     </p>
                   </div>
@@ -375,15 +375,15 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-neutral-600 font-medium group-hover:text-primary transition-colors duration-300">Pending Invoices</h3>
-                  <div className="p-2 bg-accent-50 text-accent-500 rounded-full transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                  <h3 className="text-neutral-600 font-medium">Pending Invoices</h3>
+                  <div className="p-2 bg-accent-50 text-accent-500 rounded-full">
                     <AlertTriangle className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
-                  <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
-                    <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.pendingInvoices}</p>
-                    <p className="text-sm flex items-center text-destructive opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                  <div>
+                    <p className="text-3xl font-bold text-neutral-800">{dashboardStats.pendingInvoices}</p>
+                    <p className="text-sm flex items-center text-destructive">
                       <span>{formatDateRange()}</span>
                     </p>
                   </div>
