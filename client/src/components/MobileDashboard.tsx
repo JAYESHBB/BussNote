@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadingState } from '@/components/ui/loading-state';
 import {
   Bell,
   Users,
@@ -33,9 +34,17 @@ interface MobileDashboardProps {
   recentInvoices?: Invoice[];
   stats?: any;
   handleNewInvoice: () => void;
+  isLoadingStats?: boolean;
+  isLoadingInvoices?: boolean;
 }
 
-export function MobileDashboard({ recentInvoices, stats, handleNewInvoice }: MobileDashboardProps) {
+export function MobileDashboard({ 
+  recentInvoices, 
+  stats, 
+  handleNewInvoice, 
+  isLoadingStats = false,
+  isLoadingInvoices = false 
+}: MobileDashboardProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
