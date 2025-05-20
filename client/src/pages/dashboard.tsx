@@ -14,6 +14,12 @@ import {
   MessageSquare,
   Edit
 } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
+import { 
+  DataAnalyticsIllustration, 
+  LoadingDataIllustration,
+  ProcessingIllustration
+} from "@/components/illustrations/animated-illustrations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,15 +78,15 @@ export default function Dashboard() {
     activeParties: 0,
     pendingInvoices: 0,
     dateRange: ""
-  } } = useQuery<DashboardStats>({
+  }, isLoading: isLoadingStats } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats", dateRange],
   });
 
-  const { data: recentInvoices } = useQuery<Invoice[]>({
+  const { data: recentInvoices, isLoading: isLoadingInvoices } = useQuery<Invoice[]>({
     queryKey: ["/api/invoices/recent"],
   });
 
-  const { data: parties } = useQuery<Party[]>({
+  const { data: parties, isLoading: isLoadingParties } = useQuery<Party[]>({
     queryKey: ["/api/parties"],
   });
 

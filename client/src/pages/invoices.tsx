@@ -19,6 +19,8 @@ import {
   Trash,
   Loader2
 } from "lucide-react";
+import { LoadingState, EmptyState } from "@/components/ui/loading-state";
+import { InvoiceIllustration, LoadingDataIllustration } from "@/components/illustrations/animated-illustrations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -540,10 +542,37 @@ BussNote Team`;
                   </TableRow>
                 ))}
 
-                {filteredInvoices?.length === 0 && (
+                {isLoadingInvoices ? (
                   <TableRow>
-                    <TableCell colSpan={12} className="text-center py-8 text-neutral-500">
-                      No invoices found matching your filters. Try changing your search or create a new invoice.
+                    <TableCell colSpan={12} className="text-center py-8">
+                      <LoadingState 
+                        type="invoice" 
+                        title="Loading Invoices..." 
+                        message="Please wait while we fetch your invoice data"
+                        size="md"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredInvoices?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center py-8">
+                      <EmptyState
+                        title="No Invoices Found"
+                        description="No invoices found matching your filters. Try changing your search or create a new invoice."
+                        icon={<InvoiceIllustration size={70} />}
+                        action={
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSearch("");
+                              setStatus("all");
+                              setShowClosed(false);
+                            }}
+                          >
+                            Reset Filters
+                          </Button>
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 )}
