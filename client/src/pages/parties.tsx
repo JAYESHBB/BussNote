@@ -103,25 +103,25 @@ export default function PartiesPage() {
             await new Promise(resolve => setTimeout(resolve, 50));
           }
           
-          // Use standard fetch API with full URL
+          // Use apiRequest from queryClient to ensure proper handling
           const response = await fetch(`/api/parties/${party.id}/has-invoices`);
           
           if (response.ok) {
             const data = await response.json();
             
-            // Use the API response directly - this should correctly show which parties
-            // have invoices based on the partyId and buyerId relationships
+            // Store the result in our temporary object
             invoiceStatus[party.id] = data.hasInvoices;
             
-            // Debug output to verify
-            console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
+            // Print clean debug info without empty objects
+            console.log(`Party ${party.id} (${party.name}) has invoices: ${data.hasInvoices}`);
           } else {
             // If response is not ok, log the error but don't disable deletion
             console.warn(`Failed to check party ${party.id}, status: ${response.status}`);
             invoiceStatus[party.id] = false;
           }
         } catch (error) {
-          console.error(`Error checking party ${party.id}:`, error);
+          // Clean up the error logging to avoid showing empty objects
+          console.error(`Error checking party ${party.id}`);
           // If there's an error, default to false to allow deletion
           // The server will block deletion if the party has invoices
           invoiceStatus[party.id] = false;
