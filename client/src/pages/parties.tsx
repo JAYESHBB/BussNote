@@ -165,8 +165,8 @@ export default function PartiesPage() {
     mutationFn: async (partyId: number) => {
       const response = await apiRequest("DELETE", `/api/parties/${partyId}`);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete party");
+        // Always use the same error message regardless of actual error
+        throw new Error("Unable to Delete Party");
       }
       return await response.json();
     },
@@ -180,10 +180,10 @@ export default function PartiesPage() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Delete failed",
-        description: error.message,
+        title: "Unable to Delete Party",
         variant: "destructive",
       });
+      setDeleteDialogOpen(false);
     },
   });
   
