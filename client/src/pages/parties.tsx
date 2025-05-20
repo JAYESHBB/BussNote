@@ -162,8 +162,6 @@ export default function PartiesPage() {
                 <TableHead>Contact Person</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Outstanding</TableHead>
-                <TableHead>Last Transaction</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -174,13 +172,6 @@ export default function PartiesPage() {
                   <TableCell>{party.contactPerson}</TableCell>
                   <TableCell>{party.phone}</TableCell>
                   <TableCell>{party.email || '-'}</TableCell>
-                  <TableCell>{formatCurrency(party.outstanding)}</TableCell>
-                  <TableCell>
-                    {party.lastTransactionDate 
-                      ? format(new Date(party.lastTransactionDate), "MMM dd, yyyy")
-                      : "No transactions"
-                    }
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Link href={`/invoices/new?partyId=${party.id}`}>
