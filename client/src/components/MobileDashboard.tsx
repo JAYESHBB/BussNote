@@ -230,7 +230,7 @@ export function MobileDashboard({
                 
                 <div className="space-y-1 mt-2 border-t pt-2">
                   {stats?.outstandingByCurrency && Object.entries(stats.outstandingByCurrency || {}).map(([currency, amount], index) => (
-                    <div key={currency} className="flex justify-between items-center text-xs animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div key={currency} className="flex justify-between items-center text-xs">
                       <span className="font-medium text-neutral-700">{currency}:</span>
                       <span className="text-neutral-900">
                         {formatCurrency(amount)}
@@ -238,7 +238,7 @@ export function MobileDashboard({
                     </div>
                   ))}
                   {(!stats?.outstandingByCurrency || Object.keys(stats?.outstandingByCurrency || {}).length === 0) && (
-                    <div className="text-xs text-neutral-500 italic animate-fade-in">No outstanding data available</div>
+                    <div className="text-xs text-neutral-500 italic">No outstanding data available</div>
                   )}
                 </div>
               </>
@@ -269,7 +269,7 @@ export function MobileDashboard({
                     <div className="flex items-end justify-between">
                       <div>
                         <p className="text-xl font-bold text-neutral-800">{stats?.activeParties || 0}</p>
-                        <p className="text-xs text-secondary opacity-90">
+                        <p className="text-xs text-secondary">
                           <span>This Month</span>
                         </p>
                       </div>
@@ -301,7 +301,7 @@ export function MobileDashboard({
                     <div className="flex items-end justify-between">
                       <div>
                         <p className="text-xl font-bold text-neutral-800">{stats?.pendingInvoices || 0}</p>
-                        <p className="text-xs text-accent-600 opacity-90">
+                        <p className="text-xs text-accent-600">
                           <span>Need Attention</span>
                         </p>
                       </div>
