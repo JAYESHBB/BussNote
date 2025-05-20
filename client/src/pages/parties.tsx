@@ -193,8 +193,7 @@ export default function PartiesPage() {
       if (partiesWithInvoices[party.id]) {
         // Show error message if party has invoices
         toast({
-          title: "Cannot delete party",
-          description: "This party has associated invoices and cannot be deleted. Please delete all related invoices first.",
+          title: "Unable to Delete Party",
           variant: "destructive"
         });
         return;
@@ -206,8 +205,7 @@ export default function PartiesPage() {
     } catch (error) {
       console.error("Error handling party deletion request");
       toast({
-        title: "Error",
-        description: "Could not process your request. Please try again.",
+        title: "Unable to Delete Party",
         variant: "destructive"
       });
     }
