@@ -108,131 +108,158 @@ export default function InvoiceDetailsPage() {
         <head>
           <title>Invoice #${invoice.invoiceNo}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-            .invoice-title { font-size: 24px; font-weight: bold; color: #333; }
-            .invoice-details { margin-top: 5px; color: #666; }
-            .section { margin-bottom: 20px; }
-            .section-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-            .info-box { padding: 15px; border: 1px solid #eee; border-radius: 5px; }
-            .info-box-title { font-weight: bold; margin-bottom: 8px; color: #555; }
-            .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            .table th { background-color: #f5f5f5; text-align: left; padding: 10px; }
-            .table td { padding: 10px; border-bottom: 1px solid #eee; }
+            body { font-family: Arial, sans-serif; margin: 15px; font-size: 12px; color: #333; line-height: 1.4; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+            .invoice-title { font-size: 20px; font-weight: bold; color: #333; }
+            .invoice-details { margin-top: 4px; color: #666; font-size: 11px; }
+            .section { margin-bottom: 15px; }
+            .section-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #444; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+            .info-box { padding: 12px; border: 1px solid #eee; border-radius: 4px; background-color: #fafafa; }
+            .info-box-title { font-weight: bold; margin-bottom: 6px; color: #555; font-size: 12px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .table th { background-color: #f5f5f5; text-align: left; padding: 8px; font-size: 11px; color: #555; }
+            .table td { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
             .text-right { text-align: right; }
-            .total-row { font-weight: bold; }
-            .notes { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }
-            .flex-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .total-row { font-weight: bold; background-color: #f9f9f9; }
+            .notes { background-color: #f9f9f9; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 11px; }
+            .flex-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; }
             .flex-row .label { color: #666; }
             .flex-row .value { font-weight: 500; }
-            @media print { body { margin: 0; } }
+            @media print { 
+              body { margin: 0; }
+              .info-box { break-inside: avoid; }
+              .table { break-inside: avoid; }
+            }
           </style>
         </head>
         <body>
           <div class="header">
-            <div>
+            <div style="flex: 2">
               <div class="invoice-title">Invoice #${invoice.invoiceNo}</div>
               <div class="invoice-details">Issued on ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
-              <div class="invoice-details">Status: ${invoice.status}</div>
-              <div class="invoice-details">Bill Closed: ${invoice.isClosed ? 'Yes' : 'No'}</div>
+              <div class="invoice-details">Status: <span style="font-weight: bold; color: ${invoice.status === 'paid' ? '#16a34a' : invoice.status === 'pending' ? '#ea580c' : invoice.status === 'overdue' ? '#dc2626' : invoice.status === 'cancelled' ? '#6b7280' : '#0284c7'}">${invoice.status.toUpperCase()}</span></div>
+              <div class="invoice-details">Bill Closed: <span style="font-weight: bold">${invoice.isClosed ? 'Yes' : 'No'}</span></div>
             </div>
-            <div>
-              <h1>BussNote</h1>
-              <div>Invoice Management System</div>
+            <div style="flex: 1; text-align: right;">
+              <div style="font-size: 18px; font-weight: bold; color: #1e40af; margin-bottom: 2px;">BussNote</div>
+              <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Invoice Management System</div>
+              <div style="margin-top: 4px; font-size: 9px; color: #94a3b8;">Generated on ${format(new Date(), "MMMM d, yyyy 'at' h:mm a")}</div>
             </div>
           </div>
           
           <div class="grid">
             <div class="info-box">
-              <div class="info-box-title">Party Information</div>
-              <div>Seller: ${invoice.partyName || ""}</div>
-              ${invoice.buyerName ? `<div>Buyer: ${invoice.buyerName}</div>` : ""}
+              <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Party Information</div>
+              <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 60px; font-weight: 500; color: #4b5563;">Seller:</span> <span style="color: #1f2937;">${invoice.partyName || ""}</span></div>
+              ${invoice.buyerName ? `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 60px; font-weight: 500; color: #4b5563;">Buyer:</span> <span style="color: #1f2937;">${invoice.buyerName}</span></div>` : ""}
+              ${invoice.partyEmail ? `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 60px; font-weight: 500; color: #4b5563;">Email:</span> <span style="color: #1f2937; font-size: 10px;">${invoice.partyEmail}</span></div>` : ""}
             </div>
             
             <div class="info-box">
-              <div class="info-box-title">Invoice Details</div>
-              <div>Invoice Date: ${format(new Date(invoice.invoiceDate), "MMMM d, yyyy")}</div>
-              <div>Due Date: ${format(new Date(invoice.dueDate), "MMMM d, yyyy")}</div>
-              <div>Due Terms: ${invoice.dueDays || '0'} ${invoice.terms || 'Days'}</div>
+              <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Invoice Details</div>
+              <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Invoice Date:</span> <span style="color: #1f2937;">${format(new Date(invoice.invoiceDate), "MMM d, yyyy")}</span></div>
+              <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Due Date:</span> <span style="color: #1f2937;">${format(new Date(invoice.dueDate), "MMM d, yyyy")}</span></div>
+              <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Due Terms:</span> <span style="color: #1f2937;">${invoice.dueDays || '0'} ${invoice.terms || 'Days'}</span></div>
               ${invoice.status === "paid" && invoice.paymentDate ? 
-                `<div>Payment Date: ${format(new Date(invoice.paymentDate), "MMMM d, yyyy")}</div>` : ""}
-              ${invoice.remarks ? `<div>Remarks: ${invoice.remarks}</div>` : ""}
+                `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Payment Date:</span> <span style="color: #1f2937;">${format(new Date(invoice.paymentDate), "MMM d, yyyy")}</span></div>` : ""}
+              ${invoice.notes ? `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Notes:</span> <span style="color: #1f2937;">${invoice.notes}</span></div>` : ""}
             </div>
             
             <div class="info-box">
-              <div class="info-box-title">Payment Summary</div>
-              <div class="flex-row">
-                <span class="label">Subtotal:</span>
-                <span class="value">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</span>
+              <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Payment Summary</div>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Subtotal:</span> 
+                <span style="color: #1f2937; font-weight: 500;">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%):</span>
-                <span class="value">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</span>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%):</span> 
+                <span style="color: #1f2937; font-weight: 500;">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Currency:</span>
-                <span class="value">${invoice.currency || 'INR'}</span>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Currency:</span> 
+                <span style="color: #1f2937;">${invoice.currency || 'INR'}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Exchange Rate:</span>
-                <span class="value">${invoice.exchangeRate || '1.00'}</span>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Exchange Rate:</span> 
+                <span style="color: #1f2937;">${invoice.exchangeRate || '1.00'}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Brokerage in INR:</span>
-                <span class="value">${formatCurrency(Math.round(Number(invoice.brokerageInINR || '0')))}</span>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Brokerage in INR:</span> 
+                <span style="color: #1f2937; font-weight: 500;">${formatCurrency(Math.round(Number(invoice.brokerageInINR || '0')))}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Received Brokerage:</span>
-                <span class="value">${formatCurrency(Number(invoice.receivedBrokerage || '0'))}</span>
+              <div style="display: flex; margin-bottom: 3px;">
+                <span style="min-width: 150px; font-weight: 500; color: #4b5563;">Received Brokerage:</span> 
+                <span style="color: #1f2937;">${formatCurrency(Number(invoice.receivedBrokerage || '0'))}</span>
               </div>
-              <div class="flex-row">
-                <span class="label">Balance Brokerage:</span>
-                <span class="value">${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
+              <div style="display: flex; margin-bottom: 3px; ${Number(invoice.balanceBrokerage || 0) === 0 ? 'color: #16a34a;' : 'color: #dc2626;'} font-weight: bold;">
+                <span style="min-width: 150px; font-weight: 500;">Balance Brokerage:</span> 
+                <span>${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
+              </div>
+              <div style="border-top: 1px dashed #e2e8f0; margin-top: 5px; padding-top: 5px; font-size: 10px; color: #94a3b8; text-align: center;">
+                ${invoice.isClosed ? 'This invoice has been marked as closed' : 'Invoice is still open'}
               </div>
             </div>
           </div>
           
           <div class="section">
-            <div class="section-title">Invoice Items</div>
-            <table class="table">
+            <div class="section-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Invoice Items</div>
+            <table class="table" style="border: 1px solid #f1f5f9;">
               <thead>
-                <tr>
-                  <th>Description</th>
-                  <th class="text-right">Quantity</th>
-                  <th class="text-right">Rate</th>
-                  <th class="text-right">Amount</th>
+                <tr style="background-color: #f8fafc;">
+                  <th style="font-size: 11px; font-weight: 600; color: #475569; padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0;">Description</th>
+                  <th style="font-size: 11px; font-weight: 600; color: #475569; padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0;">Quantity</th>
+                  <th style="font-size: 11px; font-weight: 600; color: #475569; padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0;">Rate</th>
+                  <th style="font-size: 11px; font-weight: 600; color: #475569; padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0;">Amount</th>
                 </tr>
               </thead>
               <tbody>
-                ${invoice.items?.map((item) => `
-                  <tr>
-                    <td>${item.description}</td>
-                    <td class="text-right">${item.quantity}</td>
-                    <td class="text-right">${formatCurrency(Number(item.rate), invoice.currency || 'INR')}</td>
-                    <td class="text-right">${formatCurrency(Number(item.quantity) * Number(item.rate), invoice.currency || 'INR')}</td>
+                ${invoice.items?.map((item, index) => `
+                  <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                    <td style="padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #1f2937;">${item.description}</td>
+                    <td style="padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #1f2937;">${item.quantity}</td>
+                    <td style="padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #1f2937;">${formatCurrency(Number(item.rate), invoice.currency || 'INR')}</td>
+                    <td style="padding: 6px 8px; font-size: 11px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #1f2937; font-weight: 500;">${formatCurrency(Number(item.quantity) * Number(item.rate), invoice.currency || 'INR')}</td>
                   </tr>
-                `).join("") || ""}
-                <tr class="total-row">
-                  <td colspan="2"></td>
-                  <td class="text-right">Subtotal</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</td>
+                `).join("") || `
+                  <tr>
+                    <td colspan="4" style="padding: 10px; text-align: center; font-style: italic; color: #94a3b8;">No items found</td>
+                  </tr>
+                `}
+                <tr style="background-color: #f8fafc; font-weight: 600;">
+                  <td colspan="2" style="padding: 8px;"></td>
+                  <td style="padding: 8px; text-align: right; border-top: 1px solid #e2e8f0; color: #475569;">Subtotal</td>
+                  <td style="padding: 8px; text-align: right; border-top: 1px solid #e2e8f0; color: #1e3a8a;">${formatCurrency(Number(invoice.subtotal), invoice.currency || 'INR')}</td>
                 </tr>
-                <tr class="total-row">
-                  <td colspan="2"></td>
-                  <td class="text-right">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%)</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</td>
+                <tr style="background-color: #f8fafc; font-weight: 600;">
+                  <td colspan="2" style="padding: 8px;"></td>
+                  <td style="padding: 8px; text-align: right; color: #475569;">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%)</td>
+                  <td style="padding: 8px; text-align: right; color: #1e3a8a;">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</td>
                 </tr>
               </tbody>
             </table>
+            <div style="font-size: 9px; color: #94a3b8; text-align: right; margin-top: 5px;">
+              * All amounts are in ${invoice.currency || 'INR'} unless specified otherwise.
+            </div>
           </div>
           
           ${invoice.notes ? `
-            <div class="notes">
-              <div class="section-title">Notes</div>
-              <p>${invoice.notes}</p>
+            <div class="notes" style="background-color: #f9fafb; padding: 12px; border-radius: 4px; margin-top: 15px; border: 1px solid #f1f5f9;">
+              <div class="section-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Notes</div>
+              <p style="font-size: 11px; color: #374151; line-height: 1.5;">${invoice.notes}</p>
             </div>
           ` : ""}
+          
+          <div style="margin-top: 30px; border-top: 1px dashed #e2e8f0; padding-top: 15px; display: flex; justify-content: space-between;">
+            <div style="flex: 1; font-size: 10px; color: #64748b;">
+              <div style="margin-bottom: 3px;">Thank you for your business!</div>
+              <div>BussNote Invoice Management</div>
+            </div>
+            <div style="text-align: right; font-size: 10px; color: #64748b;">
+              <div>Generated on ${format(new Date(), "MMMM d, yyyy 'at' h:mm a")}</div>
+              <div>Invoice #${invoice.invoiceNo}</div>
+            </div>
+          </div>
           
           <script>
             window.onload = function() { window.print(); }
