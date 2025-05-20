@@ -292,10 +292,26 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
         finalValue: notesValue,
       });
 
-      // Round all decimal values properly for display
-      const brokerageRateValue = roundToTwoDecimals(
-        parseFloat(invoice.brokerageRate?.toString() || "0"),
-      );
+      // Fix brokerage rate value (should be a percentage between 0-100)
+      // Check if value seems too high (greater than 100), assume it might be the actual brokerage amount
+      // instead of the percentage rate, so convert it back to a percentage based on subtotal
+      let brokerageRateValue = 0;
+      try {
+        const rawBrokerageRate = parseFloat(invoice.brokerageRate?.toString() || "0");
+        const subtotal = parseFloat(invoice.subtotal?.toString() || "1");
+        
+        if (rawBrokerageRate > 100 && subtotal > 0) {
+          // If value is too high, it might be the actual brokerage amount instead of percentage
+          // Convert it back to percentage: (brokerageAmount / subtotal) * 100
+          brokerageRateValue = roundToTwoDecimals((rawBrokerageRate / subtotal) * 100);
+        } else {
+          // Otherwise, use the value as is (it's already a percentage)
+          brokerageRateValue = roundToTwoDecimals(rawBrokerageRate);
+        }
+      } catch (e) {
+        console.error("Error calculating brokerage rate:", e);
+        brokerageRateValue = 0.75; // Default to 0.75% if calculation fails
+      }
       const exchangeRateValue = roundToTwoDecimals(
         parseFloat(invoice.exchangeRate?.toString() || "0"),
       );
