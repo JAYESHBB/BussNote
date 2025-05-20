@@ -177,12 +177,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Party deleted successfully" });
     } catch (error) {
       if (error instanceof Error && error.message.includes("related invoices")) {
-        return res.status(409).json({ message: error.message });
+        return res.status(409).json({ message: "Unable to Delete Party" });
       }
       console.error("Error deleting party:", error);
       
       // Simple error message for any delete failure
-      res.status(409).json({ 
+      res.status(500).json({ 
         message: "Unable to Delete Party"
       });
     }
