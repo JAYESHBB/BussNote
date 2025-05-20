@@ -375,103 +375,259 @@ export default function PartiesPage() {
       return;
     }
     
-    // Generate HTML content for the print window
+    // Get the current date for report header
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "dd MMM yyyy, hh:mm a");
+    
+    // Generate HTML content for the print window with improved styling
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Party List</title>
+          <title>Party Master Report - BussNote</title>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            
+            :root {
+              --primary-color: #7c3aed;
+              --primary-light: #ede9fe;
+              --secondary-color: #0ea5e9;
+              --text-dark: #1e293b;
+              --text-light: #64748b;
+              --background-light: #f8fafc;
+              --border-color: #e2e8f0;
+              --success-color: #10b981;
+            }
+            
             body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
+              font-family: 'Inter', sans-serif;
+              margin: 0;
+              padding: 0;
+              color: var(--text-dark);
+              background: white;
+              line-height: 1.5;
             }
-            h1 {
-              text-align: center;
-              color: #333;
-              margin-bottom: 20px;
+            
+            .container {
+              max-width: 1200px;
+              margin: 0 auto;
+              padding: 20px;
             }
+            
+            .report-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              padding-bottom: 15px;
+              border-bottom: 1px solid var(--border-color);
+            }
+            
+            .company-info {
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .company-name {
+              font-size: 24px;
+              font-weight: 700;
+              color: var(--primary-color);
+              margin: 0;
+            }
+            
+            .report-name {
+              font-size: 18px;
+              font-weight: 600;
+              margin: 5px 0 0 0;
+            }
+            
+            .header-right {
+              text-align: right;
+            }
+            
+            .report-date {
+              font-size: 14px;
+              color: var(--text-light);
+              margin-bottom: 5px;
+            }
+            
+            .report-info {
+              font-size: 14px;
+              color: var(--text-light);
+            }
+            
+            .highlight {
+              color: var(--primary-color);
+              font-weight: 500;
+            }
+            
             table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 20px;
+              margin: 20px 0 30px 0;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              border-radius: 8px;
+              overflow: hidden;
             }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: left;
+            
+            thead {
+              background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+              color: white;
             }
+            
             th {
-              background-color: #f2f2f2;
-              font-weight: bold;
+              text-align: left;
+              padding: 12px 15px;
+              font-weight: 600;
+              font-size: 14px;
             }
+            
+            td {
+              padding: 12px 15px;
+              border-bottom: 1px solid var(--border-color);
+              font-size: 14px;
+            }
+            
+            tr:last-child td {
+              border-bottom: none;
+            }
+            
             tr:nth-child(even) {
-              background-color: #f9f9f9;
+              background-color: var(--background-light);
             }
+            
+            .table-container {
+              overflow-x: auto;
+              margin-bottom: 30px;
+            }
+            
             .footer {
               text-align: center;
-              margin-top: 30px;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid var(--border-color);
               font-size: 12px;
-              color: #666;
+              color: var(--text-light);
             }
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-            .header-info {
-              text-align: right;
+            
+            .report-summary {
+              background-color: var(--primary-light);
+              border-radius: 8px;
+              padding: 15px 20px;
               margin-bottom: 20px;
-              font-size: 12px;
-              color: #666;
             }
+            
+            .summary-title {
+              font-weight: 600;
+              font-size: 16px;
+              margin-bottom: 10px;
+              color: var(--primary-color);
+            }
+            
+            .summary-item {
+              display: flex;
+              justify-content: space-between;
+              padding: 5px 0;
+              font-size: 14px;
+            }
+            
             .print-button {
               display: block;
               margin: 20px auto;
               padding: 10px 20px;
-              background-color: #4CAF50;
+              background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
               color: white;
               border: none;
-              border-radius: 4px;
+              border-radius: 6px;
               cursor: pointer;
               font-size: 16px;
+              font-weight: 500;
+              transition: all 0.2s ease;
+            }
+            
+            .print-button:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+            }
+            
+            @media print {
+              body { 
+                margin: 0;
+                padding: 15px; 
+              }
+              .no-print { 
+                display: none; 
+              }
+              .container {
+                padding: 0;
+              }
+              table {
+                box-shadow: none;
+              }
+              thead {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
             }
           </style>
         </head>
         <body>
-          <button class="print-button no-print" onclick="window.print(); setTimeout(() => window.close(), 500);">
-            Print PDF
-          </button>
-          
-          <h1>Party List</h1>
-          
-          <div class="header-info">
-            <div>Generated: ${new Date().toLocaleString()}</div>
-            <div>Total Parties: ${data.partyData.length}</div>
-          </div>
-          
-          <table>
-            <thead>
-              <tr>
-                ${data.headers.map(header => `<th>${header}</th>`).join('')}
-              </tr>
-            </thead>
-            <tbody>
-              ${data.partyData.map(party => `
-                <tr>
-                  <td>${party["Party Name"]}</td>
-                  <td>${party["Contact Person"]}</td>
-                  <td>${party.Phone}</td>
-                  <td>${party.Email}</td>
-                  <td>${party.Address}</td>
-                  <td>${party.GSTIN}</td>
-                  <td>${party.Notes}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          
-          <div class="footer">
-            BussNote - Party Master Report
+          <div class="container">
+            <button class="print-button no-print" onclick="window.print(); setTimeout(() => window.close(), 500);">
+              Print PDF
+            </button>
+            
+            <div class="report-header">
+              <div class="company-info">
+                <h1 class="company-name">BussNote</h1>
+                <p class="report-name">Party Master Report</p>
+              </div>
+              <div class="header-right">
+                <p class="report-date">Generated: ${formattedDate}</p>
+                <p class="report-info">Total Parties: <span class="highlight">${data.partyData.length}</span></p>
+                <p class="report-info">Filtered by: <span class="highlight">${filters.status === "all" ? "All Parties" : filters.status === "active" ? "Active Parties" : "Inactive Parties"}</span></p>
+              </div>
+            </div>
+            
+            <div class="report-summary">
+              <div class="summary-title">Summary</div>
+              <div class="summary-item">
+                <span>Total Parties Listed:</span>
+                <span>${data.partyData.length}</span>
+              </div>
+              <div class="summary-item">
+                <span>Sort Order:</span>
+                <span>${filters.sortBy.charAt(0).toUpperCase() + filters.sortBy.slice(1)} (${filters.sortOrder === "asc" ? "Ascending" : "Descending"})</span>
+              </div>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    ${data.headers.map(header => `<th>${header}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.partyData.map(party => `
+                    <tr>
+                      <td>${party["Party Name"]}</td>
+                      <td>${party["Contact Person"]}</td>
+                      <td>${party.Phone}</td>
+                      <td>${party.Email || '—'}</td>
+                      <td>${party.Address || '—'}</td>
+                      <td>${party.GSTIN || '—'}</td>
+                      <td>${party.Notes || '—'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="footer">
+              <p>© ${currentDate.getFullYear()} BussNote - All rights reserved</p>
+              <p>This report was generated automatically and is valid as of the date shown above.</p>
+            </div>
           </div>
         </body>
       </html>
