@@ -594,18 +594,34 @@ export default function ReportsPage() {
     });
   };
   
+  // Currency symbol helper function
+  const getCurrencySymbol = (currency: string | null = null): string => {
+    if (!currency) return '₹'; // Default to INR
+    
+    const code = currency.toUpperCase();
+    switch (code) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'JPY': return '¥';
+      case 'INR': return '₹';
+      default: return '₹';
+    }
+  };
+  
   // Enhanced formatCurrency function with currency parameter
   const formatCurrency = (amount: number, currency: string | null = null) => {
-    // Choose appropriate currency code, default to INR
-    const currencyCode = currency?.toUpperCase() || 'INR';
-    
-    // Use Intl.NumberFormat for proper currency formatting
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currencyCode,
-      maximumFractionDigits: 2,
-      currencyDisplay: 'symbol'
-    }).format(amount);
+    try {
+      // For debugging
+      console.log("Formatting currency:", amount, "with currency:", currency);
+      
+      // Use direct symbol approach
+      const symbol = getCurrencySymbol(currency);
+      return `${symbol}${Number(amount).toFixed(2)}`;
+    } catch (error) {
+      console.error("Currency formatting error:", error);
+      return `₹${Number(amount).toFixed(2)}`;
+    }
   };
 
   return (
