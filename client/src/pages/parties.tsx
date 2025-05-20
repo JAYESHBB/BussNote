@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
@@ -77,21 +77,35 @@ export default function PartiesPage() {
     }
   };
   
-  // Query to get parties
-  const { data: parties } = useQuery<Party[]>({
+  // Query to get parties with loading state
+  const { data: parties, isLoading } = useQuery<Party[]>({
     queryKey: ["/api/parties"]
   });
   
-  // We'll use a useEffect hook from React to fetch the invoice relationships
+  // Use the useEffect hook to fetch invoice relationships
   // when the parties data changes
-  const { useEffect } = require('react');
-  
   useEffect(() => {
     if (parties && parties.length > 0) {
       // Check each party for invoices
-      parties.forEach(party => {
-        checkPartyHasInvoices(party.id);
-      });
+      const checkAllParties = async () => {
+        const invoiceStatus: Record<number, boolean> = {};
+        
+        for (const party of parties) {
+          try {
+            const response = await apiRequest("GET", `/api/parties/${party.id}/has-invoices`);
+            if (response.ok) {
+              const data = await response.json();
+              invoiceStatus[party.id] = data.hasInvoices;
+            }
+          } catch (error) {
+            console.error(`Error checking if party ${party.id} has invoices:`, error);
+          }
+        }
+        
+        setPartiesWithInvoices(invoiceStatus);
+      };
+      
+      checkAllParties();
     }
   }, [parties]);
   
