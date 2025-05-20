@@ -1059,27 +1059,8 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             step="0.01"
                             placeholder="0.00"
                             className="h-7 px-2 py-1 text-sm"
-                            value={
-                              // Fix for high values being displayed (greater than 100%)
-                              (() => {
-                                let val = field.value;
-                                // If value is greater than 100, it's likely to be an absolute value not a percentage
-                                if (val > 100) {
-                                  // Get subtotal for calculation
-                                  const subtotal = calculateSubtotal();
-                                  if (subtotal > 0) {
-                                    // Convert to percentage: (amount / subtotal) * 100
-                                    val = (val / subtotal) * 100;
-                                    // Round to 2 decimal places
-                                    val = Math.round((val + Number.EPSILON) * 100) / 100;
-                                    // Update the form value with corrected percentage
-                                    setTimeout(() => field.onChange(val), 0);
-                                    return val;
-                                  }
-                                }
-                                return isNaN(val) ? 0 : val;
-                              })()
-                            }
+                            {...field}
+                            value={isNaN(field.value) ? 0 : field.value}
                             onChange={(e) => {
                               const value =
                                 e.target.value === "" ? "0" : e.target.value;
