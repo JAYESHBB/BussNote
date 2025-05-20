@@ -658,7 +658,7 @@ export default function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {outstandingData?.map((invoice: any) => (
+                  {filteredOutstandingData.map((invoice: any) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">
                         <Link href={`/invoices/${invoice.id}`}>
@@ -682,24 +682,27 @@ export default function ReportsPage() {
                           : "Not overdue"
                         }
                       </TableCell>
-                      <TableCell>{formatCurrency(invoice.total)}</TableCell>
+                      <TableCell>{formatCurrency(invoice.total || invoice.subtotal || 0)}</TableCell>
                       <TableCell>
                         <StatusBadge status={invoice.status as any} />
                       </TableCell>
                     </TableRow>
                   ))}
 
-                  {(!outstandingData || outstandingData.length === 0) && (
+                  {filteredOutstandingData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                        No outstanding invoices for the selected date range
+                        {outstandingData && outstandingData.length > 0
+                          ? `No invoices match the current "${outstandingFilter}" filter.`
+                          : "No outstanding invoices for the selected date range"
+                        }
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
               
-              {outstandingData && outstandingData.length > 0 && (
+              {filteredOutstandingData.length > 0 && (
                 <div className="p-4 border-t border-neutral-200 bg-neutral-50">
                   <div className="flex justify-end">
                     <div className="space-y-1 text-right">
@@ -707,13 +710,16 @@ export default function ReportsPage() {
                         <span className="font-medium">Total Outstanding:</span>
                         <span className="font-bold text-lg">
                           {formatCurrency(
-                            outstandingData.reduce((sum: number, invoice: any) => 
-                              sum + Number(invoice.total || 0), 0)
+                            filteredOutstandingData.reduce((sum: number, invoice: any) => 
+                              sum + Number(invoice.total || invoice.subtotal || 0), 0)
                           )}
                         </span>
                       </div>
                       <div className="text-sm text-neutral-500">
                         For period: {format(dateRange.from, "MMM dd, yyyy")} - {format(dateRange.to, "MMM dd, yyyy")}
+                        {outstandingFilter !== "all" && (
+                          <span> • Filter: {outstandingFilter.charAt(0).toUpperCase() + outstandingFilter.slice(1)}</span>
+                        )}
                       </div>
                     </div>
                   </div>
