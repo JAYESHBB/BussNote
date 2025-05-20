@@ -81,6 +81,13 @@ export default function ReportsPage() {
   const [salesGroupBy, setSalesGroupBy] = useState("monthly");
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
+  // Create a single filter state that changes based on active report type
+  const getFilterValue = () => {
+    if (reportType === "outstanding") return outstandingFilter;
+    if (reportType === "closed") return closedFilter;
+    return salesGroupBy;
+  };
+  
   // Handle tab change
   const handleTabChange = (value: string) => {
     setReportType(value);
@@ -587,11 +594,14 @@ export default function ReportsPage() {
     });
   };
   
-  const formatCurrency = (amount: number) => {
+  // Enhanced formatCurrency function with currency parameter
+  const formatCurrency = (amount: number, currency: string | null = null) => {
+    const currencyCode = currency?.toUpperCase() || 'INR';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
+      currency: currencyCode,
+      maximumFractionDigits: 2,
+      currencyDisplay: 'symbol'
     }).format(amount);
   };
 
@@ -812,7 +822,7 @@ export default function ReportsPage() {
                           : "Not overdue"
                         }
                       </TableCell>
-                      <TableCell>{formatCurrency(invoice.total || invoice.subtotal || 0)}</TableCell>
+                      <TableCell>{formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</TableCell>
                       <TableCell>
                         <StatusBadge status={invoice.status as any} />
                       </TableCell>
