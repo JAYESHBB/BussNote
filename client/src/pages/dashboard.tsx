@@ -247,7 +247,7 @@ export default function Dashboard() {
             <>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mr-3 animate-pulse-subtle">
+                  <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mr-3">
                     <LineChart className="h-5 w-5 text-primary-500" />
                   </div>
                   <h3 className="text-lg font-semibold text-neutral-800">Total Sales</h3>
@@ -257,13 +257,13 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <div className="text-2xl font-bold text-neutral-900 mb-2 animate-fade-in">
+              <div className="text-2xl font-bold text-neutral-900 mb-2">
                 {formatCurrency(dashboardStats.totalSales)}
               </div>
               
               <div className="space-y-1 mt-3 border-t pt-2">
                 {dashboardStats.salesByCurrency && Object.entries(dashboardStats.salesByCurrency || {}).map(([currency, amount], index) => (
-                  <div key={currency} className="flex justify-between items-center text-sm animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div key={currency} className="flex justify-between items-center text-sm">
                     <span className="font-medium text-neutral-700">{currency}:</span>
                     <span className="text-neutral-900">
                       {formatCurrency(amount)}
@@ -271,7 +271,7 @@ export default function Dashboard() {
                   </div>
                 ))}
                 {(!dashboardStats.salesByCurrency || Object.keys(dashboardStats.salesByCurrency).length === 0) && (
-                  <div className="text-sm text-neutral-500 italic animate-fade-in">No sales data available</div>
+                  <div className="text-sm text-neutral-500 italic">No sales data available</div>
                 )}
               </div>
             </>
@@ -292,7 +292,7 @@ export default function Dashboard() {
             <>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-destructive-50 flex items-center justify-center mr-3 animate-pulse-subtle">
+                  <div className="w-10 h-10 rounded-full bg-destructive-50 flex items-center justify-center mr-3">
                     <Bell className="h-5 w-5 text-destructive" />
                   </div>
                   <h3 className="text-lg font-semibold text-neutral-800">Outstanding</h3>
@@ -302,13 +302,13 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <div className="text-2xl font-bold text-neutral-900 mb-2 animate-fade-in">
+              <div className="text-2xl font-bold text-neutral-900 mb-2">
                 {formatCurrency(dashboardStats.outstanding)}
               </div>
               
               <div className="space-y-1 mt-3 border-t pt-2">
                 {dashboardStats.outstandingByCurrency && Object.entries(dashboardStats.outstandingByCurrency || {}).map(([currency, amount], index) => (
-                  <div key={currency} className="flex justify-between items-center text-sm animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div key={currency} className="flex justify-between items-center text-sm">
                     <span className="font-medium text-neutral-700">{currency}:</span>
                     <span className="text-neutral-900">
                       {formatCurrency(amount)}
@@ -316,7 +316,7 @@ export default function Dashboard() {
                   </div>
                 ))}
                 {(!dashboardStats.outstandingByCurrency || Object.keys(dashboardStats.outstandingByCurrency).length === 0) && (
-                  <div className="text-sm text-neutral-500 italic animate-fade-in">No outstanding data available</div>
+                  <div className="text-sm text-neutral-500 italic">No outstanding data available</div>
                 )}
               </div>
             </>
