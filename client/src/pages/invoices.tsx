@@ -251,6 +251,11 @@ export default function InvoicesPage() {
     updateStatusMutation.mutate({ id: invoice.id, status: 'paid' });
   };
   
+  // Function to mark invoice as unpaid (pending)
+  const handleMarkAsUnpaid = (invoice: Invoice) => {
+    updateStatusMutation.mutate({ id: invoice.id, status: 'pending' });
+  };
+  
   // Function to mark invoice as cancelled
   const handleCancelInvoice = (invoice: Invoice) => {
     updateStatusMutation.mutate({ id: invoice.id, status: 'cancelled' });
@@ -501,10 +506,17 @@ BussNote Team`;
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice)}>
-                              <CheckSquare className="mr-2 h-4 w-4" />
-                              Mark as Paid
-                            </DropdownMenuItem>
+                            {invoice.status !== 'paid' ? (
+                              <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice)}>
+                                <CheckSquare className="mr-2 h-4 w-4" />
+                                Mark as Paid
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleMarkAsUnpaid(invoice)}>
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Mark as Unpaid Invoice
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem 
                               onClick={() => handleSendReminder(invoice)}
                               disabled={invoice.status === 'paid' || invoice.status === 'cancelled'}
