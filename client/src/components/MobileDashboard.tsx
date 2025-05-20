@@ -25,7 +25,8 @@ import {
   ActivitySquare,
   LogOut,
   MessageSquare,
-  Edit
+  Edit,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Invoice } from '@shared/schema';
