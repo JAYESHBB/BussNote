@@ -272,11 +272,6 @@ export default function PartiesPage() {
                   <TableCell>{party.email || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
-                      <Link href={`/invoices/new?partyId=${party.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <FileText className="h-4 w-4 text-primary-500" />
-                        </Button>
-                      </Link>
                       <Link href={`/parties/${party.id}`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Eye className="h-4 w-4 text-neutral-500" />
