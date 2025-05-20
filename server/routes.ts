@@ -94,6 +94,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch party" });
     }
   });
+  
+  app.get(`${apiPrefix}/parties/:id/has-invoices`, async (req, res) => {
+    try {
+      const partyId = parseInt(req.params.id);
+      const hasInvoices = await storage.partyHasInvoices(partyId);
+      res.json({ hasInvoices });
+    } catch (error) {
+      console.error("Error checking party invoices:", error);
+      res.status(500).json({ message: "Failed to check party invoices" });
+    }
+  });
 
   app.post(`${apiPrefix}/parties`, async (req, res) => {
     try {

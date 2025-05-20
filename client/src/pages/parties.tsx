@@ -53,9 +53,33 @@ export default function PartiesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   
+  // Keep track of which parties have invoices
+  const [partiesWithInvoices, setPartiesWithInvoices] = useState<Record<number, boolean>>({});
+  
   const { data: parties } = useQuery<Party[]>({
     queryKey: ["/api/parties"],
+    onSuccess: (parties) => {
+      // Check each party for invoices
+      parties.forEach(party => {
+        checkPartyHasInvoices(party.id);
+      });
+    }
   });
+  
+  // Function to check if a party has invoices
+  const checkPartyHasInvoices = async (partyId: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/parties/${partyId}/has-invoices`);
+      const data = await response.json();
+      
+      setPartiesWithInvoices(prev => ({
+        ...prev,
+        [partyId]: data.hasInvoices
+      }));
+    } catch (error) {
+      console.error("Error checking if party has invoices:", error);
+    }
+  };
   
   const filteredParties = parties?.filter((party) => 
     party.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -197,8 +221,10 @@ export default function PartiesPage() {
                         size="icon" 
                         className="h-8 w-8"
                         onClick={() => handleDeleteParty(party)}
+                        disabled={partiesWithInvoices[party.id]}
+                        title={partiesWithInvoices[party.id] ? "Cannot delete party with associated invoices" : "Delete party"}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Trash2 className={`h-4 w-4 ${partiesWithInvoices[party.id] ? 'text-gray-400' : 'text-red-500'}`} />
                       </Button>
                     </div>
                   </TableCell>

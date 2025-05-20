@@ -220,7 +220,7 @@ class DatabaseStorage implements IStorage {
     };
   }
   
-  async deleteParty(id: number): Promise<void> {
+  async partyHasInvoices(id: number): Promise<boolean> {
     // Check if party is associated with any invoices as seller (partyId)
     const relatedInvoicesAsSeller = await db.select()
       .from(invoices)
@@ -233,8 +233,16 @@ class DatabaseStorage implements IStorage {
       .where(eq(invoices.buyerId, id))
       .limit(1);
     
-    // If there are related invoices in either relation, prevent deletion
-    if (relatedInvoicesAsSeller.length > 0 || relatedInvoicesAsBuyer.length > 0) {
+    // Return true if there are any related invoices
+    return relatedInvoicesAsSeller.length > 0 || relatedInvoicesAsBuyer.length > 0;
+  }
+  
+  async deleteParty(id: number): Promise<void> {
+    // Check if party has invoices
+    const hasInvoices = await this.partyHasInvoices(id);
+    
+    // If there are related invoices, prevent deletion
+    if (hasInvoices) {
       throw new Error("Cannot delete party with related invoices. Please delete associated invoices first.");
     }
     
