@@ -181,26 +181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error deleting party:", error);
       
-      // Provide a more user-friendly error message when foreign key constraints are violated
-      const errorMessage = String(error);
-      if (errorMessage.includes("foreign key constraint")) {
-        if (errorMessage.includes("invoices_party_id_parties_id_fk")) {
-          return res.status(409).json({ 
-            message: "इस पार्टी को हटाया नहीं जा सकता क्योंकि इसके साथ जुड़े इनवॉइस हैं जहां यह विक्रेता (Seller) है। कृपया पहले इन इनवॉइसों को हटाएं।"
-          });
-        } else if (errorMessage.includes("invoices_buyer_id_parties_id_fk")) {
-          return res.status(409).json({ 
-            message: "इस पार्टी को हटाया नहीं जा सकता क्योंकि इसके साथ जुड़े इनवॉइस हैं जहां यह खरीदार (Buyer) है। कृपया पहले इन इनवॉइसों को हटाएं।"
-          });
-        }
-        
-        return res.status(409).json({ 
-          message: "इस पार्टी को हटाया नहीं जा सकता क्योंकि इसके साथ जुड़े इनवॉइस हैं। कृपया पहले इन इनवॉइसों को हटाएं।"
-        });
-      }
-      
-      res.status(500).json({ 
-        message: "पार्टी हटाने में एक त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।"
+      // Simple error message for any delete failure
+      res.status(409).json({ 
+        message: "Unable to Delete Party"
       });
     }
   });
