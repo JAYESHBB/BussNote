@@ -469,12 +469,7 @@ export default function InvoiceDetailsPage() {
               
               <div className="flex justify-between">
                 <span className="text-neutral-600">Brokerage ({isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%):</span>
-                <span className="font-medium">{formatCurrency(invoice.tax, invoice.currency)}</span>
-              </div>
-              
-              <div className="flex justify-between font-medium mt-3 border-t pt-2">
-                <span>Total:</span>
-                <span>{formatCurrency(invoice.total, invoice.currency)}</span>
+                <span className="font-medium">{formatCurrency(invoice.subtotal * (Number(invoice.brokerageRate || 0) / 100), invoice.currency)}</span>
               </div>
 
               <div className="flex justify-between">
@@ -489,7 +484,7 @@ export default function InvoiceDetailsPage() {
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Brokerage in INR:</span>
-                <span className="font-medium">{formatCurrency(invoice.brokerageInINR || '0', 'INR')}</span>
+                <span className="font-medium">{formatCurrency(Math.round(Number(invoice.brokerageInINR || 0)), 'INR')}</span>
               </div>
 
               <div className="flex justify-between">
@@ -508,18 +503,6 @@ export default function InvoiceDetailsPage() {
               </div>
               
               <Separator className="my-2" />
-              
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>{formatCurrency(invoice.total)}</span>
-              </div>
-              
-              {invoice.status === "paid" && (
-                <div className="flex justify-between text-secondary-500">
-                  <span>Paid:</span>
-                  <span>{formatCurrency(invoice.total)}</span>
-                </div>
-              )}
               
               {invoice.status === "pending" && (
                 <div className="flex justify-between text-accent-700 font-medium">
