@@ -87,31 +87,44 @@ export default function PartiesPage() {
   // Use the useEffect hook to fetch invoice relationships
   // when the parties data changes
   useEffect(() => {
-    if (parties && parties.length > 0) {
-      // Check each party for invoices
-      const checkAllParties = async () => {
-        const invoiceStatus: Record<number, boolean> = {};
-        
-        for (const party of parties) {
-          try {
-            // Use standard fetch API for better reliability
-            const response = await fetch(`/api/parties/${party.id}/has-invoices`);
-            if (response.ok) {
-              const data = await response.json();
-              invoiceStatus[party.id] = data.hasInvoices;
-              console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
-            }
-          } catch (error) {
-            console.error(`Error checking if party ${party.id} has invoices:`, error);
-          }
-        }
-        
-        // Set the state with all checked parties at once
-        setPartiesWithInvoices(invoiceStatus);
-      };
+    // Only run this effect if we have parties data
+    if (!parties || parties.length === 0) return;
+    
+    // Check each party for invoices
+    const checkAllParties = async () => {
+      // Create a temporary object to store results
+      const invoiceStatus: Record<number, boolean> = {};
       
-      checkAllParties();
-    }
+      // Loop through each party and check if they have invoices
+      for (const party of parties) {
+        try {
+          // Add some delay to prevent overwhelming the server
+          if (Object.keys(invoiceStatus).length > 0) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          
+          // Use standard fetch API with full URL
+          const response = await fetch(`/api/parties/${party.id}/has-invoices`);
+          const data = await response.json();
+          
+          // Update the status object
+          invoiceStatus[party.id] = data.hasInvoices;
+          
+          // Debug output
+          console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
+        } catch (error) {
+          console.error(`Error checking party ${party.id}:`, error);
+          // Default to true to prevent accidental deletion
+          invoiceStatus[party.id] = true;
+        }
+      }
+      
+      // After all checks, update state once
+      setPartiesWithInvoices(invoiceStatus);
+    };
+    
+    // Execute the function
+    checkAllParties();
   }, [parties]);
   
   const filteredParties = parties?.filter((party) => 
