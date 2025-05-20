@@ -723,9 +723,13 @@ export default function InvoiceDetailsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleMarkAsPaid}>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Record Payment
+                <DropdownMenuItem 
+                  onClick={handleMarkAsPaid}
+                  disabled={invoice.status === 'paid'}
+                  className={invoice.status === 'paid' ? "text-neutral-400 cursor-not-allowed" : ""}
+                >
+                  <CreditCard className={`h-4 w-4 mr-2 ${invoice.status === 'paid' ? "text-neutral-400" : ""}`} />
+                  Record Payment {invoice.status === 'paid' && "(Invoice already paid)"}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={handleSendReminder}
