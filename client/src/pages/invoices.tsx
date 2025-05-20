@@ -277,15 +277,19 @@ export default function InvoicesPage() {
     // Create the reminder email content
     const subject = `Reminder: Invoice ${invoice.invoiceNo} Payment Due`;
     
+    // Get the proper amount to display - use subtotal when total is 0 or not present
+    const amountValue = Number(invoice.total) > 0 ? Number(invoice.total) : Number(invoice.subtotal);
+    const formattedAmount = !isNaN(amountValue) ? amountValue.toFixed(2) : '0.00';
+    
     const body = `Dear ${invoice.buyerName || invoice.partyName},
 
-This is a friendly reminder that invoice ${invoice.invoiceNo} for ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)} is currently ${invoice.status}.
+This is a friendly reminder that invoice ${invoice.invoiceNo} for ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${formattedAmount} is currently ${invoice.status}.
 
 Invoice Details:
 - Invoice No.: ${invoice.invoiceNo}
 - Invoice Date: ${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
 - Due Date: ${format(new Date(invoice.dueDate), "MMM dd, yyyy")}
-- Amount Due: ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${Number(invoice.total).toFixed(2)}
+- Amount Due: ${invoice.currency === 'INR' ? '₹' : invoice.currency} ${formattedAmount}
 
 Please process this payment at your earliest convenience.
 
@@ -499,7 +503,11 @@ BussNote Team`;
                               <CheckSquare className="mr-2 h-4 w-4" />
                               Mark as Paid
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSendReminder(invoice)}>
+                            <DropdownMenuItem 
+                              onClick={() => handleSendReminder(invoice)}
+                              disabled={invoice.status === 'paid' || invoice.status === 'cancelled'}
+                              className={invoice.status === 'paid' || invoice.status === 'cancelled' ? 'opacity-50 cursor-not-allowed' : ''}
+                            >
                               <Bell className="mr-2 h-4 w-4" />
                               Send Reminder
                             </DropdownMenuItem>
