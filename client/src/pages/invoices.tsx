@@ -325,8 +325,10 @@ BussNote Team`;
     // Filter by status
     const statusMatch = status === "all" || invoice.status === status;
     
-    // Filter by closed/open status - show only closed invoices when 'showClosed' is true, otherwise show all invoices
-    const closedMatch = showClosed ? invoice.isClosed === true : true;
+    // Filter by closed/open status
+    // When "showClosed" is true, show only closed invoices
+    // When "showClosed" is false, show only open (non-closed) invoices
+    const closedMatch = showClosed ? invoice.isClosed === true : invoice.isClosed === false;
     
     return searchMatch && statusMatch && closedMatch;
   });
