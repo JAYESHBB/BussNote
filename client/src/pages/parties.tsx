@@ -56,30 +56,44 @@ export default function PartiesPage() {
   // Keep track of which parties have invoices
   const [partiesWithInvoices, setPartiesWithInvoices] = useState<Record<number, boolean>>({});
   
+  // Function to check if a party has invoices
+  const checkPartyHasInvoices = async (partyId: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/parties/${partyId}/has-invoices`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        setPartiesWithInvoices(prev => ({
+          ...prev,
+          [partyId]: data.hasInvoices
+        }));
+        
+        return data.hasInvoices;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking if party has invoices:", error);
+      return false;
+    }
+  };
+  
+  // Query to get parties
   const { data: parties } = useQuery<Party[]>({
-    queryKey: ["/api/parties"],
-    onSuccess: (parties) => {
+    queryKey: ["/api/parties"]
+  });
+  
+  // We'll use a useEffect hook from React to fetch the invoice relationships
+  // when the parties data changes
+  const { useEffect } = require('react');
+  
+  useEffect(() => {
+    if (parties && parties.length > 0) {
       // Check each party for invoices
       parties.forEach(party => {
         checkPartyHasInvoices(party.id);
       });
     }
-  });
-  
-  // Function to check if a party has invoices
-  const checkPartyHasInvoices = async (partyId: number) => {
-    try {
-      const response = await apiRequest("GET", `/api/parties/${partyId}/has-invoices`);
-      const data = await response.json();
-      
-      setPartiesWithInvoices(prev => ({
-        ...prev,
-        [partyId]: data.hasInvoices
-      }));
-    } catch (error) {
-      console.error("Error checking if party has invoices:", error);
-    }
-  };
+  }, [parties]);
   
   const filteredParties = parties?.filter((party) => 
     party.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -132,7 +146,19 @@ export default function PartiesPage() {
     },
   });
   
-  const handleDeleteParty = (party: Party) => {
+  const handleDeleteParty = async (party: Party) => {
+    // First check if the party has invoices
+    const hasInvoices = await checkPartyHasInvoices(party.id);
+    
+    if (hasInvoices) {
+      toast({
+        title: "Cannot delete party",
+        description: "This party has associated invoices and cannot be deleted. Please delete all related invoices first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setPartyToDelete(party);
     setDeleteDialogOpen(true);
   };
