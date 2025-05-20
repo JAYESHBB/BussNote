@@ -90,7 +90,7 @@ export default function Dashboard() {
     queryKey: ["/api/parties"],
   });
 
-  const { data: activities } = useQuery<Activity[]>({
+  const { data: activities, isLoading: isLoadingActivities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
   
