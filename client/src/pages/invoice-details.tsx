@@ -168,7 +168,7 @@ export default function InvoiceDetailsPage() {
               </div>
               <div class="flex-row">
                 <span class="label">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%):</span>
-                <span class="value">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</span>
+                <span class="value">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</span>
               </div>
               <div class="flex-row">
                 <span class="label">Currency:</span>
@@ -180,7 +180,7 @@ export default function InvoiceDetailsPage() {
               </div>
               <div class="flex-row">
                 <span class="label">Brokerage in INR:</span>
-                <span class="value">${formatCurrency(Number(invoice.brokerageInINR || '0'))}</span>
+                <span class="value">${formatCurrency(Math.round(Number(invoice.brokerageInINR || '0')))}</span>
               </div>
               <div class="flex-row">
                 <span class="label">Received Brokerage:</span>
@@ -189,10 +189,6 @@ export default function InvoiceDetailsPage() {
               <div class="flex-row">
                 <span class="label">Balance Brokerage:</span>
                 <span class="value">${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
-              </div>
-              <div class="flex-row" style="margin-top: 10px; font-weight: bold;">
-                <span class="label">Total:</span>
-                <span class="value">${formatCurrency(Number(invoice.total), invoice.currency || 'INR')}</span>
               </div>
             </div>
           </div>
@@ -225,12 +221,7 @@ export default function InvoiceDetailsPage() {
                 <tr class="total-row">
                   <td colspan="2"></td>
                   <td class="text-right">Brokerage (${isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%)</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.tax), invoice.currency || 'INR')}</td>
-                </tr>
-                <tr class="total-row">
-                  <td colspan="2"></td>
-                  <td class="text-right">Total</td>
-                  <td class="text-right">${formatCurrency(Number(invoice.total), invoice.currency || 'INR')}</td>
+                  <td class="text-right">${formatCurrency(Number(invoice.subtotal) * (Number(invoice.brokerageRate || 0) / 100), invoice.currency || 'INR')}</td>
                 </tr>
               </tbody>
             </table>
@@ -553,12 +544,7 @@ export default function InvoiceDetailsPage() {
               <TableRow className="bg-neutral-50">
                 <TableCell colSpan={2}></TableCell>
                 <TableCell className="text-right font-medium">Brokerage ({isNaN(Number(invoice.brokerageRate)) ? '0.00' : Number(invoice.brokerageRate).toFixed(2)}%)</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(invoice.tax, invoice.currency)}</TableCell>
-              </TableRow>
-              <TableRow className="bg-neutral-50">
-                <TableCell colSpan={2}></TableCell>
-                <TableCell className="text-right font-bold">Total</TableCell>
-                <TableCell className="text-right font-bold">{formatCurrency(invoice.total, invoice.currency)}</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(invoice.subtotal * (Number(invoice.brokerageRate || 0) / 100), invoice.currency)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
