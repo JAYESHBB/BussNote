@@ -133,25 +133,13 @@ export function MobileDashboard({
       <h2 className="text-lg font-bold mb-3 ml-1 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">
         Quick Actions
       </h2>
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="mb-5">
         <MobileTile 
           icon={FileText} 
           title="New Invoice" 
           bgClass="bg-gradient-to-br from-primary-500 to-primary-700" 
           href="#" 
           onClick={handleNewInvoice}
-        />
-        <MobileTile 
-          icon={Users} 
-          title="Add Party" 
-          bgClass="bg-gradient-to-br from-secondary-500 to-secondary-700" 
-          href="/parties/new" 
-        />
-        <MobileTile 
-          icon={DollarSign} 
-          title="Payment" 
-          bgClass="bg-gradient-to-br from-accent-500 to-accent-700" 
-          href="/transactions/new" 
         />
       </div>
       
@@ -406,82 +394,12 @@ export function MobileDashboard({
         </CardContent>
       </Card>
       
-      {/* Quick Access Menu */}
-      <h2 className="text-lg font-bold mb-3 ml-1 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">
-        Menu
-      </h2>
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <MobileTile 
-          icon={Users} 
-          title="Parties" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/parties" 
-        />
-        <MobileTile 
-          icon={MessageSquare} 
-          title="Add Note" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/invoices" 
-        />
-        <MobileTile 
-          icon={DollarSign} 
-          title="Payments" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/transactions" 
-        />
-        <MobileTile 
-          icon={BarChart2} 
-          title="Reports" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/reports" 
-        />
-        <MobileTile 
-          icon={ActivitySquare} 
-          title="Activities" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/activities" 
-        />
-        <MobileTile 
-          icon={CheckSquare} 
-          title="Closed Bills" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/reports/closed" 
-        />
-        <MobileTile 
-          icon={Settings} 
-          title="Settings" 
-          bgClass="bg-white" 
-          textClass="text-primary-700"
-          className="shadow-md border border-neutral-100"
-          href="/settings" 
-        />
-        <MobileTile 
-          icon={LogOut} 
-          title="Logout" 
-          bgClass="bg-white" 
-          textClass="text-destructive-500"
-          className="shadow-md border border-neutral-100"
-          href="#" 
-          onClick={() => logoutMutation.mutate()}
-        />
-      </div>
+
 
       {/* App Info */}
       <div className="text-center text-xs text-neutral-400 mt-6 mb-4">
         <p>BussNote v1.0</p>
-        <p className="mt-1">© 2023 All Rights Reserved</p>
+        <p className="mt-1">© 2023-2025 All Rights Reserved</p>
       </div>
       
       {/* Note Dialog */}
