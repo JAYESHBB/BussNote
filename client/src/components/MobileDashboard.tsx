@@ -270,7 +270,6 @@ export function MobileDashboard({
                       <div>
                         <p className="text-xl font-bold text-neutral-800">{stats?.activeParties || 0}</p>
                         <p className="text-xs text-secondary opacity-90">
-                          <span className="mr-1">↑</span>
                           <span>This Month</span>
                         </p>
                       </div>
@@ -303,7 +302,6 @@ export function MobileDashboard({
                       <div>
                         <p className="text-xl font-bold text-neutral-800">{stats?.pendingInvoices || 0}</p>
                         <p className="text-xs text-accent-600 opacity-90">
-                          <span className="mr-1">⚠</span>
                           <span>Need Attention</span>
                         </p>
                       </div>

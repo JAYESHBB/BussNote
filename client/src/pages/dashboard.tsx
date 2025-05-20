@@ -349,9 +349,6 @@ export default function Dashboard() {
                   <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
                     <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.activeParties}</p>
                     <p className="text-sm flex items-center text-secondary opacity-90 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="mr-1 transition-transform duration-300 group-hover:transform group-hover:translate-y-[-2px]">
-                        ↑
-                      </span>
                       <span>{formatDateRange()}</span>
                     </p>
                   </div>
@@ -387,9 +384,6 @@ export default function Dashboard() {
                   <div className="transition-all duration-300 transform group-hover:translate-y-[-2px]">
                     <p className="text-3xl font-bold text-neutral-800 group-hover:text-primary transition-colors duration-300">{dashboardStats.pendingInvoices}</p>
                     <p className="text-sm flex items-center text-destructive opacity-90 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="mr-1 transition-transform duration-300 group-hover:transform group-hover:translate-y-[2px]">
-                        ↓
-                      </span>
                       <span>{formatDateRange()}</span>
                     </p>
                   </div>
