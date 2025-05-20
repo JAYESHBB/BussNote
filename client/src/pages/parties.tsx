@@ -115,16 +115,16 @@ export default function PartiesPage() {
             // Debug output
             console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
           } else {
-            // If the response is not ok, default to false (allowing deletion)
-            // The server will still block deletion if the party has invoices
+            // If the response is not ok, default to true to disable the delete button
+            // This is safer than allowing deletion when we're not sure
             console.warn(`Failed to check if party ${party.id} has invoices, status: ${response.status}`);
-            invoiceStatus[party.id] = false;
+            invoiceStatus[party.id] = true;
           }
         } catch (error) {
           console.error(`Error checking party ${party.id}:`, error);
-          // If there's an error, default to false (allowing deletion)
-          // The server will still block deletion if the party has invoices
-          invoiceStatus[party.id] = false;
+          // If there's an error, default to true (preventing deletion)
+          // This is safer when we're not sure about the invoice status
+          invoiceStatus[party.id] = true;
         }
       }
       
