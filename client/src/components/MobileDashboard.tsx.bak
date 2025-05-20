@@ -315,6 +315,83 @@ export function MobileDashboard({
           </div>
         </div>
       </div>
+      
+      {/* Recent Notes */}
+      <Card className="mb-5 colorful-card">
+        <CardHeader className="colorful-header secondary py-3 px-4">
+          <CardTitle className="text-base font-semibold">Recent Notes</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoadingInvoices ? (
+            <div className="py-10 flex items-center justify-center">
+              <LoadingState 
+                type="data" 
+                title="Loading Recent Notes"
+                message="Please wait..." 
+                size="sm"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-neutral-100">
+                {recentInvoices?.slice(0, 3).map((invoice, index) => {
+                  // Convert status to the expected type
+                  const status = invoice.status === "paid" ? "paid" : 
+                                invoice.status === "cancelled" ? "cancelled" : 
+                                invoice.status === "overdue" ? "overdue" : "pending";
+                                
+                  return (
+                    <div key={invoice.id} className="p-3 flex justify-between items-center animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <div>
+                        <div className="font-medium text-sm">#{invoice.invoiceNo}</div>
+                        <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
+                        <div className="text-xs text-neutral-400 mt-0.5">
+                          {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div className="font-semibold text-sm">
+                          {formatCurrency(invoice.total)}
+                        </div>
+                        <StatusBadge 
+                          status={status}
+                          className="mt-1 text-xs py-0.5 px-1.5"
+                        />
+                        <div className="flex mt-1 space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenNoteDialog(invoice);
+                            }}
+                          >
+                            <MessageSquare className="h-3 w-3 text-primary-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {(recentInvoices?.length || 0) === 0 && (
+                  <div className="p-4 text-center text-neutral-500 text-sm animate-fade-in">
+                    No recent invoices
+                  </div>
+                )}
+              </div>
+              <div className="p-3 border-t">
+                <Button variant="ghost" size="sm" className="w-full text-sm text-primary-600">
+                  Manage Notes
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+      
+
 
       {/* App Info */}
       <div className="text-center text-xs text-neutral-400 mt-6 mb-4">
@@ -326,22 +403,27 @@ export function MobileDashboard({
       <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center">Add Note</DialogTitle>
-            <DialogDescription className="text-center">
-              {selectedInvoice && `Invoice #${selectedInvoice.invoiceNo}`}
+            <DialogTitle>Add/Edit Notes</DialogTitle>
+            <DialogDescription>
+              {selectedInvoice && (
+                <span className="text-sm text-neutral-600">
+                  Invoice #{selectedInvoice.invoiceNo} | 
+                  {selectedInvoice.partyName} | 
+                  {formatCurrency(selectedInvoice.total)}
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-3">
+          <div className="py-4">
             <Textarea
-              placeholder="Enter note here..."
-              className="min-h-[120px]"
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Enter notes here..."
+              className="min-h-32"
             />
           </div>
-          <DialogFooter className="flex flex-row justify-between">
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button 
-              type="button" 
               variant="outline" 
               onClick={handleCloseNoteDialog}
               disabled={updateNotesMutation.isPending}
@@ -349,11 +431,10 @@ export function MobileDashboard({
               Cancel
             </Button>
             <Button 
-              type="button" 
               onClick={handleSaveNote}
               disabled={updateNotesMutation.isPending}
             >
-              {updateNotesMutation.isPending ? 'Saving...' : 'Save Note'}
+              {updateNotesMutation.isPending ? "Saving..." : "Save Notes"}
             </Button>
           </DialogFooter>
         </DialogContent>
