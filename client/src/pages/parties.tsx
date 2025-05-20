@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 import { 
   UserPlus, 
   Search, 
@@ -10,6 +11,8 @@ import {
   Edit,
   Download,
   Filter,
+  FileSpreadsheet,
+  FileDown,
   Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +28,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -42,6 +53,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -204,31 +225,48 @@ export default function PartiesPage() {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
   
-  // Function to export party list to CSV
-  const exportToCSV = () => {
+  // Prepare data for all export functions
+  const prepareExportData = () => {
     if (!filteredParties || filteredParties.length === 0) {
       toast({
         title: "No data to export",
         description: "There are no parties matching your current filters.",
         variant: "destructive"
       });
-      return;
+      return null;
     }
     
-    // Create CSV headers
+    // Create headers and data for export
     const headers = ["Party Name", "Contact Person", "Phone", "Email", "Address", "GSTIN", "Notes"];
+    const partyData = filteredParties.map(party => ({
+      "Party Name": party.name,
+      "Contact Person": party.contactPerson,
+      "Phone": party.phone,
+      "Email": party.email || '',
+      "Address": party.address || '',
+      "GSTIN": party.gstin || '',
+      "Notes": party.notes || ''
+    }));
+    
+    return { headers, partyData };
+  };
+  
+  // Function to export party list to CSV
+  const exportToCSV = () => {
+    const data = prepareExportData();
+    if (!data) return;
     
     // Map party data to CSV rows
     const csvRows = [
-      headers.join(','), // Add headers as first row
-      ...filteredParties.map(party => [
-        `"${party.name}"`, // Use quotes to handle commas in names
-        `"${party.contactPerson}"`,
-        `"${party.phone}"`,
-        `"${party.email || ''}"`,
-        `"${party.address || ''}"`,
-        `"${party.gstin || ''}"`,
-        `"${party.notes || ''}"`
+      data.headers.join(','), // Add headers as first row
+      ...data.partyData.map(party => [
+        `"${party["Party Name"]}"`, // Use quotes to handle commas in names
+        `"${party["Contact Person"]}"`,
+        `"${party.Phone}"`,
+        `"${party.Email}"`,
+        `"${party.Address}"`,
+        `"${party.GSTIN}"`,
+        `"${party.Notes}"`
       ].join(','))
     ];
     
@@ -248,7 +286,179 @@ export default function PartiesPage() {
     
     toast({
       title: "Export successful",
-      description: `Exported ${filteredParties.length} parties to CSV file.`
+      description: `Exported ${data.partyData.length} parties to CSV file.`
+    });
+  };
+  
+  // Function to export party list to Excel
+  const exportToExcel = () => {
+    const data = prepareExportData();
+    if (!data) return;
+    
+    // Create a workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Convert data to worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data.partyData);
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Parties");
+    
+    // Auto-size columns for better readability
+    const maxWidths = {};
+    
+    // First pass: Get the maximum width for each column from headers
+    data.headers.forEach((header, index) => {
+      maxWidths[index] = header.length;
+    });
+    
+    // Second pass: Check data and update max widths
+    data.partyData.forEach(row => {
+      Object.keys(row).forEach((key, index) => {
+        const cellLength = String(row[key]).length;
+        if (cellLength > maxWidths[index]) {
+          maxWidths[index] = cellLength;
+        }
+      });
+    });
+    
+    // Apply column widths
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[parseInt(key)] + 2 }));
+    
+    // Generate Excel file
+    XLSX.writeFile(workbook, `party_list_${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported ${data.partyData.length} parties to Excel file.`
+    });
+  };
+  
+  // Function to export party list to PDF
+  const exportToPDF = () => {
+    const data = prepareExportData();
+    if (!data) return;
+    
+    // Create a printable page
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      toast({
+        title: "Export failed",
+        description: "Please allow pop-ups to export as PDF.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Generate HTML content for the print window
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Party List</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+            }
+            h1 {
+              text-align: center;
+              color: #333;
+              margin-bottom: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+              font-weight: bold;
+            }
+            tr:nth-child(even) {
+              background-color: #f9f9f9;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 30px;
+              font-size: 12px;
+              color: #666;
+            }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+            .header-info {
+              text-align: right;
+              margin-bottom: 20px;
+              font-size: 12px;
+              color: #666;
+            }
+            .print-button {
+              display: block;
+              margin: 20px auto;
+              padding: 10px 20px;
+              background-color: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 16px;
+            }
+          </style>
+        </head>
+        <body>
+          <button class="print-button no-print" onclick="window.print(); setTimeout(() => window.close(), 500);">
+            Print PDF
+          </button>
+          
+          <h1>Party List</h1>
+          
+          <div class="header-info">
+            <div>Generated: ${new Date().toLocaleString()}</div>
+            <div>Total Parties: ${data.partyData.length}</div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                ${data.headers.map(header => `<th>${header}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.partyData.map(party => `
+                <tr>
+                  <td>${party["Party Name"]}</td>
+                  <td>${party["Contact Person"]}</td>
+                  <td>${party.Phone}</td>
+                  <td>${party.Email}</td>
+                  <td>${party.Address}</td>
+                  <td>${party.GSTIN}</td>
+                  <td>${party.Notes}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            BussNote - Party Master Report
+          </div>
+        </body>
+      </html>
+    `);
+    
+    // Focus the window
+    printWindow.focus();
+    
+    toast({
+      title: "PDF Export prepared",
+      description: "Your PDF is ready. Click the 'Print PDF' button in the new window."
     });
   };
   
@@ -352,13 +562,29 @@ export default function PartiesPage() {
             >
               <Filter className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={exportToCSV}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <Download className="mr-2 h-4 w-4" />
+                  <span>CSV Format</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  <span>Excel Format</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToPDF}>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  <span>PDF Format</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent className="p-0">
