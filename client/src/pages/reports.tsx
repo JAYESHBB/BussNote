@@ -60,12 +60,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("outstanding");
   const { toast } = useToast();
   const [outstandingFilter, setOutstandingFilter] = useState("all");
+  const [closedFilter, setClosedFilter] = useState("all");
+  const [salesGroupBy, setSalesGroupBy] = useState("monthly");
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
   // Handle tab change
   const handleTabChange = (value: string) => {
@@ -78,6 +92,11 @@ export default function ReportsPage() {
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(),
   });
+  
+  // Function to apply filters
+  const handleOpenFilterDialog = () => {
+    setIsFilterDialogOpen(true);
+  };
   
   const { data: outstandingData } = useQuery<any[]>({
     queryKey: ['/api/reports/outstanding', dateRange],
@@ -98,6 +117,26 @@ export default function ReportsPage() {
     if (outstandingFilter === "overdue") return invoice.daysOverdue > 0;
     return true;
   }) || [];
+  
+  // Filter closed invoices based on status filter
+  const filteredClosedData = closedData?.filter(invoice => {
+    if (closedFilter === "all") return true;
+    return invoice.status === closedFilter;
+  }) || [];
+  
+  // Helper function to get currency symbol
+  const getCurrencySymbol = (currencyCode: string | null): string => {
+    if (!currencyCode) return '₹'; // Default to INR
+    
+    switch(currencyCode.toUpperCase()) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'JPY': return '¥';
+      case 'INR': 
+      default: return '₹';
+    }
+  };
   
   // Prepare data for outstanding invoices export
   const prepareOutstandingExportData = () => {
@@ -569,10 +608,101 @@ export default function ReportsPage() {
               date={dateRange}
               setDate={setDateRange}
             />
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
+            <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={handleOpenFilterDialog}>
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Filter Options</DialogTitle>
+                  <DialogDescription>
+                    Customize your report view with filters
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="grid gap-4 py-4">
+                  {reportType === "outstanding" && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Status</Label>
+                      <Select 
+                        value={outstandingFilter} 
+                        onValueChange={setOutstandingFilter}
+                        className="col-span-3"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="overdue">Overdue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  {reportType === "closed" && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Status</Label>
+                      <Select 
+                        value={closedFilter} 
+                        onValueChange={setClosedFilter}
+                        className="col-span-3"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Closed</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  {reportType === "sales" && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Group By</Label>
+                      <Select 
+                        value={salesGroupBy} 
+                        onValueChange={setSalesGroupBy}
+                        className="col-span-3"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select grouping" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Date Range</Label>
+                    <div className="col-span-3">
+                      <DatePickerWithRange 
+                        date={dateRange}
+                        setDate={setDateRange}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="submit">Apply Filters</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
