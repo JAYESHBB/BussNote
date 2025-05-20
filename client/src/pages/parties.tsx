@@ -63,17 +63,6 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PartyForm } from "@/components/PartyForm";
 import { Party } from "@shared/schema";
 
@@ -107,12 +96,11 @@ export default function PartiesPage() {
           [partyId]: data.hasInvoices
         }));
         
-        console.log(`Party ${partyId} has invoices: ${data.hasInvoices}`);
         return data.hasInvoices;
       }
       return false;
     } catch (error) {
-      console.error(`Error checking if party ${partyId} has invoices`);
+      console.error(`Error checking party ${partyId} has invoices`);
       return false;
     }
   };
@@ -141,71 +129,107 @@ export default function PartiesPage() {
             await new Promise(resolve => setTimeout(resolve, 50));
           }
           
-          // Use apiRequest from queryClient to ensure proper handling
-          const response = await apiRequest("GET", `/api/parties/${party.id}/has-invoices`);
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            // Store the result in our temporary object
-            invoiceStatus[party.id] = data.hasInvoices;
-            
-            // Print clean debug info without empty objects
-            console.log(`Party ${party.id} (${party.name}) has invoices: ${data.hasInvoices}`);
-          } else {
-            // If response is not ok, log the error but don't disable deletion
-            console.warn(`Failed to check party ${party.id}, status: ${response.status}`);
-            invoiceStatus[party.id] = false;
-          }
+          const hasInvoices = await checkPartyHasInvoices(party.id);
+          invoiceStatus[party.id] = hasInvoices;
         } catch (error) {
-          // Clean up the error logging to avoid showing empty objects
-          console.error(`Error checking party ${party.id}`);
-          // If there's an error, default to false to allow deletion
-          // The server will block deletion if the party has invoices
-          invoiceStatus[party.id] = false;
+          console.error(`Error checking if party ${party.id} has invoices`);
         }
       }
       
-      // After all checks, update state once
+      // Update state with all results at once
       setPartiesWithInvoices(invoiceStatus);
     };
     
-    // Execute the function
     checkAllParties();
   }, [parties]);
   
-  // Apply filters to parties list
-  const filteredParties = parties?.filter((party) => {
-    // First apply text search filter
-    const matchesSearch = (
-      party.name.toLowerCase().includes(search.toLowerCase()) ||
-      party.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
-      party.phone.includes(search) ||
-      (party.email && party.email.toLowerCase().includes(search.toLowerCase()))
-    );
+  // Delete party mutation
+  const deletePartyMutation = useMutation({
+    mutationFn: async (partyId: number) => {
+      const response = await apiRequest("DELETE", `/api/parties/${partyId}`);
+      if (!response.ok) {
+        throw new Error("Failed to delete party");
+      }
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/parties"] });
+      toast({
+        title: "Party deleted",
+        description: "The party has been deleted successfully.",
+      });
+      setDeleteDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Unable to delete party.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Function to handle party deletion
+  const handleDeleteParty = (party: Party) => {
+    setPartyToDelete(party);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Function to confirm deletion
+  const confirmDelete = () => {
+    if (partyToDelete) {
+      deletePartyMutation.mutate(partyToDelete.id);
+    }
+  };
+  
+  // Filter parties based on search input and filters
+  const filteredParties = parties
+    ? parties.filter(party => {
+        // Apply search filter
+        const matchesSearch =
+          party.name.toLowerCase().includes(search.toLowerCase()) ||
+          party.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
+          party.phone.toLowerCase().includes(search.toLowerCase()) ||
+          (party.email && party.email.toLowerCase().includes(search.toLowerCase())) ||
+          (party.address && party.address.toLowerCase().includes(search.toLowerCase())) ||
+          (party.gstin && party.gstin.toLowerCase().includes(search.toLowerCase()));
+        
+        // Apply status filter
+        let matchesStatus = true;
+        if (filters.status === "active") {
+          matchesStatus = partiesWithInvoices[party.id] || false;
+        } else if (filters.status === "inactive") {
+          matchesStatus = !partiesWithInvoices[party.id];
+        }
+        
+        return matchesSearch && matchesStatus;
+      })
+    : [];
+  
+  // Sort the filtered parties
+  const sortedParties = [...filteredParties].sort((a, b) => {
+    // Handle different sort fields
+    let valA: string | Date = "";
+    let valB: string | Date = "";
     
-    // Apply status filter if not "all"
-    if (filters.status !== "all") {
-      // This is a placeholder for actual status logic
-      // We would need to add status field to the Party type
-      return matchesSearch;
+    if (filters.sortBy === "name") {
+      valA = a.name;
+      valB = b.name;
+    } else if (filters.sortBy === "contactPerson") {
+      valA = a.contactPerson;
+      valB = b.contactPerson;
+    } else if (filters.sortBy === "dateAdded") {
+      valA = a.createdAt;
+      valB = b.createdAt;
     }
     
-    return matchesSearch;
-  })?.sort((a, b) => {
-    // Sort by the selected field
-    if (filters.sortBy === "name") {
-      return filters.sortOrder === "asc" 
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name);
-    } else if (filters.sortBy === "contactPerson") {
-      return filters.sortOrder === "asc"
-        ? a.contactPerson.localeCompare(b.contactPerson)
-        : b.contactPerson.localeCompare(a.contactPerson);
-    } else if (filters.sortBy === "dateAdded") {
-      return filters.sortOrder === "asc"
-        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    // Sort based on sort order
+    if (filters.sortOrder === "asc") {
+      if (valA < valB) return -1;
+      if (valA > valB) return 1;
+    } else {
+      if (valA > valB) return -1;
+      if (valA < valB) return 1;
     }
     
     return 0;
@@ -305,7 +329,7 @@ export default function PartiesPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Parties");
     
     // Auto-size columns for better readability
-    const maxWidths = {};
+    const maxWidths: Record<number, number> = {};
     
     // First pass: Get the maximum width for each column from headers
     data.headers.forEach((header, index) => {
@@ -315,7 +339,7 @@ export default function PartiesPage() {
     // Second pass: Check data and update max widths
     data.partyData.forEach(row => {
       Object.keys(row).forEach((key, index) => {
-        const cellLength = String(row[key]).length;
+        const cellLength = String(row[key as keyof typeof row]).length;
         if (cellLength > maxWidths[index]) {
           maxWidths[index] = cellLength;
         }
@@ -467,231 +491,135 @@ export default function PartiesPage() {
     setOpenPartyForm(true);
   };
   
-  const handleAddNewParty = () => {
-    setSelectedParty(undefined);
-    setOpenPartyForm(true);
-  };
-  
-  const deletePartyMutation = useMutation({
-    mutationFn: async (partyId: number) => {
-      const response = await apiRequest("DELETE", `/api/parties/${partyId}`);
-      if (!response.ok) {
-        // Always use the same error message regardless of actual error
-        throw new Error("Unable to Delete Party");
-      }
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/parties"] });
-      toast({
-        title: "Party deleted",
-        description: `${partyToDelete?.name} has been deleted successfully.`,
-      });
-      setPartyToDelete(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Unable to Delete Party",
-        variant: "destructive",
-      });
-      setDeleteDialogOpen(false);
-    },
-  });
-  
-  const handleDeleteParty = async (party: Party) => {
-    try {
-      // Use the state data we already have
-      if (partiesWithInvoices[party.id]) {
-        // Show error message if party has invoices
-        toast({
-          title: "Unable to Delete Party",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // No invoices found, proceed with delete confirmation
-      setPartyToDelete(party);
-      setDeleteDialogOpen(true);
-    } catch (error) {
-      console.error("Error handling party deletion request");
-      toast({
-        title: "Unable to Delete Party",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const confirmDelete = () => {
-    if (partyToDelete) {
-      deletePartyMutation.mutate(partyToDelete.id);
-    }
-    setDeleteDialogOpen(false);
-  };
-
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-800">Party Master</h1>
-          <p className="text-neutral-600">Manage your clients and customers</p>
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold tracking-tight">Party Master</h2>
+          <Button onClick={() => {
+            setSelectedParty(undefined);
+            setOpenPartyForm(true);
+          }}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Party
+          </Button>
         </div>
-        <Button onClick={handleAddNewParty} className="flex items-center">
-          <UserPlus className="mr-2 h-4 w-4" />
-          <span>Add New Party</span>
-        </Button>
+        
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>All Parties</CardTitle>
+            <div className="flex items-center space-x-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search parties by name, contact person, or phone..."
+                  className="w-full"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setFilterDialogOpen(true)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={exportToCSV}>
+                    <Download className="mr-2 h-4 w-4" />
+                    <span>CSV Format</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToExcel}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    <span>Excel Format</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToPDF}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    <span>PDF Format</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Party Name</TableHead>
+                  <TableHead>Contact Person</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24">
+                      Loading parties...
+                    </TableCell>
+                  </TableRow>
+                ) : sortedParties.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24">
+                      No parties found. Add a new party to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedParties.map((party) => (
+                    <TableRow key={party.id}>
+                      <TableCell className="font-medium">{party.name}</TableCell>
+                      <TableCell>{party.contactPerson}</TableCell>
+                      <TableCell>{party.phone}</TableCell>
+                      <TableCell>{party.email || '—'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Link to={`/parties/${party.id}`}>
+                            <Button variant="ghost" size="icon" asChild>
+                              <div>
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </div>
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditParty(party)}>
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button
+                            variant="ghost" 
+                            size="icon"
+                            disabled={partiesWithInvoices[party.id]}
+                            onClick={() => handleDeleteParty(party)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
       
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-5">
-          <CardTitle className="text-lg font-semibold">All Parties</CardTitle>
-          <div className="flex space-x-2">
-            <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500" />
-              <Input
-                placeholder="Search parties..."
-                className="pl-10"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setFilterDialogOpen(true)}
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={exportToCSV}>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span>CSV Format</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToExcel}>
-                  <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  <span>Excel Format</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToPDF}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  <span>PDF Format</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-neutral-50">
-              <TableRow>
-                <TableHead>Party Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredParties?.map((party) => (
-                <TableRow key={party.id}>
-                  <TableCell className="font-medium">{party.name}</TableCell>
-                  <TableCell>{party.contactPerson}</TableCell>
-                  <TableCell>{party.phone}</TableCell>
-                  <TableCell>{party.email || '-'}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Link href={`/parties/${party.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="h-4 w-4 text-neutral-500" />
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => handleEditParty(party)}
-                      >
-                        <Edit className="h-4 w-4 text-neutral-500" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 relative group"
-                        onClick={() => handleDeleteParty(party)}
-                        disabled={partiesWithInvoices[party.id] === true}
-                        title={partiesWithInvoices[party.id] === true ? "Cannot delete party with associated invoices" : "Delete party"}
-                      >
-                        <Trash2 className={`h-4 w-4 ${partiesWithInvoices[party.id] === true ? 'text-gray-400' : 'text-red-500'}`} />
-                        {partiesWithInvoices[party.id] === true && (
-                          <div className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-white border border-gray-200 rounded shadow-lg text-xs text-gray-700">
-                            Party cannot be deleted because it has associated invoices
-                          </div>
-                        )}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {filteredParties?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                    No parties found. Add your first party to get started.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          
-          {filteredParties && filteredParties.length > 0 && (
-            <div className="flex items-center justify-between p-4 border-t border-neutral-200 bg-neutral-50">
-              <div className="text-sm text-neutral-600">
-                Showing 1-{filteredParties.length} of {filteredParties.length} parties
-              </div>
-              <div className="flex items-center space-x-2">
-                <Select defaultValue="10">
-                  <SelectTrigger className="w-16">
-                    <SelectValue placeholder="10" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center space-x-1">
-                  <Button disabled variant="outline" size="icon" className="h-8 w-8">
-                    <span className="sr-only">Previous page</span>
-                    <span>←</span>
-                  </Button>
-                  <Button variant="outline" size="sm" className="bg-primary-500 text-white h-8 min-w-8">
-                    1
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <span className="sr-only">Next page</span>
-                    <span>→</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       <PartyForm 
         open={openPartyForm} 
         onOpenChange={setOpenPartyForm} 
         party={selectedParty}
       />
-
+      
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
