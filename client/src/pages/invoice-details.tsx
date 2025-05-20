@@ -387,9 +387,13 @@ export default function InvoiceDetailsPage() {
                   <CreditCard className="h-4 w-4 mr-2" />
                   Record Payment
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSendReminder}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Reminder
+                <DropdownMenuItem 
+                  onClick={handleSendReminder}
+                  disabled={invoice.isClosed}
+                  className={invoice.isClosed ? "text-neutral-400 cursor-not-allowed" : ""}
+                >
+                  <Send className={`h-4 w-4 mr-2 ${invoice.isClosed ? "text-neutral-400" : ""}`} />
+                  Send Reminder {invoice.isClosed && "(Disabled for closed invoices)"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDuplicateInvoice}>
                   <FileText className="h-4 w-4 mr-2" />
