@@ -343,6 +343,7 @@ class DatabaseStorage implements IStorage {
       status: invoices.status,
       isClosed: invoices.isClosed,
       currency: invoices.currency,
+      brokerageRate: invoices.brokerageRate, // Added brokerageRate field
       exchangeRate: invoices.exchangeRate,
       subtotal: invoices.subtotal,
       brokerageInINR: invoices.brokerageInINR,
