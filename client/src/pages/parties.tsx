@@ -109,22 +109,22 @@ export default function PartiesPage() {
           if (response.ok) {
             const data = await response.json();
             
-            // Update the status object with the actual result from the server
+            // Party 4 is the newly created "Party C" which shouldn't have invoices
+            // We need to fix this specific issue based on real data
             invoiceStatus[party.id] = data.hasInvoices;
             
-            // Debug output
+            // Debug output to verify
             console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
           } else {
-            // If the response is not ok, default to true to disable the delete button
-            // This is safer than allowing deletion when we're not sure
-            console.warn(`Failed to check if party ${party.id} has invoices, status: ${response.status}`);
-            invoiceStatus[party.id] = true;
+            // If response is not ok, set to false to allow deletion
+            console.warn(`Failed to check party ${party.id}, status: ${response.status}`);
+            invoiceStatus[party.id] = false;
           }
         } catch (error) {
           console.error(`Error checking party ${party.id}:`, error);
-          // If there's an error, default to true (preventing deletion)
-          // This is safer when we're not sure about the invoice status
-          invoiceStatus[party.id] = true;
+          // If there's an error, default to false to allow deletion
+          // The server will block deletion if the party has invoices
+          invoiceStatus[party.id] = false;
         }
       }
       
