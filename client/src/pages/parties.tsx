@@ -105,17 +105,26 @@ export default function PartiesPage() {
           
           // Use standard fetch API with full URL
           const response = await fetch(`/api/parties/${party.id}/has-invoices`);
-          const data = await response.json();
           
-          // Update the status object
-          invoiceStatus[party.id] = data.hasInvoices;
-          
-          // Debug output
-          console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
+          if (response.ok) {
+            const data = await response.json();
+            
+            // Update the status object with the actual result from the server
+            invoiceStatus[party.id] = data.hasInvoices;
+            
+            // Debug output
+            console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
+          } else {
+            // If the response is not ok, default to false (allowing deletion)
+            // The server will still block deletion if the party has invoices
+            console.warn(`Failed to check if party ${party.id} has invoices, status: ${response.status}`);
+            invoiceStatus[party.id] = false;
+          }
         } catch (error) {
           console.error(`Error checking party ${party.id}:`, error);
-          // Default to true to prevent accidental deletion
-          invoiceStatus[party.id] = true;
+          // If there's an error, default to false (allowing deletion)
+          // The server will still block deletion if the party has invoices
+          invoiceStatus[party.id] = false;
         }
       }
       
