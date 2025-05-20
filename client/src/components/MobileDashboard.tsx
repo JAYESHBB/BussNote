@@ -168,7 +168,7 @@ export function MobileDashboard({
               <>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center mr-2 animate-pulse-subtle">
+                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center mr-2">
                       <LineChart className="h-4 w-4 text-primary-500" />
                     </div>
                     <h3 className="text-base font-semibold text-neutral-800">Total Sales</h3>
@@ -178,13 +178,13 @@ export function MobileDashboard({
                   </div>
                 </div>
                 
-                <div className="text-xl font-bold text-neutral-900 mb-2 animate-fade-in">
+                <div className="text-xl font-bold text-neutral-900 mb-2">
                   {formatCurrency(stats?.totalSales || 0)}
                 </div>
                 
                 <div className="space-y-1 mt-2 border-t pt-2">
                   {stats?.salesByCurrency && Object.entries(stats.salesByCurrency || {}).map(([currency, amount], index) => (
-                    <div key={currency} className="flex justify-between items-center text-xs animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div key={currency} className="flex justify-between items-center text-xs">
                       <span className="font-medium text-neutral-700">{currency}:</span>
                       <span className="text-neutral-900">
                         {formatCurrency(amount)}
@@ -192,7 +192,7 @@ export function MobileDashboard({
                     </div>
                   ))}
                   {(!stats?.salesByCurrency || Object.keys(stats?.salesByCurrency || {}).length === 0) && (
-                    <div className="text-xs text-neutral-500 italic animate-fade-in">No sales data available</div>
+                    <div className="text-xs text-neutral-500 italic">No sales data available</div>
                   )}
                 </div>
               </>
@@ -214,7 +214,7 @@ export function MobileDashboard({
               <>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-destructive-50 flex items-center justify-center mr-2 animate-pulse-subtle">
+                    <div className="w-8 h-8 rounded-full bg-destructive-50 flex items-center justify-center mr-2">
                       <Bell className="h-4 w-4 text-destructive" />
                     </div>
                     <h3 className="text-base font-semibold text-neutral-800">Outstanding</h3>
@@ -224,7 +224,7 @@ export function MobileDashboard({
                   </div>
                 </div>
                 
-                <div className="text-xl font-bold text-neutral-900 mb-2 animate-fade-in">
+                <div className="text-xl font-bold text-neutral-900 mb-2">
                   {formatCurrency(stats?.outstanding || 0)}
                 </div>
                 
