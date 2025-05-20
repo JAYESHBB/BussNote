@@ -1190,24 +1190,35 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
             <FormField
               control={form.control}
               name="isClosed"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-2">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base font-semibold">
-                      Closed Bill
-                    </FormLabel>
-                    <FormDescription>
-                      Toggle if this bill is already closed
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Get balance brokerage value directly from the form
+                const balanceValue = form.watch("balanceBrokerage");
+                const balanceBrokerage = parseFloat(balanceValue || "0");
+                const isBalanceZero = balanceBrokerage === 0 || balanceBrokerage === 0.00;
+                
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-2">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-semibold">
+                        Closed Bill
+                      </FormLabel>
+                      <FormDescription>
+                        {isBalanceZero 
+                          ? "Toggle if this bill is already closed" 
+                          : "Cannot close bill until Balance Brokerage is zero"}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!isBalanceZero}
+                        title={isBalanceZero ? "Toggle bill status" : "Clear Balance Brokerage to close bill"}
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
             />
 
             <DialogFooter>
