@@ -42,6 +42,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PartyForm } from "@/components/PartyForm";
 import { Party } from "@shared/schema";
 
@@ -51,6 +62,12 @@ export default function PartiesPage() {
   const [selectedParty, setSelectedParty] = useState<Party | undefined>(undefined);
   const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "all", // all, active, inactive
+    sortBy: "name", // name, contactPerson, dateAdded
+    sortOrder: "asc" // asc, desc
+  });
   const { toast } = useToast();
   
   // Keep track of which parties have invoices
@@ -136,11 +153,42 @@ export default function PartiesPage() {
     checkAllParties();
   }, [parties]);
   
-  const filteredParties = parties?.filter((party) => 
-    party.name.toLowerCase().includes(search.toLowerCase()) ||
-    party.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
-    party.phone.includes(search)
-  );
+  // Apply filters to parties list
+  const filteredParties = parties?.filter((party) => {
+    // First apply text search filter
+    const matchesSearch = (
+      party.name.toLowerCase().includes(search.toLowerCase()) ||
+      party.contactPerson.toLowerCase().includes(search.toLowerCase()) ||
+      party.phone.includes(search) ||
+      (party.email && party.email.toLowerCase().includes(search.toLowerCase()))
+    );
+    
+    // Apply status filter if not "all"
+    if (filters.status !== "all") {
+      // This is a placeholder for actual status logic
+      // We would need to add status field to the Party type
+      return matchesSearch;
+    }
+    
+    return matchesSearch;
+  })?.sort((a, b) => {
+    // Sort by the selected field
+    if (filters.sortBy === "name") {
+      return filters.sortOrder === "asc" 
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } else if (filters.sortBy === "contactPerson") {
+      return filters.sortOrder === "asc"
+        ? a.contactPerson.localeCompare(b.contactPerson)
+        : b.contactPerson.localeCompare(a.contactPerson);
+    } else if (filters.sortBy === "dateAdded") {
+      return filters.sortOrder === "asc"
+        ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    
+    return 0;
+  });
   
   const formatCurrency = (amount: number | null | undefined) => {
     if (amount === null || amount === undefined) return "₹0";
@@ -149,6 +197,59 @@ export default function PartiesPage() {
       currency: 'INR',
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+  
+  // Function to handle filter changes
+  const updateFilters = (newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+  
+  // Function to export party list to CSV
+  const exportToCSV = () => {
+    if (!filteredParties || filteredParties.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no parties matching your current filters.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create CSV headers
+    const headers = ["Party Name", "Contact Person", "Phone", "Email", "Address", "GSTIN", "Notes"];
+    
+    // Map party data to CSV rows
+    const csvRows = [
+      headers.join(','), // Add headers as first row
+      ...filteredParties.map(party => [
+        `"${party.name}"`, // Use quotes to handle commas in names
+        `"${party.contactPerson}"`,
+        `"${party.phone}"`,
+        `"${party.email || ''}"`,
+        `"${party.address || ''}"`,
+        `"${party.gstin || ''}"`,
+        `"${party.notes || ''}"`
+      ].join(','))
+    ];
+    
+    // Join rows with newlines to form CSV content
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `party_list_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    
+    // Trigger download and clean up
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported ${filteredParties.length} parties to CSV file.`
+    });
   };
   
   const handleEditParty = (party: Party) => {
@@ -244,10 +345,18 @@ export default function PartiesPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setFilterDialogOpen(true)}
+            >
               <Filter className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={exportToCSV}
+            >
               <Download className="h-4 w-4" />
             </Button>
           </div>
@@ -357,6 +466,7 @@ export default function PartiesPage() {
         party={selectedParty}
       />
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -381,6 +491,97 @@ export default function PartiesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Filter Dialog */}
+      <Dialog open={filterDialogOpen} onOpenChange={setFilterDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Filter Parties</DialogTitle>
+            <DialogDescription>
+              Customize your party list view by applying filters and sorting options.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-5 py-4">
+            <div className="space-y-2">
+              <Label>Sort By</Label>
+              <RadioGroup 
+                value={filters.sortBy} 
+                onValueChange={(value) => updateFilters({ sortBy: value })}
+                className="flex flex-col space-y-1"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="name" id="sort-name" />
+                  <Label htmlFor="sort-name">Party Name</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="contactPerson" id="sort-contact" />
+                  <Label htmlFor="sort-contact">Contact Person</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dateAdded" id="sort-date" />
+                  <Label htmlFor="sort-date">Date Added</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Sort Order</Label>
+              <RadioGroup 
+                value={filters.sortOrder} 
+                onValueChange={(value) => updateFilters({ sortOrder: value })}
+                className="flex flex-row space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="asc" id="order-asc" />
+                  <Label htmlFor="order-asc">Ascending</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="desc" id="order-desc" />
+                  <Label htmlFor="order-desc">Descending</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <RadioGroup 
+                value={filters.status} 
+                onValueChange={(value) => updateFilters({ status: value })}
+                className="flex flex-col space-y-1"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="status-all" />
+                  <Label htmlFor="status-all">All Parties</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="active" id="status-active" />
+                  <Label htmlFor="status-active">Active Parties</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="inactive" id="status-inactive" />
+                  <Label htmlFor="status-inactive">Inactive Parties</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setFilters({
+                status: "all",
+                sortBy: "name",
+                sortOrder: "asc"
+              });
+            }}>
+              Reset Filters
+            </Button>
+            <Button onClick={() => setFilterDialogOpen(false)}>
+              Apply Filters
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
