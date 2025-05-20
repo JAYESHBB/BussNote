@@ -602,11 +602,28 @@ export default function ReportsPage() {
       // For debugging
       console.log("Formatting currency:", amount, "with currency:", currency);
       
-      // Get currency symbol directly
-      const symbol = getCurrencySymbol(currency);
+      // Choose appropriate currency symbol
+      let symbol = '₹'; // Default to INR
       
-      // Return formatted currency
-      return `${symbol}${Number(amount).toFixed(2)}`;
+      if (currency) {
+        const code = currency.toUpperCase();
+        switch (code) {
+          case 'USD': symbol = '$'; break;
+          case 'EUR': symbol = '€'; break;
+          case 'GBP': symbol = '£'; break;
+          case 'JPY': symbol = '¥'; break;
+          // Default is INR (₹)
+        }
+      }
+      
+      // Format the number with 2 decimal places
+      const formattedAmount = new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount);
+      
+      // Return the formatted currency
+      return `${symbol}${formattedAmount}`;
     } catch (error) {
       console.error("Currency formatting error:", error);
       return `₹${Number(amount).toFixed(2)}`;
