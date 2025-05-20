@@ -449,18 +449,13 @@ class DatabaseStorage implements IStorage {
       return undefined;
     }
     
-    // If status changed to paid/closed, set payment date to today and mark as closed
+    // Update only the status and payment date, without changing isClosed
     let updateData: Partial<Invoice> = { status };
-    if (status === "paid" || status === "cancelled") {
+    if (status === "paid") {
       updateData.paymentDate = new Date();
-      updateData.isClosed = true;
+      // No longer automatically setting isClosed to true
     } else {
       // For other statuses like "pending"
-      // Only set isClosed to false if current status is "paid" and new status is "pending" (marking as unpaid)
-      // This ensures we only auto-change isClosed when changing a paid invoice to unpaid
-      if (currentInvoice[0].status === "paid" && status === "pending") {
-        updateData.isClosed = false;
-      }
       updateData.paymentDate = null;
     }
     
