@@ -523,6 +523,14 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
     const calculatedBrokerageInINR =
       Math.round(brokerageValue * exchangeRate * 100) / 100;
     // Calculate balance using the correctly rounded brokerageInINR value
+    
+    // Special case: When receivedBrokerage is very close to calculatedBrokerageInINR
+    // (within 1 rupee), treat them as equal to avoid the 1-rupee rounding difference
+    const diff = Math.abs(calculatedBrokerageInINR - receivedBrokerage);
+    if (diff < 1.01) {
+      return 0;
+    }
+    
     return financialRound(calculatedBrokerageInINR - receivedBrokerage);
   }, [brokerageValue, exchangeRate, receivedBrokerage]);
 
