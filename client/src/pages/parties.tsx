@@ -109,14 +109,14 @@ export default function PartiesPage() {
           if (response.ok) {
             const data = await response.json();
             
-            // Party 4 is the newly created "Party C" which shouldn't have invoices
-            // We need to fix this specific issue based on real data
+            // Use the API response directly - this should correctly show which parties
+            // have invoices based on the partyId and buyerId relationships
             invoiceStatus[party.id] = data.hasInvoices;
             
             // Debug output to verify
             console.log(`Party ${party.id} (${party.name}) has invoices:`, data.hasInvoices);
           } else {
-            // If response is not ok, set to false to allow deletion
+            // If response is not ok, log the error but don't disable deletion
             console.warn(`Failed to check party ${party.id}, status: ${response.status}`);
             invoiceStatus[party.id] = false;
           }
