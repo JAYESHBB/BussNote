@@ -169,57 +169,105 @@ export function MobileDashboard({
         <div className="grid grid-cols-2 gap-3">
           <Card className="colorful-card overflow-hidden">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-primary-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative">
-              <LineChart className="h-6 w-6 text-primary-500 mb-2" />
-              <p className="text-xs text-neutral-500 mb-1">Total Sales</p>
-              <h3 className="text-lg font-bold text-neutral-800">
-                {formatCurrency(stats?.totalSales || 0)}
-              </h3>
-              <div className="text-xs font-medium text-green-600 mt-1">
-                ↑ 12% from last month
-              </div>
+            <CardContent className="p-4 relative min-h-[115px]">
+              {isLoadingStats ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <LoadingState 
+                    type="data" 
+                    title="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <>
+                  <LineChart className="h-6 w-6 text-primary-500 mb-2 animate-pulse-subtle" />
+                  <p className="text-xs text-neutral-500 mb-1">Total Sales</p>
+                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                    {formatCurrency(stats?.totalSales || 0)}
+                  </h3>
+                  <div className="text-xs font-medium text-green-600 mt-1 animate-slide-in-bottom">
+                    ↑ 12% from last month
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
           
           <Card className="colorful-card overflow-hidden">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-destructive-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative">
-              <Bell className="h-6 w-6 text-destructive-500 mb-2" />
-              <p className="text-xs text-neutral-500 mb-1">Outstanding</p>
-              <h3 className="text-lg font-bold text-neutral-800">
-                {formatCurrency(stats?.outstanding || 0)}
-              </h3>
-              <div className="text-xs font-medium text-destructive-600 mt-1">
-                ↑ 8% from last month
-              </div>
+            <CardContent className="p-4 relative min-h-[115px]">
+              {isLoadingStats ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <LoadingState 
+                    type="data" 
+                    title="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <>
+                  <Bell className="h-6 w-6 text-destructive-500 mb-2 animate-pulse-subtle" />
+                  <p className="text-xs text-neutral-500 mb-1">Outstanding</p>
+                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                    {formatCurrency(stats?.outstanding || 0)}
+                  </h3>
+                  <div className="text-xs font-medium text-destructive-600 mt-1 animate-slide-in-bottom">
+                    ↑ 8% from last month
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
           
           <Card className="colorful-card overflow-hidden">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-secondary-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative">
-              <Users className="h-6 w-6 text-secondary-500 mb-2" />
-              <p className="text-xs text-neutral-500 mb-1">Active Parties</p>
-              <h3 className="text-lg font-bold text-neutral-800">
-                {stats?.activeParties || 0}
-              </h3>
-              <div className="text-xs font-medium text-green-600 mt-1">
-                3 new this month
-              </div>
+            <CardContent className="p-4 relative min-h-[115px]">
+              {isLoadingStats ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <LoadingState 
+                    type="data" 
+                    title="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <>
+                  <Users className="h-6 w-6 text-secondary-500 mb-2 animate-pulse-subtle" />
+                  <p className="text-xs text-neutral-500 mb-1">Active Parties</p>
+                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                    {stats?.activeParties || 0}
+                  </h3>
+                  <div className="text-xs font-medium text-green-600 mt-1 animate-slide-in-bottom">
+                    3 new this month
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
           
           <Card className="colorful-card overflow-hidden">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-accent-100 rounded-full opacity-30"></div>
-            <CardContent className="p-4 relative">
-              <FileText className="h-6 w-6 text-accent-500 mb-2" />
-              <p className="text-xs text-neutral-500 mb-1">Pending Invoices</p>
-              <h3 className="text-lg font-bold text-neutral-800">
-                {stats?.pendingInvoices || 0}
-              </h3>
-              <div className="text-xs font-medium text-accent-600 mt-1">
-                Due in next 7 days
-              </div>
+            <CardContent className="p-4 relative min-h-[115px]">
+              {isLoadingStats ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <LoadingState 
+                    type="data" 
+                    title="Loading"
+                    size="sm"
+                  />
+                </div>
+              ) : (
+                <>
+                  <FileText className="h-6 w-6 text-accent-500 mb-2 animate-pulse-subtle" />
+                  <p className="text-xs text-neutral-500 mb-1">Pending Invoices</p>
+                  <h3 className="text-lg font-bold text-neutral-800 animate-fade-in">
+                    {stats?.pendingInvoices || 0}
+                  </h3>
+                  <div className="text-xs font-medium text-accent-600 mt-1 animate-slide-in-bottom">
+                    Due in next 7 days
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -231,59 +279,72 @@ export function MobileDashboard({
           <CardTitle className="text-base font-semibold">Recent Notes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-neutral-100">
-            {recentInvoices?.slice(0, 3).map((invoice) => {
-              // Convert status to the expected type
-              const status = invoice.status === "paid" ? "paid" : 
-                             invoice.status === "cancelled" ? "cancelled" : 
-                             invoice.status === "overdue" ? "overdue" : "pending";
-                             
-              return (
-                <div key={invoice.id} className="p-3 flex justify-between items-center">
-                  <div>
-                    <div className="font-medium text-sm">#{invoice.invoiceNo}</div>
-                    <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
-                    <div className="text-xs text-neutral-400 mt-0.5">
-                      {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+          {isLoadingInvoices ? (
+            <div className="py-10 flex items-center justify-center">
+              <LoadingState 
+                type="data" 
+                title="Loading Recent Notes"
+                message="Please wait..." 
+                size="sm"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-neutral-100">
+                {recentInvoices?.slice(0, 3).map((invoice, index) => {
+                  // Convert status to the expected type
+                  const status = invoice.status === "paid" ? "paid" : 
+                                invoice.status === "cancelled" ? "cancelled" : 
+                                invoice.status === "overdue" ? "overdue" : "pending";
+                                
+                  return (
+                    <div key={invoice.id} className="p-3 flex justify-between items-center animate-slide-in-bottom" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <div>
+                        <div className="font-medium text-sm">#{invoice.invoiceNo}</div>
+                        <div className="text-xs text-neutral-500 mt-0.5">{invoice.partyName}</div>
+                        <div className="text-xs text-neutral-400 mt-0.5">
+                          {format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div className="font-semibold text-sm">
+                          {formatCurrency(invoice.total)}
+                        </div>
+                        <StatusBadge 
+                          status={status}
+                          className="mt-1 text-xs py-0.5 px-1.5"
+                        />
+                        <div className="flex mt-1 space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenNoteDialog(invoice);
+                            }}
+                          >
+                            <MessageSquare className="h-3 w-3 text-primary-500" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+                {(recentInvoices?.length || 0) === 0 && (
+                  <div className="p-4 text-center text-neutral-500 text-sm animate-fade-in">
+                    No recent invoices
                   </div>
-                  <div className="flex flex-col items-end">
-                    <div className="font-semibold text-sm">
-                      {formatCurrency(invoice.total)}
-                    </div>
-                    <StatusBadge 
-                      status={status}
-                      className="mt-1 text-xs py-0.5 px-1.5"
-                    />
-                    <div className="flex mt-1 space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleOpenNoteDialog(invoice);
-                        }}
-                      >
-                        <MessageSquare className="h-3 w-3 text-primary-500" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {(recentInvoices?.length || 0) === 0 && (
-              <div className="p-4 text-center text-neutral-500 text-sm">
-                No recent invoices
+                )}
               </div>
-            )}
-          </div>
-          <div className="p-3 border-t">
-            <Button variant="ghost" size="sm" className="w-full text-sm text-primary-600">
-              Manage Notes
-            </Button>
-          </div>
+              <div className="p-3 border-t">
+                <Button variant="ghost" size="sm" className="w-full text-sm text-primary-600">
+                  Manage Notes
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
       

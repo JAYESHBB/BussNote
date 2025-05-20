@@ -191,6 +191,8 @@ export default function Dashboard() {
           recentInvoices={recentInvoices} 
           stats={dashboardStats}
           handleNewInvoice={() => setIsInvoiceFormOpen(true)}
+          isLoadingStats={isLoadingStats}
+          isLoadingInvoices={isLoadingInvoices}
         />
         <InvoiceForm open={isInvoiceFormOpen} onOpenChange={setIsInvoiceFormOpen} />
       </>
