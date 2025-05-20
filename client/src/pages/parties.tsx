@@ -59,7 +59,7 @@ export default function PartiesPage() {
   // Function to check if a party has invoices
   const checkPartyHasInvoices = async (partyId: number) => {
     try {
-      const response = await fetch(`/api/parties/${partyId}/has-invoices`);
+      const response = await apiRequest("GET", `/api/parties/${partyId}/has-invoices`);
       if (response.ok) {
         const data = await response.json();
         
@@ -69,12 +69,12 @@ export default function PartiesPage() {
           [partyId]: data.hasInvoices
         }));
         
-        console.log(`Party ${partyId} has invoices:`, data.hasInvoices);
+        console.log(`Party ${partyId} has invoices: ${data.hasInvoices}`);
         return data.hasInvoices;
       }
       return false;
     } catch (error) {
-      console.error(`Error checking if party ${partyId} has invoices:`, error);
+      console.error(`Error checking if party ${partyId} has invoices`);
       return false;
     }
   };
@@ -104,7 +104,7 @@ export default function PartiesPage() {
           }
           
           // Use apiRequest from queryClient to ensure proper handling
-          const response = await fetch(`/api/parties/${party.id}/has-invoices`);
+          const response = await apiRequest("GET", `/api/parties/${party.id}/has-invoices`);
           
           if (response.ok) {
             const data = await response.json();
@@ -189,11 +189,8 @@ export default function PartiesPage() {
   
   const handleDeleteParty = async (party: Party) => {
     try {
-      // Directly check with the server if party has invoices
-      const response = await fetch(`/api/parties/${party.id}/has-invoices`);
-      const data = await response.json();
-      
-      if (data.hasInvoices) {
+      // Use the state data we already have
+      if (partiesWithInvoices[party.id]) {
         // Show error message if party has invoices
         toast({
           title: "Cannot delete party",
@@ -207,10 +204,10 @@ export default function PartiesPage() {
       setPartyToDelete(party);
       setDeleteDialogOpen(true);
     } catch (error) {
-      console.error("Error checking if party has invoices:", error);
+      console.error("Error handling party deletion request");
       toast({
         title: "Error",
-        description: "Could not verify if party can be deleted. Please try again.",
+        description: "Could not process your request. Please try again.",
         variant: "destructive"
       });
     }
@@ -298,12 +295,17 @@ export default function PartiesPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8"
+                        className="h-8 w-8 relative group"
                         onClick={() => handleDeleteParty(party)}
-                        disabled={partiesWithInvoices[party.id]}
-                        title={partiesWithInvoices[party.id] ? "Cannot delete party with associated invoices" : "Delete party"}
+                        disabled={partiesWithInvoices[party.id] === true}
+                        title={partiesWithInvoices[party.id] === true ? "Cannot delete party with associated invoices" : "Delete party"}
                       >
-                        <Trash2 className={`h-4 w-4 ${partiesWithInvoices[party.id] ? 'text-gray-400' : 'text-red-500'}`} />
+                        <Trash2 className={`h-4 w-4 ${partiesWithInvoices[party.id] === true ? 'text-gray-400' : 'text-red-500'}`} />
+                        {partiesWithInvoices[party.id] === true && (
+                          <div className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-white border border-gray-200 rounded shadow-lg text-xs text-gray-700">
+                            Party cannot be deleted because it has associated invoices
+                          </div>
+                        )}
                       </Button>
                     </div>
                   </TableCell>
