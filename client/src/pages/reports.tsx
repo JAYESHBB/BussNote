@@ -596,7 +596,10 @@ export default function ReportsPage() {
   
   // Enhanced formatCurrency function with currency parameter
   const formatCurrency = (amount: number, currency: string | null = null) => {
+    // Choose appropriate currency code, default to INR
     const currencyCode = currency?.toUpperCase() || 'INR';
+    
+    // Use Intl.NumberFormat for proper currency formatting
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: currencyCode,
