@@ -271,72 +271,186 @@ export default function InvoiceDetailsPage() {
   };
   
   const handleDownload = () => {
-    // Create a new hidden iframe to generate the document for download
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    
-    // Get the document from the iframe
-    const doc = iframe.contentWindow?.document;
-    if (!doc) {
+    // Create a new popup window for the PDF
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) {
       toast({
         title: "Error",
-        description: "Could not create document for download.",
+        description: "Could not open window for PDF generation. Please check your popup settings.",
         variant: "destructive",
       });
-      document.body.removeChild(iframe);
       return;
     }
     
-    // Write the HTML content
-    doc.write(`
+    // Write the HTML content with PDF-specific CSS
+    printWindow.document.write(`
       <html>
         <head>
           <title>Invoice #${invoice.invoiceNo}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 15px; font-size: 12px; color: #333; line-height: 1.4; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-            .invoice-title { font-size: 20px; font-weight: bold; color: #333; }
-            .invoice-details { margin-top: 4px; color: #666; font-size: 11px; }
-            .section { margin-bottom: 15px; }
-            .section-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #444; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-            .info-box { padding: 12px; border: 1px solid #eee; border-radius: 4px; background-color: #fafafa; }
-            .info-box-title { font-weight: bold; margin-bottom: 6px; color: #555; font-size: 12px; }
-            .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            .table th { background-color: #f5f5f5; text-align: left; padding: 8px; font-size: 11px; color: #555; }
-            .table td { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
-            .text-right { text-align: right; }
-            .total-row { font-weight: bold; background-color: #f9f9f9; }
-            .notes { background-color: #f9f9f9; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 11px; }
-            .flex-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; }
-            .flex-row .label { color: #666; }
-            .flex-row .value { font-weight: 500; }
-            @media print { 
-              body { margin: 0; }
-              .info-box { break-inside: avoid; }
-              .table { break-inside: avoid; }
+            /* PDF-optimized styles */
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 15px; 
+              font-size: 12px; 
+              color: #333; 
+              line-height: 1.4;
+              background-color: white;
             }
+            .header { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-bottom: 15px; 
+              padding-bottom: 10px; 
+              border-bottom: 1px solid #eee; 
+            }
+            .invoice-title { 
+              font-size: 20px; 
+              font-weight: bold; 
+              color: #333; 
+            }
+            .invoice-details { 
+              margin-top: 4px; 
+              color: #666; 
+              font-size: 11px; 
+            }
+            .section { 
+              margin-bottom: 15px; 
+            }
+            .section-title { 
+              font-size: 14px; 
+              font-weight: bold; 
+              margin-bottom: 8px; 
+              color: #444; 
+            }
+            .grid { 
+              display: grid; 
+              grid-template-columns: 1fr 1fr 1fr; 
+              gap: 15px; 
+              margin-bottom: 15px; 
+            }
+            .info-box { 
+              padding: 12px; 
+              border: 1px solid #eee; 
+              border-radius: 4px; 
+              background-color: #fafafa; 
+            }
+            .info-box-title { 
+              font-weight: bold; 
+              margin-bottom: 6px; 
+              color: #555; 
+              font-size: 12px; 
+            }
+            .table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 15px; 
+            }
+            .table th { 
+              background-color: #f5f5f5; 
+              text-align: left; 
+              padding: 8px; 
+              font-size: 11px; 
+              color: #555; 
+            }
+            .table td { 
+              padding: 6px 8px; 
+              border-bottom: 1px solid #eee; 
+              font-size: 11px; 
+            }
+            .text-right { 
+              text-align: right; 
+            }
+            .total-row { 
+              font-weight: bold; 
+              background-color: #f9f9f9; 
+            }
+            .notes { 
+              background-color: #f9f9f9; 
+              padding: 12px; 
+              border-radius: 4px; 
+              margin-top: 15px; 
+              font-size: 11px; 
+            }
+            .flex-row { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-bottom: 4px; 
+              font-size: 11px; 
+            }
+            .flex-row .label { 
+              color: #666; 
+            }
+            .flex-row .value { 
+              font-weight: 500; 
+            }
+            
+            /* PDF specific settings */
             @page {
-              size: A4;
+              size: A4 portrait;
               margin: 1cm;
             }
+            @media print {
+              html, body {
+                width: 210mm;
+                height: 297mm;
+              }
+              body { 
+                margin: 0; 
+                padding: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .info-box { 
+                break-inside: avoid; 
+              }
+              .table { 
+                break-inside: avoid; 
+              }
+              .no-print {
+                display: none;
+              }
+            }
+            
+            /* Watermark */
             .watermark {
               position: fixed;
               top: 50%;
               left: 50%;
               transform: translate(-50%, -50%) rotate(-45deg);
               font-size: 60px;
-              opacity: 0.05;
+              opacity: 0.07;
               color: #000;
               pointer-events: none;
               z-index: -1;
               white-space: nowrap;
             }
+            
+            /* PDF Actions */
+            .pdf-actions {
+              text-align: center;
+              margin-top: 20px;
+              padding: 10px;
+              background-color: #f0f4f8;
+              border-radius: 4px;
+            }
+            .pdf-button {
+              padding: 8px 16px;
+              margin: 0 5px;
+              border: none;
+              border-radius: 4px;
+              background-color: #1e40af;
+              color: white;
+              font-weight: bold;
+              cursor: pointer;
+            }
           </style>
         </head>
         <body>
+          <!-- Watermark -->
           <div class="watermark">BussNote Invoice</div>
+          
+          <!-- Header -->
           <div class="header">
             <div style="flex: 2">
               <div class="invoice-title">Invoice #${invoice.invoiceNo}</div>
@@ -351,7 +465,9 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
           
+          <!-- Information Grid -->
           <div class="grid">
+            <!-- Party Information -->
             <div class="info-box">
               <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Party Information</div>
               <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 60px; font-weight: 500; color: #4b5563;">Seller:</span> <span style="color: #1f2937;">${invoice.partyName || ""}</span></div>
@@ -359,6 +475,7 @@ export default function InvoiceDetailsPage() {
               ${invoice.partyEmail ? `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 60px; font-weight: 500; color: #4b5563;">Email:</span> <span style="color: #1f2937; font-size: 10px;">${invoice.partyEmail}</span></div>` : ""}
             </div>
             
+            <!-- Invoice Details -->
             <div class="info-box">
               <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Invoice Details</div>
               <div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Invoice Date:</span> <span style="color: #1f2937;">${format(new Date(invoice.invoiceDate), "MMM d, yyyy")}</span></div>
@@ -369,6 +486,7 @@ export default function InvoiceDetailsPage() {
               ${invoice.notes ? `<div style="display: flex; margin-bottom: 3px;"><span style="min-width: 95px; font-weight: 500; color: #4b5563;">Notes:</span> <span style="color: #1f2937;">${invoice.notes}</span></div>` : ""}
             </div>
             
+            <!-- Payment Summary -->
             <div class="info-box">
               <div class="info-box-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Payment Summary</div>
               <div style="display: flex; margin-bottom: 3px;">
@@ -405,6 +523,7 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
           
+          <!-- Invoice Items -->
           <div class="section">
             <div class="section-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px;">Invoice Items</div>
             <table class="table" style="border: 1px solid #f1f5f9;">
@@ -446,6 +565,7 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
           
+          <!-- Notes (conditional) -->
           ${invoice.notes ? `
             <div class="notes" style="background-color: #f9fafb; padding: 12px; border-radius: 4px; margin-top: 15px; border: 1px solid #f1f5f9;">
               <div class="section-title" style="color: #1e40af; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Notes</div>
@@ -453,6 +573,7 @@ export default function InvoiceDetailsPage() {
             </div>
           ` : ""}
           
+          <!-- Footer -->
           <div style="margin-top: 30px; border-top: 1px dashed #e2e8f0; padding-top: 15px; display: flex; justify-content: space-between;">
             <div style="flex: 1; font-size: 10px; color: #64748b;">
               <div style="margin-bottom: 3px;">Thank you for your business!</div>
@@ -463,58 +584,37 @@ export default function InvoiceDetailsPage() {
               <div>Invoice #${invoice.invoiceNo}</div>
             </div>
           </div>
+          
+          <!-- PDF Control Buttons -->
+          <div class="pdf-actions no-print">
+            <button class="pdf-button" onclick="window.print()">Save as PDF</button>
+            <button class="pdf-button" onclick="window.close()">Close</button>
+          </div>
+          
+          <script>
+            // Automatically show the print dialog after the content has loaded
+            window.onload = function() {
+              // Short delay to ensure styles are applied
+              setTimeout(function() {
+                // Show message to the user
+                alert("To save as PDF: Select 'Save as PDF' option from the printer menu and click Save.");
+                // Open print dialog
+                window.print();
+              }, 1000);
+            }
+          </script>
         </body>
       </html>
     `);
-    doc.close();
     
-    // Wait for content to load
-    setTimeout(() => {
-      try {
-        // Use iframe's window to trigger the browser's print-to-PDF functionality
-        const iframeWindow = iframe.contentWindow;
-        
-        if (!iframeWindow) {
-          throw new Error("Could not access iframe content window");
-        }
-        
-        // Create a link element for downloading
-        const downloadLink = document.createElement('a');
-        downloadLink.style.display = 'none';
-        document.body.appendChild(downloadLink);
-        
-        // Set the filename for download
-        const fileName = `Invoice_${invoice.invoiceNo}_${invoice.partyName || 'Client'}.html`;
-        
-        // Create a Blob from the HTML content
-        const blob = new Blob([iframeWindow.document.documentElement.outerHTML], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        
-        // Set up download link
-        downloadLink.href = url;
-        downloadLink.download = fileName;
-        
-        // Trigger download
-        downloadLink.click();
-        
-        // Clean up
-        URL.revokeObjectURL(url);
-        document.body.removeChild(downloadLink);
-        document.body.removeChild(iframe);
-        
-        toast({
-          title: "Download Complete",
-          description: `Invoice saved as ${fileName}`,
-        });
-      } catch (error) {
-        document.body.removeChild(iframe);
-        toast({
-          title: "Error",
-          description: "Could not generate downloadable file.",
-          variant: "destructive",
-        });
-      }
-    }, 1000);
+    // Close the document to load content
+    printWindow.document.close();
+    
+    // Notify the user
+    toast({
+      title: "PDF Generation",
+      description: "PDF window has been opened. Please choose 'Save as PDF' in the print dialog.",
+    });
   };
   
   const handleEmail = () => {
