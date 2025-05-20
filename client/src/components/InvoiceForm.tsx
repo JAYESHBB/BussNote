@@ -994,6 +994,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
                             placeholder="0.00"
                             className="h-7 px-2 py-1 text-sm"
                             {...field}
+                            value={isNaN(field.value) ? 0 : field.value}
                             onChange={(e) => {
                               const value =
                                 e.target.value === "" ? "0" : e.target.value;
