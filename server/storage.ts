@@ -221,6 +221,18 @@ class DatabaseStorage implements IStorage {
   }
   
   async deleteParty(id: number): Promise<void> {
+    // First check if party is associated with any invoices
+    const relatedInvoices = await db.select()
+      .from(invoices)
+      .where(eq(invoices.partyId, id))
+      .limit(1);
+    
+    // If there are related invoices, prevent deletion
+    if (relatedInvoices.length > 0) {
+      throw new Error("Cannot delete party with related invoices. Please delete the invoices first.");
+    }
+    
+    // No related invoices found, proceed with deletion
     await db.delete(parties).where(eq(parties.id, id));
   }
   
