@@ -149,7 +149,7 @@ export default function AnalyticsPage() {
     isLoading: trendsLoading,
     refetch: refetchTrends,
   } = useQuery({
-    queryKey: ["/api/analytics/sales-trends", fromDate, toDate, periodType],
+    queryKey: ["/api/analytics/trends", fromDate, toDate, periodType],
     queryFn: async () => {
       // Ensure we have dates to work with
       if (!fromDate || !toDate) {
