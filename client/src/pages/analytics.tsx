@@ -103,18 +103,20 @@ export default function AnalyticsPage() {
   } = useQuery({
     queryKey: ["/api/analytics/brokerage", fromDate, toDate],
     queryFn: async () => {
-      const formattedFromDate = fromDate
-        ? format(fromDate, "yyyy-MM-dd")
-        : undefined;
-      const formattedToDate = toDate
-        ? format(toDate, "yyyy-MM-dd")
-        : undefined;
+      // Ensure we have dates to work with
+      if (!fromDate || !toDate) {
+        return { byStatus: [], topParties: [] };
+      }
+      
+      const formattedFromDate = format(fromDate, "yyyy-MM-dd");
+      const formattedToDate = format(toDate, "yyyy-MM-dd");
 
       const response = await fetch(
         `/api/analytics/brokerage?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
       );
       return await response.json();
     },
+    enabled: Boolean(fromDate) && Boolean(toDate), // Only run query when dates are available
   });
 
   // Party sales analytics query
@@ -125,18 +127,20 @@ export default function AnalyticsPage() {
   } = useQuery({
     queryKey: ["/api/analytics/party-sales", fromDate, toDate],
     queryFn: async () => {
-      const formattedFromDate = fromDate
-        ? format(fromDate, "yyyy-MM-dd")
-        : undefined;
-      const formattedToDate = toDate
-        ? format(toDate, "yyyy-MM-dd")
-        : undefined;
+      // Ensure we have dates to work with
+      if (!fromDate || !toDate) {
+        return { bySeller: [], byBuyer: [] };
+      }
+      
+      const formattedFromDate = format(fromDate, "yyyy-MM-dd");
+      const formattedToDate = format(toDate, "yyyy-MM-dd");
 
       const response = await fetch(
         `/api/analytics/party-sales?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
       );
       return await response.json();
     },
+    enabled: Boolean(fromDate) && Boolean(toDate), // Only run query when dates are available
   });
 
   // Sales trends query
@@ -147,23 +151,35 @@ export default function AnalyticsPage() {
   } = useQuery({
     queryKey: ["/api/analytics/sales-trends", fromDate, toDate, periodType],
     queryFn: async () => {
-      const formattedFromDate = fromDate
-        ? format(fromDate, "yyyy-MM-dd")
-        : undefined;
-      const formattedToDate = toDate
-        ? format(toDate, "yyyy-MM-dd")
-        : undefined;
+      // Ensure we have dates to work with
+      if (!fromDate || !toDate) {
+        return { data: [], comparison: { data: [] } };
+      }
+      
+      const formattedFromDate = format(fromDate, "yyyy-MM-dd");
+      const formattedToDate = format(toDate, "yyyy-MM-dd");
 
+      console.log("Fetching with date range:", { formattedFromDate, formattedToDate, periodType });
+      
       const response = await fetch(
         `/api/analytics/sales-trends?fromDate=${formattedFromDate}&toDate=${formattedToDate}&periodType=${periodType}`
       );
-      return await response.json();
+      const data = await response.json();
+      console.log("Received data:", data);
+      return data;
     },
+    enabled: Boolean(fromDate) && Boolean(toDate), // Only run query when dates are available
   });
 
   // Handle filter application
   const handleApplyFilters = () => {
-    console.log("Applying filters with date range:", { fromDate, toDate, periodType });
+    console.log("Applying filters with date range:", { 
+      fromDate: fromDate ? format(fromDate, "yyyy-MM-dd") : null, 
+      toDate: toDate ? format(toDate, "yyyy-MM-dd") : null, 
+      periodType 
+    });
+    
+    // Force refetch with current date values
     refetchBrokerage();
     refetchPartySales();
     refetchTrends();
