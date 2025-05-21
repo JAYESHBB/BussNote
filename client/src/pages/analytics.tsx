@@ -173,16 +173,34 @@ export default function AnalyticsPage() {
 
   // Handle filter application
   const handleApplyFilters = () => {
+    // Ensure we have dates even if user couldn't select from calendar
+    if (!fromDate) {
+      const defaultFromDate = subMonths(new Date(), 12);
+      setFromDate(defaultFromDate);
+      console.log("Using default fromDate:", format(defaultFromDate, "yyyy-MM-dd"));
+    }
+    
+    if (!toDate) {
+      const defaultToDate = new Date();
+      setToDate(defaultToDate);
+      console.log("Using default toDate:", format(defaultToDate, "yyyy-MM-dd"));
+    }
+    
+    const actualFromDate = fromDate || subMonths(new Date(), 12);
+    const actualToDate = toDate || new Date();
+    
     console.log("Applying filters with date range:", { 
-      fromDate: fromDate ? format(fromDate, "yyyy-MM-dd") : null, 
-      toDate: toDate ? format(toDate, "yyyy-MM-dd") : null, 
+      fromDate: format(actualFromDate, "yyyy-MM-dd"), 
+      toDate: format(actualToDate, "yyyy-MM-dd"), 
       periodType 
     });
     
     // Force refetch with current date values
-    refetchBrokerage();
-    refetchPartySales();
-    refetchTrends();
+    setTimeout(() => {
+      refetchBrokerage();
+      refetchPartySales();
+      refetchTrends();
+    }, 100); // Small delay to ensure state updates
   };
 
   // Handle period type change
