@@ -145,30 +145,32 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
  */
 export async function getSalesTrends(req: Request, res: Response) {
   try {
-    const period = req.query.period as string || "yearly";
+    const periodType = req.query.periodType as string || "monthly";
+    const fromDateStr = req.query.fromDate as string;
+    const toDateStr = req.query.toDate as string;
     
-    // Calculate time ranges based on period
+    // Use user-provided dates if available, otherwise use defaults
+    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
+    const toDate = toDateStr ? new Date(toDateStr) : new Date();
+    
+    // Set up time grouping based on period type
     let timeGroup;
     let timeFormat;
-    let periodCount;
     let compareGroup;
     let compareFormat;
     let compareLabel;
-    const today = new Date();
     
     // Default to monthly periods
     timeGroup = `DATE_TRUNC('month', invoice_date::date)`;
     timeFormat = `TO_CHAR(DATE_TRUNC('month', invoice_date::date), 'YYYY-MM')`;
-    periodCount = 12; // Last 12 months
     compareGroup = `DATE_PART('month', invoice_date::date)`;
     compareFormat = `TO_CHAR(invoice_date::date, 'MM')`;
     compareLabel = 'month';
     
-    switch (period) {
+    switch (periodType) {
       case "weekly":
         timeGroup = `DATE_TRUNC('week', invoice_date::date)`;
         timeFormat = `TO_CHAR(DATE_TRUNC('week', invoice_date::date), 'YYYY-WW')`;
-        periodCount = 12; // Last 12 weeks
         compareGroup = `DATE_PART('week', invoice_date::date)`;
         compareFormat = `TO_CHAR(invoice_date::date, 'WW')`;
         compareLabel = 'week';
@@ -179,7 +181,6 @@ export async function getSalesTrends(req: Request, res: Response) {
       case "quarterly":
         timeGroup = `DATE_TRUNC('quarter', invoice_date::date)`;
         timeFormat = `TO_CHAR(DATE_TRUNC('quarter', invoice_date::date), 'YYYY-Q"Q"')`;
-        periodCount = 8; // Last 8 quarters
         compareGroup = `DATE_PART('quarter', invoice_date::date)`;
         compareFormat = `TO_CHAR(DATE_TRUNC('quarter', invoice_date::date), 'Q')`;
         compareLabel = 'quarter';
@@ -187,44 +188,25 @@ export async function getSalesTrends(req: Request, res: Response) {
       case "yearly":
         timeGroup = `DATE_TRUNC('year', invoice_date::date)`;
         timeFormat = `TO_CHAR(DATE_TRUNC('year', invoice_date::date), 'YYYY')`;
-        periodCount = 5; // Last 5 years
         compareGroup = `DATE_PART('year', invoice_date::date)`;
         compareFormat = `TO_CHAR(invoice_date::date, 'YYYY')`;
         compareLabel = 'year';
         break;
     }
     
-    // Calculate fromDate based on period
-    let fromDate;
-    switch (period) {
-      case "weekly":
-        fromDate = new Date(today);
-        fromDate.setDate(today.getDate() - (7 * periodCount));
-        break;
-      case "monthly":
-        fromDate = subMonths(today, periodCount);
-        break;
-      case "quarterly":
-        fromDate = subMonths(today, 3 * periodCount);
-        break;
-      case "yearly":
-        fromDate = subYears(today, periodCount);
-        break;
-      default:
-        fromDate = subMonths(today, periodCount);
-    }
+    console.log(`Fetching sales trends with date range: ${fromDate.toISOString()} to ${toDate.toISOString()}, period type: ${periodType}`);
     
-    // Get sales trends data
+    // Get sales trends data using user-selected date range
     const trendData = await db.execute(sql`
       SELECT 
-        ${timeFormat} AS time_period,
-        SUM(CAST(subtotal AS NUMERIC)) AS sales,
-        COUNT(*) AS invoice_count,
-        SUM(CAST(brokerage_inr AS NUMERIC)) AS brokerage,
-        SUM(CAST(received_brokerage AS NUMERIC)) AS received_brokerage,
-        ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
+        ${timeFormat} AS period,
+        SUM(CAST(subtotal AS NUMERIC)) AS totalSales,
+        COUNT(*) AS invoiceCount,
+        SUM(CAST(brokerage_inr AS NUMERIC)) AS totalBrokerage,
+        SUM(CAST(received_brokerage AS NUMERIC)) AS receivedBrokerage,
+        ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avgExchangeRate
       FROM invoices
-      WHERE invoice_date >= ${fromDate}
+      WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
       GROUP BY ${timeGroup}
       ORDER BY ${timeGroup}
     `);
@@ -238,7 +220,7 @@ export async function getSalesTrends(req: Request, res: Response) {
           ${compareFormat} AS period,
           SUM(CASE WHEN total > 0 THEN CAST(total AS NUMERIC) ELSE CAST(subtotal AS NUMERIC) END) AS total
         FROM invoices
-        WHERE invoice_date >= ${fromDate}
+        WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
         GROUP BY year, period_num, period
       )
       SELECT 
@@ -251,13 +233,14 @@ export async function getSalesTrends(req: Request, res: Response) {
     `);
     
     res.json({
-      trends: trendData.rows,
+      data: trendData.rows,
       comparison: {
         data: comparisonData.rows,
         periodType: compareLabel
       },
-      period,
-      fromDate
+      periodType,
+      fromDate,
+      toDate
     });
   } catch (error) {
     console.error("Error generating sales trends:", error);
