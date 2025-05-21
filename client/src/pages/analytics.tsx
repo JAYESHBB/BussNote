@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, subMonths } from "date-fns";
+import { format, subMonths, subDays } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -234,13 +234,56 @@ export default function AnalyticsPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={fromDate}
-                    onSelect={setFromDate}
-                    disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
-                    initialFocus
-                  />
+                  <div className="p-3">
+                    <h3 className="mb-3 text-sm font-medium">चुनें</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => {
+                          setFromDate(subMonths(new Date(), 1));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        1 महीना
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFromDate(subMonths(new Date(), 3));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        3 महीने
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFromDate(subMonths(new Date(), 6));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        6 महीने
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFromDate(subMonths(new Date(), 12));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        1 साल
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFromDate(subMonths(new Date(), 24));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        2 साल
+                      </button>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
@@ -259,13 +302,47 @@ export default function AnalyticsPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={toDate}
-                    onSelect={setToDate}
-                    disabled={(date) => date > new Date() || date < new Date("2000-01-01") || (fromDate && date < fromDate)}
-                    initialFocus
-                  />
+                  <div className="p-3">
+                    <h3 className="mb-3 text-sm font-medium">अंतिम तिथि चुनें</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setToDate(new Date());
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        आज
+                      </button>
+                      <button
+                        onClick={() => {
+                          setToDate(subDays(new Date(), 7));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        1 सप्ताह पहले
+                      </button>
+                      <button
+                        onClick={() => {
+                          setToDate(subMonths(new Date(), 1));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        1 महीना पहले
+                      </button>
+                      <button
+                        onClick={() => {
+                          setToDate(subMonths(new Date(), 3));
+                          document.body.click(); // Close popover
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                      >
+                        3 महीने पहले
+                      </button>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
