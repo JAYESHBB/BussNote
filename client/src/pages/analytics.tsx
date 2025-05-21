@@ -202,7 +202,10 @@ export default function AnalyticsPage() {
                   <Calendar
                     mode="single"
                     selected={fromDate}
-                    onSelect={setFromDate}
+                    onSelect={(date) => {
+                      console.log("From date selected:", date);
+                      setFromDate(date);
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -226,7 +229,10 @@ export default function AnalyticsPage() {
                   <Calendar
                     mode="single"
                     selected={toDate}
-                    onSelect={setToDate}
+                    onSelect={(date) => {
+                      console.log("To date selected:", date);
+                      setToDate(date);
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
