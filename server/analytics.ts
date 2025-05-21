@@ -232,8 +232,18 @@ export async function getSalesTrends(req: Request, res: Response) {
       ORDER BY period_num
     `);
     
+    // Transform data into the expected format for the frontend
+    const trendsData = trendData.rows.map(row => ({
+      period: row.period,
+      totalSales: parseFloat(row.totalsales || 0),
+      totalBrokerage: parseFloat(row.totalbrokerage || 0),
+      receivedBrokerage: parseFloat(row.receivedbrokerage || 0),
+      invoiceCount: parseInt(row.invoicecount || 0),
+      avgExchangeRate: parseFloat(row.avgexchangerate || 0)
+    }));
+
     res.json({
-      data: trendData.rows,
+      data: trendsData,
       comparison: {
         data: comparisonData.rows,
         periodType: compareLabel

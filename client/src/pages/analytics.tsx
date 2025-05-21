@@ -163,6 +163,7 @@ export default function AnalyticsPage() {
 
   // Handle filter application
   const handleApplyFilters = () => {
+    console.log("Applying filters with date range:", { fromDate, toDate, periodType });
     refetchBrokerage();
     refetchPartySales();
     refetchTrends();
@@ -278,7 +279,7 @@ export default function AnalyticsPage() {
                     <div className="flex justify-center items-center h-[400px]">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                  ) : salesTrendsData?.data?.length > 0 ? (
+                  ) : salesTrendsData?.data && salesTrendsData.data.length > 0 ? (
                     <ResponsiveContainer width="100%" height={400}>
                       <LineChart
                         data={salesTrendsData.data}
