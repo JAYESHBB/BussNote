@@ -219,135 +219,70 @@ export default function AnalyticsPage() {
               View detailed analytics and insights about your business
             </p>
           </div>
-          <div className="flex space-x-4 items-center">
-            <div className="grid gap-2 min-w-[240px]">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !fromDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {fromDate ? format(fromDate, "PPP") : <span>From Date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <div className="p-3">
-                    <h3 className="mb-3 text-sm font-medium">चुनें</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        onClick={() => {
-                          setFromDate(subMonths(new Date(), 1));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        1 महीना
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFromDate(subMonths(new Date(), 3));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        3 महीने
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFromDate(subMonths(new Date(), 6));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        6 महीने
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFromDate(subMonths(new Date(), 12));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        1 साल
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFromDate(subMonths(new Date(), 24));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        2 साल
-                      </button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+          
+          <div className="flex flex-col gap-4 w-full md:w-auto mt-4 md:mt-0">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select 
+                defaultValue="last12m"
+                onValueChange={(value) => {
+                  // Set the from and to dates based on the selection
+                  const now = new Date();
+                  let fromDateVal = now;
+                  
+                  switch(value) {
+                    case "last3m":
+                      fromDateVal = subMonths(now, 3);
+                      break;
+                    case "last6m":
+                      fromDateVal = subMonths(now, 6);
+                      break;
+                    case "last12m":
+                      fromDateVal = subMonths(now, 12);
+                      break;
+                    case "last24m":
+                      fromDateVal = subMonths(now, 24);
+                      break;
+                    case "all":
+                      fromDateVal = subMonths(now, 60); // 5 years back
+                      break;
+                  }
+                  
+                  // Update state
+                  setFromDate(fromDateVal);
+                  setToDate(now);
+                  
+                  // Auto-apply filters after a small delay
+                  setTimeout(handleApplyFilters, 100);
+                }}
+                className="w-full sm:w-[200px]"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="चुनें: समय अवधि" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="last3m">पिछले 3 महीने</SelectItem>
+                  <SelectItem value="last6m">पिछले 6 महीने</SelectItem>
+                  <SelectItem value="last12m">पिछले 1 साल</SelectItem>
+                  <SelectItem value="last24m">पिछले 2 साल</SelectItem>
+                  <SelectItem value="all">सभी डेटा</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={periodType} onValueChange={handlePeriodTypeChange} className="w-full sm:w-[200px]">
+                <SelectTrigger>
+                  <SelectValue placeholder="चुनें: अवधि प्रकार" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">मासिक</SelectItem>
+                  <SelectItem value="quarterly">त्रैमासिक</SelectItem>
+                  <SelectItem value="yearly">वार्षिक</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button onClick={handleApplyFilters} className="w-full sm:w-auto">
+                अपडेट करें
+              </Button>
             </div>
-            <div className="grid gap-2 min-w-[240px]">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !toDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {toDate ? format(toDate, "PPP") : <span>To Date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <div className="p-3">
-                    <h3 className="mb-3 text-sm font-medium">अंतिम तिथि चुनें</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setToDate(new Date());
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        आज
-                      </button>
-                      <button
-                        onClick={() => {
-                          setToDate(subDays(new Date(), 7));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        1 सप्ताह पहले
-                      </button>
-                      <button
-                        onClick={() => {
-                          setToDate(subMonths(new Date(), 1));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        1 महीना पहले
-                      </button>
-                      <button
-                        onClick={() => {
-                          setToDate(subMonths(new Date(), 3));
-                          document.body.click(); // Close popover
-                        }}
-                        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                      >
-                        3 महीने पहले
-                      </button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <Button onClick={handleApplyFilters}>Apply Filters</Button>
           </div>
         </div>
 
