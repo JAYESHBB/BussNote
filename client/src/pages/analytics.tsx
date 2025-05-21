@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subMonths } from "date-fns";
 import {
@@ -16,7 +16,6 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
   Card,
   CardContent,
@@ -38,15 +37,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Calendar, BarChart4, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
-// Chart colors
+// RADIAN constant for pie chart calculations
+const RADIAN = Math.PI / 180;
+
+// Custom tooltip for pie chart
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border rounded shadow">
+        <p className="font-medium">{payload[0].name}</p>
+        <p>
+          {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0,
+          }).format(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Colors for pie and bar charts
 const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
   "#8884d8",
-  "#83a6ed",
-  "#8dd1e1",
   "#82ca9d",
-  "#a4de6c",
   "#d0ed57",
   "#ffc658",
   "#ff8042",
@@ -108,7 +133,7 @@ export default function AnalyticsPage() {
         : undefined;
 
       const response = await fetch(
-        `/api/analytics/party-sales?fromDate=${formattedFromDate}&toDate=${formattedToDate}&limit=10`
+        `/api/analytics/party-sales?fromDate=${formattedFromDate}&toDate=${formattedToDate}`
       );
       return await response.json();
     },
@@ -116,568 +141,441 @@ export default function AnalyticsPage() {
 
   // Sales trends query
   const {
-    data: trendsData,
+    data: salesTrendsData,
     isLoading: trendsLoading,
     refetch: refetchTrends,
   } = useQuery({
-    queryKey: ["/api/analytics/trends", periodType],
+    queryKey: ["/api/analytics/sales-trends", fromDate, toDate, periodType],
     queryFn: async () => {
+      const formattedFromDate = fromDate
+        ? format(fromDate, "yyyy-MM-dd")
+        : undefined;
+      const formattedToDate = toDate
+        ? format(toDate, "yyyy-MM-dd")
+        : undefined;
+
       const response = await fetch(
-        `/api/analytics/trends?period=${periodType}`
+        `/api/analytics/sales-trends?fromDate=${formattedFromDate}&toDate=${formattedToDate}&periodType=${periodType}`
       );
       return await response.json();
     },
   });
 
-  // Handle date filter changes
+  // Handle filter application
   const handleApplyFilters = () => {
     refetchBrokerage();
     refetchPartySales();
+    refetchTrends();
   };
 
-  // Handle period type change for trends
-  useEffect(() => {
-    refetchTrends();
-  }, [periodType, refetchTrends]);
+  // Handle period type change
+  const handlePeriodTypeChange = (value: string) => {
+    setPeriodType(value);
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 text-transparent bg-clip-text">
-            Business Intelligence
-          </h1>
-          <p className="text-muted-foreground">
-            Advanced analytics and insights for your business
-          </p>
-        </div>
-        <div className="flex space-x-4 items-center">
-          <div className="grid gap-2 min-w-[240px]">
-            <DatePicker
-              date={fromDate}
-              setDate={setFromDate}
-              placeholder="From Date"
-            />
+    <div className="p-6">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Analytics</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              View detailed analytics and insights about your business
+            </p>
           </div>
-          <div className="grid gap-2 min-w-[240px]">
-            <DatePicker
-              date={toDate}
-              setDate={setToDate}
-              placeholder="To Date"
-            />
+          <div className="flex space-x-4 items-center">
+            <div className="grid gap-2 min-w-[240px]">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !fromDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {fromDate ? format(fromDate, "PPP") : <span>From Date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={setFromDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid gap-2 min-w-[240px]">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !toDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {toDate ? format(toDate, "PPP") : <span>To Date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={toDate}
+                    onSelect={setToDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Button onClick={handleApplyFilters}>Apply Filters</Button>
           </div>
-          <Button onClick={handleApplyFilters}>Apply Filters</Button>
         </div>
-      </div>
 
-      <Tabs defaultValue="brokerage">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="brokerage" className="flex items-center justify-center">
-            <BarChart4 className="w-4 h-4 mr-2" /> Brokerage Analysis
-          </TabsTrigger>
-          <TabsTrigger value="parties" className="flex items-center justify-center">
-            <PieChartIcon className="w-4 h-4 mr-2" /> Party Analysis
-          </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 mr-2" /> Sales Trends
-          </TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="sales">
+          <TabsList className="mb-4">
+            <TabsTrigger value="sales">Sales Analysis</TabsTrigger>
+            <TabsTrigger value="brokerage">Brokerage Analysis</TabsTrigger>
+            <TabsTrigger value="party">Party Analysis</TabsTrigger>
+          </TabsList>
 
-        {/* Brokerage Analysis Tab */}
-        <TabsContent value="brokerage" className="space-y-6">
-          {brokerageLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : brokerageData ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="hover:shadow-lg transition-all">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Brokerage (INR)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 text-transparent bg-clip-text">
-                      {formatCurrency(brokerageData.totals?.total_brokerage_inr || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-lg transition-all">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Received Brokerage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-green-500 to-green-700 text-transparent bg-clip-text">
-                      {formatCurrency(brokerageData.totals?.total_received || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-lg transition-all">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Pending Brokerage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-red-500 text-transparent bg-clip-text">
-                      {formatCurrency(brokerageData.totals?.total_pending || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="hover:shadow-lg transition-all">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Average Brokerage %
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {brokerageData.totals?.average_brokerage_percentage
-                        ? `${brokerageData.totals.average_brokerage_percentage}%`
-                        : "0%"}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Brokerage by Currency</CardTitle>
-                    <CardDescription>
-                      Breakdown of brokerage across different currencies
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={brokerageData.byCurrency || []}
-                          margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="currency" />
-                          <YAxis />
-                          <Tooltip
-                            formatter={(value) => formatCurrency(Number(value))}
-                          />
-                          <Legend />
-                          <Bar
-                            dataKey="total_brokerage"
-                            name="Brokerage Amount"
-                            fill="#8884d8"
-                          />
-                          <Bar
-                            dataKey="total_brokerage_inr"
-                            name="Brokerage in INR"
-                            fill="#82ca9d"
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Brokerage vs Sales Trend</CardTitle>
-                    <CardDescription>
-                      Monthly comparison of brokerage against sales
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={brokerageData.monthlyTrend || []}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis yAxisId="left" />
-                          <YAxis
-                            yAxisId="right"
-                            orientation="right"
-                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                          />
-                          <Tooltip
-                            formatter={(value, name) => {
-                              if (name === "Sales") {
-                                return formatCurrency(Number(value));
-                              }
-                              return [formatCurrency(Number(value)), name];
-                            }}
-                          />
-                          <Legend />
-                          <Line
-                            yAxisId="left"
-                            type="monotone"
-                            dataKey="brokerage_inr"
-                            name="Brokerage (INR)"
-                            stroke="#8884d8"
-                            activeDot={{ r: 8 }}
-                          />
-                          <Line
-                            yAxisId="left"
-                            type="monotone"
-                            dataKey="received_brokerage"
-                            name="Received"
-                            stroke="#82ca9d"
-                          />
-                          <Line
-                            yAxisId="right"
-                            type="monotone"
-                            dataKey="sales"
-                            name="Sales"
-                            stroke="#ff7300"
-                            strokeDasharray="5 5"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </>
-          ) : (
-            <div className="flex justify-center items-center h-64">
-              <p>No brokerage data available for the selected period.</p>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Party Analysis Tab */}
-        <TabsContent value="parties" className="space-y-6">
-          {partySalesLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : partySalesData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="sales" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Parties by Sales</CardTitle>
-                  <CardDescription>
-                    Parties with highest sales volume
-                  </CardDescription>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Combined Sales & Brokerage Analysis</CardTitle>
+                      <CardDescription>
+                        Comparison of Sales, Brokerage, and Received Brokerage over time
+                      </CardDescription>
+                    </div>
+                    <Select value={periodType} onValueChange={handlePeriodTypeChange}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select Period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={partySalesData.topParties || []}
+                  {trendsLoading ? (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : salesTrendsData?.data?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart
+                        data={salesTrendsData.data}
                         margin={{
                           top: 20,
                           right: 30,
                           left: 20,
-                          bottom: 70,
+                          bottom: 10,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis
+                          tickFormatter={(value) =>
+                            new Intl.NumberFormat("en", {
+                              notation: "compact",
+                              compactDisplay: "short",
+                            }).format(value)
+                          }
+                        />
+                        <Tooltip
+                          formatter={(value) =>
+                            new Intl.NumberFormat("en-IN", {
+                              style: "currency",
+                              currency: "INR",
+                              maximumFractionDigits: 0,
+                            }).format(Number(value))
+                          }
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="totalSales"
+                          name="Total Sales"
+                          stroke="#0088FE"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 8 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="totalBrokerage"
+                          name="Total Brokerage"
+                          stroke="#FF8042"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 8 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="receivedBrokerage"
+                          name="Received Brokerage"
+                          stroke="#00C49F"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 8 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <p className="text-muted-foreground">No data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="brokerage" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Brokerage by Status</CardTitle>
+                  <CardDescription>
+                    Distribution of brokerage by invoice status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {brokerageLoading ? (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : brokerageData?.byStatus?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <PieChart>
+                        <Pie
+                          data={brokerageData.byStatus}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={150}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                          label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                            const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                            return (
+                              <text
+                                x={x}
+                                y={y}
+                                fill="white"
+                                textAnchor={x > cx ? 'start' : 'end'}
+                                dominantBaseline="central"
+                              >
+                                {`${(percent * 100).toFixed(0)}%`}
+                              </text>
+                            );
+                          }}
+                        >
+                          {brokerageData.byStatus.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomPieTooltip />} />
+                        <Legend layout="vertical" verticalAlign="middle" align="right" />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <p className="text-muted-foreground">No data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Parties by Brokerage</CardTitle>
+                  <CardDescription>
+                    Parties generating the most brokerage
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {brokerageLoading ? (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : brokerageData?.topParties?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={brokerageData.topParties}
+                        layout="vertical"
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 120,
+                          bottom: 5,
                         }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
-                          dataKey="name"
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
+                          type="number"
+                          tickFormatter={(value) =>
+                            new Intl.NumberFormat("en", {
+                              notation: "compact",
+                              compactDisplay: "short",
+                            }).format(value)
+                          }
                         />
-                        <YAxis />
+                        <YAxis type="category" dataKey="name" width={120} />
                         <Tooltip
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value) =>
+                            new Intl.NumberFormat("en-IN", {
+                              style: "currency",
+                              currency: "INR",
+                              maximumFractionDigits: 0,
+                            }).format(Number(value))
+                          }
                         />
                         <Legend />
                         <Bar
-                          dataKey="total_sales"
-                          name="Total Sales"
-                          fill="#8884d8"
-                        >
-                          {(partySalesData.topParties || []).map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          ))}
-                        </Bar>
+                          dataKey="value"
+                          name="Brokerage Amount"
+                          fill="#82ca9d"
+                          radius={[0, 4, 4, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Distribution by Party</CardTitle>
-                  <CardDescription>
-                    Percentage contribution to total sales
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          dataKey="contribution_percentage"
-                          nameKey="name"
-                          data={partySalesData.salesDistribution || []}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          fill="#8884d8"
-                          label={({ name, percent }) =>
-                            `${name}: ${(percent * 100).toFixed(1)}%`
-                          }
-                        >
-                          {(partySalesData.salesDistribution || []).map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value) => `${value.toFixed(1)}%`}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <div className="flex justify-center items-center h-64">
-              <p>No party sales data available for the selected period.</p>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Sales Trends Tab */}
-        <TabsContent value="trends" className="space-y-6">
-          <div className="flex justify-end mb-4">
-            <Select value={periodType} onValueChange={setPeriodType}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {trendsLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : trendsData ? (
-            <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Combined Sales & Brokerage Analysis</CardTitle>
-                  <CardDescription>
-                    Comparative view of sales, brokerage earnings, and invoice counts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-96">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={trendsData.trends || []}
-                        margin={{
-                          top: 5,
-                          right: 30,
-                          left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time_period" />
-                        <YAxis 
-                          yAxisId="sales" 
-                          tickFormatter={(value) => `${(value/1000).toFixed(0)}k`}
-                        />
-                        <YAxis
-                          yAxisId="brokerage"
-                          orientation="right"
-                          tickFormatter={(value) => `${value}`}
-                        />
-                        <Tooltip
-                          formatter={(value, name) => {
-                            if (name === "Sales") {
-                              return [formatCurrency(Number(value)), name];
-                            } else if (name === "Invoice Count") {
-                              return [value, name];
-                            } else if (name === "Brokerage") {
-                              return [formatCurrency(Number(value)), name];
-                            }
-                            return [formatCurrency(Number(value)), name];
-                          }}
-                        />
-                        <Legend />
-                        <Line
-                          yAxisId="sales"
-                          type="monotone"
-                          dataKey="sales"
-                          name="Sales"
-                          stroke="#0ea5e9"
-                          strokeWidth={2}
-                          activeDot={{ r: 8 }}
-                        />
-                        <Line
-                          yAxisId="brokerage"
-                          type="monotone"
-                          dataKey="brokerage"
-                          name="Brokerage"
-                          stroke="#f59e0b"
-                          strokeWidth={2}
-                        />
-                        <Line
-                          yAxisId="brokerage"
-                          type="monotone"
-                          dataKey="received_brokerage"
-                          name="Received Brokerage"
-                          stroke="#10b981"
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Trends Over Time</CardTitle>
-                  <CardDescription>
-                    {`Showing trends by ${periodType} period`}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={trendsData.trends || []}
-                        margin={{
-                          top: 5,
-                          right: 30,
-                          left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time_period" />
-                        <YAxis yAxisId="left" />
-                        <YAxis
-                          yAxisId="right"
-                          orientation="right"
-                          tickFormatter={(value) => `${value}`}
-                        />
-                        <Tooltip
-                          formatter={(value, name) => {
-                            if (name === "Sales") {
-                              return formatCurrency(Number(value));
-                            } else if (name === "Invoices") {
-                              return [value, name];
-                            }
-                            return [formatCurrency(Number(value)), name];
-                          }}
-                        />
-                        <Legend />
-                        <Line
-                          yAxisId="left"
-                          type="monotone"
-                          dataKey="sales"
-                          name="Sales"
-                          stroke="#8884d8"
-                          activeDot={{ r: 8 }}
-                        />
-                        <Line
-                          yAxisId="left"
-                          type="monotone"
-                          dataKey="brokerage"
-                          name="Brokerage"
-                          stroke="#82ca9d"
-                        />
-                        <Line
-                          yAxisId="right"
-                          type="monotone"
-                          dataKey="invoice_count"
-                          name="Invoices"
-                          stroke="#ff7300"
-                          strokeDasharray="5 5"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {trendsData.comparison && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Period-over-Period Comparison</CardTitle>
-                    <CardDescription>
-                      {`Comparing ${trendsData.comparison.periodType}ly sales across years`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={trendsData.comparison.data || []}
-                          margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="period" />
-                          <YAxis />
-                          <Tooltip
-                            formatter={(value) => formatCurrency(Number(value))}
-                          />
-                          <Legend />
-                          {trendsData.comparison.data && 
-                            trendsData.comparison.data.length > 0 && 
-                            trendsData.comparison.data[0].yearly_sales && 
-                            Object.keys(trendsData.comparison.data[0].yearly_sales).map((year, index) => (
-                              <Bar
-                                key={year}
-                                dataKey={`yearly_sales.${year}`}
-                                name={`Year ${year}`}
-                                fill={COLORS[index % COLORS.length]}
-                              />
-                            ))}
-                        </BarChart>
-                      </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <p className="text-muted-foreground">No data available</p>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          ) : (
-            <div className="flex justify-center items-center h-64">
-              <p>No trends data available.</p>
+          </TabsContent>
+
+          <TabsContent value="party" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Parties by Sales Volume</CardTitle>
+                  <CardDescription>
+                    Parties with the highest sales volume
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {partySalesLoading ? (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : partySalesData?.bySalesVolume?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={partySalesData.bySalesVolume}
+                        layout="vertical"
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 120,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          type="number"
+                          tickFormatter={(value) =>
+                            new Intl.NumberFormat("en", {
+                              notation: "compact",
+                              compactDisplay: "short",
+                            }).format(value)
+                          }
+                        />
+                        <YAxis type="category" dataKey="name" width={120} />
+                        <Tooltip
+                          formatter={(value) =>
+                            new Intl.NumberFormat("en-IN", {
+                              style: "currency",
+                              currency: "INR",
+                              maximumFractionDigits: 0,
+                            }).format(Number(value))
+                          }
+                        />
+                        <Legend />
+                        <Bar
+                          dataKey="value"
+                          name="Sales Volume"
+                          fill="#8884d8"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <p className="text-muted-foreground">No data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Parties by Invoice Count</CardTitle>
+                  <CardDescription>
+                    Parties with the most invoices
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {partySalesLoading ? (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  ) : partySalesData?.byInvoiceCount?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={partySalesData.byInvoiceCount}
+                        layout="vertical"
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 120,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="name" width={120} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey="value"
+                          name="Invoice Count"
+                          fill="#0088FE"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px]">
+                      <p className="text-muted-foreground">No data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
