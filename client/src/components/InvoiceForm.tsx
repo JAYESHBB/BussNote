@@ -368,7 +368,7 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
           .split("T")[0],
         currency: "INR",
         brokerageRate: 0, // Default brokerage rate is 0.75%
-        exchangeRate: 0.0,
+        exchangeRate: 1.0, // Set default exchange rate to 1.0 for INR
         receivedBrokerage: 0,
         isClosed: false,
         notes: "",
