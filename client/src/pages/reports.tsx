@@ -86,16 +86,31 @@ export default function ReportsPage() {
     period: "last12months"
   };
   
-  const { data: outstandingData } = useQuery<any[]>({
-    queryKey: ['/api/reports/outstanding', fixedPeriod],
+  const { data: outstandingData = [] } = useQuery<any[]>({
+    queryKey: ['/api/reports/outstanding'],
+    queryFn: async () => {
+      const res = await fetch('/api/reports/outstanding');
+      if (!res.ok) throw new Error('Failed to fetch outstanding invoices');
+      return res.json();
+    }
   });
   
-  const { data: closedData } = useQuery<any[]>({
-    queryKey: ['/api/reports/closed', fixedPeriod],
+  const { data: closedData = [] } = useQuery<any[]>({
+    queryKey: ['/api/reports/closed'],
+    queryFn: async () => {
+      const res = await fetch('/api/reports/closed');
+      if (!res.ok) throw new Error('Failed to fetch closed invoices');
+      return res.json();
+    }
   });
   
-  const { data: salesData } = useQuery({
-    queryKey: ['/api/reports/sales', fixedPeriod],
+  const { data: salesData = { periods: [], totals: { invoiceCount: 0, totalSales: 0, totalBrokerage: 0 } } } = useQuery({
+    queryKey: ['/api/reports/sales'],
+    queryFn: async () => {
+      const res = await fetch('/api/reports/sales');
+      if (!res.ok) throw new Error('Failed to fetch sales data');
+      return res.json();
+    }
   });
   
   // Filter outstanding invoices based on status filter
@@ -1171,12 +1186,12 @@ export default function ReportsPage() {
                   onValueChange={setOutstandingFilter}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="फ़िल्टर करें" />
+                    <SelectValue placeholder="Filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">सभी बकाया</SelectItem>
-                    <SelectItem value="pending">केवल बकाया</SelectItem>
-                    <SelectItem value="overdue">केवल समय पर पश्चात</SelectItem>
+                    <SelectItem value="all">All Outstanding</SelectItem>
+                    <SelectItem value="pending">Pending Only</SelectItem>
+                    <SelectItem value="overdue">Overdue Only</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -1187,12 +1202,12 @@ export default function ReportsPage() {
                   onValueChange={setClosedFilter}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="फ़िल्टर करें" />
+                    <SelectValue placeholder="Filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">सभी बंद किए गए</SelectItem>
-                    <SelectItem value="paid">केवल भुगतान किए</SelectItem>
-                    <SelectItem value="cancelled">केवल रद्द किए गए</SelectItem>
+                    <SelectItem value="all">All Closed</SelectItem>
+                    <SelectItem value="paid">Paid Only</SelectItem>
+                    <SelectItem value="cancelled">Cancelled Only</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -1203,12 +1218,12 @@ export default function ReportsPage() {
                   onValueChange={setSalesGroupBy}
                 >
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="समूहीकरण" />
+                    <SelectValue placeholder="Grouping" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="monthly">मासिक</SelectItem>
-                    <SelectItem value="quarterly">त्रैमासिक</SelectItem>
-                    <SelectItem value="yearly">वार्षिक</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
                   </SelectContent>
                 </Select>
               )}
