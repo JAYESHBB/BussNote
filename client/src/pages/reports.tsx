@@ -597,10 +597,13 @@ export default function ReportsPage() {
   };
   
   // Enhanced formatCurrency function with currency parameter
-  const formatCurrency = (amount: number, currency: string | null = null) => {
+  const formatCurrency = (amount: number | string, currency: string | null = null) => {
     try {
+      // Convert to number if it's a string
+      const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+      
       // For debugging
-      console.log("Formatting currency:", amount, "with currency:", currency);
+      console.log("Formatting currency:", numericAmount, "with currency:", currency);
       
       // Choose appropriate currency symbol
       let symbol = '₹'; // Default to INR
@@ -620,7 +623,7 @@ export default function ReportsPage() {
       const formattedAmount = new Intl.NumberFormat('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      }).format(amount);
+      }).format(numericAmount);
       
       // Return the formatted currency
       return `${symbol}${formattedAmount}`;
