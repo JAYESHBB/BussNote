@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
@@ -92,27 +92,23 @@ export default function ReportsPage() {
   const handleTabChange = (value: string) => {
     setReportType(value);
   };
-  // Set fixed date range (last 12 months) instead of using filters
-  const fixedDateRange = {
-    from: subMonths(new Date(), 12), // 12 months ago
-    to: new Date(), // Today
-  };
   
-  // Function to apply filters
-  const handleOpenFilterDialog = () => {
-    setIsFilterDialogOpen(true);
+  // Set fixed date range (last 12 months) instead of using filters
+  const fixedPeriod = {
+    // Simple 12-month period with no need for date picker
+    period: "last12months"
   };
   
   const { data: outstandingData } = useQuery<any[]>({
-    queryKey: ['/api/reports/outstanding', fixedDateRange],
+    queryKey: ['/api/reports/outstanding', fixedPeriod],
   });
   
   const { data: closedData } = useQuery<any[]>({
-    queryKey: ['/api/reports/closed', fixedDateRange],
+    queryKey: ['/api/reports/closed', fixedPeriod],
   });
   
   const { data: salesData } = useQuery({
-    queryKey: ['/api/reports/sales', fixedDateRange],
+    queryKey: ['/api/reports/sales', fixedPeriod],
   });
   
   // Filter outstanding invoices based on status filter
@@ -658,15 +654,53 @@ export default function ReportsPage() {
             <CardTitle>Report Settings</CardTitle>
             
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleOpenFilterDialog}
-                className="flex items-center gap-1"
-              >
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
+              {reportType === "outstanding" && (
+                <Select 
+                  value={outstandingFilter} 
+                  onValueChange={setOutstandingFilter}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="फ़िल्टर करें" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">सभी बकाया</SelectItem>
+                    <SelectItem value="pending">केवल बकाया</SelectItem>
+                    <SelectItem value="overdue">केवल समय पर पश्चात</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {reportType === "closed" && (
+                <Select 
+                  value={closedFilter} 
+                  onValueChange={setClosedFilter}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="फ़िल्टर करें" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">सभी बंद किए गए</SelectItem>
+                    <SelectItem value="paid">केवल भुगतान किए</SelectItem>
+                    <SelectItem value="cancelled">केवल रद्द किए गए</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {reportType === "sales" && (
+                <Select 
+                  value={salesGroupBy} 
+                  onValueChange={setSalesGroupBy}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="समूहीकरण" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">मासिक</SelectItem>
+                    <SelectItem value="quarterly">त्रैमासिक</SelectItem>
+                    <SelectItem value="yearly">वार्षिक</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
               
               {reportType === "outstanding" && (
                 <DropdownMenu>
