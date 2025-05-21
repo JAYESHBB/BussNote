@@ -210,6 +210,21 @@ export default function AnalyticsPage() {
     setPeriodType(value);
   };
 
+  // Set default date range on component mount
+  useEffect(() => {
+    // Set default dates (last 12 months to today)
+    const now = new Date();
+    setFromDate(subMonths(now, 12));
+    setToDate(now);
+    
+    // Apply filters automatically after a short delay
+    const timer = setTimeout(() => {
+      handleApplyFilters();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="p-6">
       <div className="flex flex-col space-y-6">
@@ -221,71 +236,21 @@ export default function AnalyticsPage() {
             </p>
           </div>
           
-          <div className="flex flex-col gap-4 w-full md:w-auto mt-4 md:mt-0">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div>
-                <Select 
-                  defaultValue="last12m"
-                  onValueChange={(value) => {
-                    // Set the from and to dates based on the selection
-                    const now = new Date();
-                    let fromDateVal = now;
-                    
-                    switch(value) {
-                      case "last3m":
-                        fromDateVal = subMonths(now, 3);
-                        break;
-                      case "last6m":
-                        fromDateVal = subMonths(now, 6);
-                        break;
-                      case "last12m":
-                        fromDateVal = subMonths(now, 12);
-                        break;
-                      case "last24m":
-                        fromDateVal = subMonths(now, 24);
-                        break;
-                      case "all":
-                        fromDateVal = subMonths(now, 60); // 5 years back
-                        break;
-                    }
-                    
-                    // Update state
-                    setFromDate(fromDateVal);
-                    setToDate(now);
-                    
-                    // Auto-apply filters after a small delay
-                    setTimeout(handleApplyFilters, 100);
-                  }}
-                >
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <SelectValue placeholder="चुनें: समय अवधि" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="last3m">पिछले 3 महीने</SelectItem>
-                    <SelectItem value="last6m">पिछले 6 महीने</SelectItem>
-                    <SelectItem value="last12m">पिछले 1 साल</SelectItem>
-                    <SelectItem value="last24m">पिछले 2 साल</SelectItem>
-                    <SelectItem value="all">सभी डेटा</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Select value={periodType} onValueChange={handlePeriodTypeChange}>
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <SelectValue placeholder="चुनें: अवधि प्रकार" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">मासिक</SelectItem>
-                    <SelectItem value="quarterly">त्रैमासिक</SelectItem>
-                    <SelectItem value="yearly">वार्षिक</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button onClick={handleApplyFilters} className="w-full sm:w-auto">
-                अपडेट करें
-              </Button>
+          <div className="mt-4 md:mt-0">
+            <div>
+              <Select value={periodType} onValueChange={(value) => {
+                setPeriodType(value);
+                setTimeout(handleApplyFilters, 100);
+              }}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="अवधि प्रकार" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">मासिक</SelectItem>
+                  <SelectItem value="quarterly">त्रैमासिक</SelectItem>
+                  <SelectItem value="yearly">वार्षिक</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
