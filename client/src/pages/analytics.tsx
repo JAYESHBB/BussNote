@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, subMonths, subDays } from "date-fns";
+import { format, subMonths, subDays, subYears } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -37,7 +37,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { AlertCircle, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -222,62 +223,65 @@ export default function AnalyticsPage() {
           
           <div className="flex flex-col gap-4 w-full md:w-auto mt-4 md:mt-0">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Select 
-                defaultValue="last12m"
-                onValueChange={(value) => {
-                  // Set the from and to dates based on the selection
-                  const now = new Date();
-                  let fromDateVal = now;
-                  
-                  switch(value) {
-                    case "last3m":
-                      fromDateVal = subMonths(now, 3);
-                      break;
-                    case "last6m":
-                      fromDateVal = subMonths(now, 6);
-                      break;
-                    case "last12m":
-                      fromDateVal = subMonths(now, 12);
-                      break;
-                    case "last24m":
-                      fromDateVal = subMonths(now, 24);
-                      break;
-                    case "all":
-                      fromDateVal = subMonths(now, 60); // 5 years back
-                      break;
-                  }
-                  
-                  // Update state
-                  setFromDate(fromDateVal);
-                  setToDate(now);
-                  
-                  // Auto-apply filters after a small delay
-                  setTimeout(handleApplyFilters, 100);
-                }}
-                className="w-full sm:w-[200px]"
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="चुनें: समय अवधि" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="last3m">पिछले 3 महीने</SelectItem>
-                  <SelectItem value="last6m">पिछले 6 महीने</SelectItem>
-                  <SelectItem value="last12m">पिछले 1 साल</SelectItem>
-                  <SelectItem value="last24m">पिछले 2 साल</SelectItem>
-                  <SelectItem value="all">सभी डेटा</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Select 
+                  defaultValue="last12m"
+                  onValueChange={(value) => {
+                    // Set the from and to dates based on the selection
+                    const now = new Date();
+                    let fromDateVal = now;
+                    
+                    switch(value) {
+                      case "last3m":
+                        fromDateVal = subMonths(now, 3);
+                        break;
+                      case "last6m":
+                        fromDateVal = subMonths(now, 6);
+                        break;
+                      case "last12m":
+                        fromDateVal = subMonths(now, 12);
+                        break;
+                      case "last24m":
+                        fromDateVal = subMonths(now, 24);
+                        break;
+                      case "all":
+                        fromDateVal = subMonths(now, 60); // 5 years back
+                        break;
+                    }
+                    
+                    // Update state
+                    setFromDate(fromDateVal);
+                    setToDate(now);
+                    
+                    // Auto-apply filters after a small delay
+                    setTimeout(handleApplyFilters, 100);
+                  }}
+                >
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="चुनें: समय अवधि" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="last3m">पिछले 3 महीने</SelectItem>
+                    <SelectItem value="last6m">पिछले 6 महीने</SelectItem>
+                    <SelectItem value="last12m">पिछले 1 साल</SelectItem>
+                    <SelectItem value="last24m">पिछले 2 साल</SelectItem>
+                    <SelectItem value="all">सभी डेटा</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
-              <Select value={periodType} onValueChange={handlePeriodTypeChange} className="w-full sm:w-[200px]">
-                <SelectTrigger>
-                  <SelectValue placeholder="चुनें: अवधि प्रकार" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">मासिक</SelectItem>
-                  <SelectItem value="quarterly">त्रैमासिक</SelectItem>
-                  <SelectItem value="yearly">वार्षिक</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Select value={periodType} onValueChange={handlePeriodTypeChange}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="चुनें: अवधि प्रकार" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">मासिक</SelectItem>
+                    <SelectItem value="quarterly">त्रैमासिक</SelectItem>
+                    <SelectItem value="yearly">वार्षिक</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <Button onClick={handleApplyFilters} className="w-full sm:w-auto">
                 अपडेट करें
