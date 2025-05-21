@@ -11,8 +11,18 @@ export async function getBrokerageAnalytics(req: Request, res: Response) {
     const fromDateStr = req.query.fromDate as string;
     const toDateStr = req.query.toDate as string;
     
-    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
-    const toDate = toDateStr ? new Date(toDateStr) : new Date();
+    console.log("Received date params:", { fromDateStr, toDateStr });
+    
+    // Check if we have valid dates, then parse them
+    const fromDate = fromDateStr && fromDateStr !== "undefined" && fromDateStr !== "null" 
+      ? new Date(fromDateStr) 
+      : subYears(new Date(), 1);
+      
+    const toDate = toDateStr && toDateStr !== "undefined" && toDateStr !== "null" 
+      ? new Date(toDateStr) 
+      : new Date();
+    
+    console.log("Parsed dates:", { fromDate, toDate });
     
     // Generate brokerage analytics with SQL
     const result = await db.execute(sql`
@@ -85,8 +95,18 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
     const toDateStr = req.query.toDate as string;
     const limit = parseInt(req.query.limit as string) || 10;
     
-    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
-    const toDate = toDateStr ? new Date(toDateStr) : new Date();
+    console.log("Party Sales: Received date params:", { fromDateStr, toDateStr });
+    
+    // Check if we have valid dates, then parse them
+    const fromDate = fromDateStr && fromDateStr !== "undefined" && fromDateStr !== "null" 
+      ? new Date(fromDateStr) 
+      : subYears(new Date(), 1);
+      
+    const toDate = toDateStr && toDateStr !== "undefined" && toDateStr !== "null" 
+      ? new Date(toDateStr) 
+      : new Date();
+    
+    console.log("Party Sales: Parsed dates:", { fromDate, toDate });
     
     // Top parties by sales amount
     const topParties = await db.execute(sql`
@@ -149,9 +169,18 @@ export async function getSalesTrends(req: Request, res: Response) {
     const fromDateStr = req.query.fromDate as string;
     const toDateStr = req.query.toDate as string;
     
-    // Use user-provided dates if available, otherwise use defaults
-    const fromDate = fromDateStr ? new Date(fromDateStr) : subYears(new Date(), 1);
-    const toDate = toDateStr ? new Date(toDateStr) : new Date();
+    console.log("Sales Trends: Received date params:", { fromDateStr, toDateStr, periodType });
+    
+    // Check if we have valid dates, then parse them
+    const fromDate = fromDateStr && fromDateStr !== "undefined" && fromDateStr !== "null" 
+      ? new Date(fromDateStr) 
+      : subYears(new Date(), 1);
+      
+    const toDate = toDateStr && toDateStr !== "undefined" && toDateStr !== "null" 
+      ? new Date(toDateStr) 
+      : new Date();
+    
+    console.log("Sales Trends: Parsed dates:", { fromDate, toDate, periodType });
     
     // Set up time grouping based on period type
     let timeGroup;
@@ -235,11 +264,11 @@ export async function getSalesTrends(req: Request, res: Response) {
     // Transform data into the expected format for the frontend
     const trendsData = trendData.rows.map(row => ({
       period: row.period,
-      totalSales: parseFloat(row.totalsales || 0),
-      totalBrokerage: parseFloat(row.totalbrokerage || 0),
-      receivedBrokerage: parseFloat(row.receivedbrokerage || 0),
-      invoiceCount: parseInt(row.invoicecount || 0),
-      avgExchangeRate: parseFloat(row.avgexchangerate || 0)
+      totalSales: parseFloat(row.totalsales || "0"),
+      totalBrokerage: parseFloat(row.totalbrokerage || "0"),
+      receivedBrokerage: parseFloat(row.receivedbrokerage || "0"),
+      invoiceCount: parseInt(row.invoicecount || "0"),
+      avgExchangeRate: parseFloat(row.avgexchangerate || "0")
     }));
 
     res.json({

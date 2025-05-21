@@ -221,7 +221,9 @@ export default function AnalyticsPage() {
                     selected={fromDate}
                     onSelect={(date) => {
                       console.log("From date selected:", date);
-                      setFromDate(date);
+                      if (date) {
+                        setFromDate(date);
+                      }
                     }}
                     initialFocus
                   />
@@ -248,7 +250,9 @@ export default function AnalyticsPage() {
                     selected={toDate}
                     onSelect={(date) => {
                       console.log("To date selected:", date);
-                      setToDate(date);
+                      if (date) {
+                        setToDate(date);
+                      }
                     }}
                     initialFocus
                   />
