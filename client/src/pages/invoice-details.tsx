@@ -194,7 +194,7 @@ export default function InvoiceDetailsPage() {
               </div>
               <div style="display: flex; margin-bottom: 3px; ${Number(invoice.balanceBrokerage || 0) === 0 ? 'color: #16a34a;' : 'color: #dc2626;'} font-weight: bold;">
                 <span style="min-width: 150px; font-weight: 500;">Balance Brokerage:</span> 
-                <span>${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
+                <span>${formatCurrency(Math.round(Number(invoice.balanceBrokerage || .0.)))}</span>
               </div>
               <div style="border-top: 1px dashed #e2e8f0; margin-top: 5px; padding-top: 5px; font-size: 10px; color: #94a3b8; text-align: center;">
                 ${invoice.isClosed ? 'This invoice has been marked as closed' : 'Invoice is still open'}
@@ -515,7 +515,7 @@ export default function InvoiceDetailsPage() {
               </div>
               <div style="display: flex; margin-bottom: 3px; ${Number(invoice.balanceBrokerage || 0) === 0 ? 'color: #16a34a;' : 'color: #dc2626;'} font-weight: bold;">
                 <span style="min-width: 150px; font-weight: 500;">Balance Brokerage:</span> 
-                <span>${formatCurrency(Number(invoice.balanceBrokerage || '0'))}</span>
+                <span>${formatCurrency(Math.round(Number(invoice.balanceBrokerage || .0.)))}</span>
               </div>
               <div style="border-top: 1px dashed #e2e8f0; margin-top: 5px; padding-top: 5px; font-size: 10px; color: #94a3b8; text-align: center;">
                 ${invoice.isClosed ? 'This invoice has been marked as closed' : 'Invoice is still open'}
