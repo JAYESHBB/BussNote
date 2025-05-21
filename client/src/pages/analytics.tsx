@@ -487,6 +487,80 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 gap-6">
               <Card>
                 <CardHeader>
+                  <CardTitle>Combined Sales & Brokerage Analysis</CardTitle>
+                  <CardDescription>
+                    Comparative view of sales, brokerage earnings, and invoice counts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={trendsData.trends || []}
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 20,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="time_period" />
+                        <YAxis 
+                          yAxisId="sales" 
+                          tickFormatter={(value) => `${(value/1000).toFixed(0)}k`}
+                        />
+                        <YAxis
+                          yAxisId="brokerage"
+                          orientation="right"
+                          tickFormatter={(value) => `${value}`}
+                        />
+                        <Tooltip
+                          formatter={(value, name) => {
+                            if (name === "Sales") {
+                              return [formatCurrency(Number(value)), name];
+                            } else if (name === "Invoice Count") {
+                              return [value, name];
+                            } else if (name === "Brokerage") {
+                              return [formatCurrency(Number(value)), name];
+                            }
+                            return [formatCurrency(Number(value)), name];
+                          }}
+                        />
+                        <Legend />
+                        <Line
+                          yAxisId="sales"
+                          type="monotone"
+                          dataKey="sales"
+                          name="Sales"
+                          stroke="#0ea5e9"
+                          strokeWidth={2}
+                          activeDot={{ r: 8 }}
+                        />
+                        <Line
+                          yAxisId="brokerage"
+                          type="monotone"
+                          dataKey="brokerage"
+                          name="Brokerage"
+                          stroke="#f59e0b"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          yAxisId="brokerage"
+                          type="monotone"
+                          dataKey="received_brokerage"
+                          name="Received Brokerage"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
                   <CardTitle>Sales Trends Over Time</CardTitle>
                   <CardDescription>
                     {`Showing trends by ${periodType} period`}
