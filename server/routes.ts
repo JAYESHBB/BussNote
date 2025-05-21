@@ -853,7 +853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     getPartySalesAnalytics(req, res);
   });
   
-  app.get(`${apiPrefix}/analytics/trends`, async (req, res) => {
+  app.get(`${apiPrefix}/analytics/sales-trends`, async (req, res) => {
     getSalesTrends(req, res);
   });
 
