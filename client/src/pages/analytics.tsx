@@ -161,8 +161,9 @@ export default function AnalyticsPage() {
 
       console.log("Fetching with date range:", { formattedFromDate, formattedToDate, periodType });
       
+      // Use the server's expected parameter names
       const response = await fetch(
-        `/api/analytics/trends?fromDate=${formattedFromDate}&toDate=${formattedToDate}&periodType=${periodType}`
+        `/api/analytics/trends?from=${formattedFromDate}&to=${formattedToDate}&periodType=${periodType}`
       );
       const data = await response.json();
       console.log("Received data:", data);

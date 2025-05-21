@@ -166,8 +166,9 @@ export async function getPartySalesAnalytics(req: Request, res: Response) {
 export async function getSalesTrends(req: Request, res: Response) {
   try {
     const periodType = req.query.periodType as string || "monthly";
-    const fromDateStr = req.query.fromDate as string;
-    const toDateStr = req.query.toDate as string;
+    // Check both possible parameter names (for compatibility)
+    const fromDateStr = (req.query.from || req.query.fromDate) as string;
+    const toDateStr = (req.query.to || req.query.toDate) as string;
     
     console.log("Sales Trends: Received date params:", { fromDateStr, toDateStr, periodType });
     console.log("Full query params:", req.query);
