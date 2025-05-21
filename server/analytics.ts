@@ -170,6 +170,7 @@ export async function getSalesTrends(req: Request, res: Response) {
     const toDateStr = req.query.toDate as string;
     
     console.log("Sales Trends: Received date params:", { fromDateStr, toDateStr, periodType });
+    console.log("Full query params:", req.query);
     
     // Check if we have valid dates, then parse them
     const fromDate = fromDateStr && fromDateStr !== "undefined" && fromDateStr !== "null" 
