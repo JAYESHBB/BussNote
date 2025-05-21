@@ -44,7 +44,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-// Removed date picker import
 import {
   Select,
   SelectContent,
@@ -60,16 +59,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 
@@ -79,7 +68,6 @@ export default function ReportsPage() {
   const [outstandingFilter, setOutstandingFilter] = useState("all");
   const [closedFilter, setClosedFilter] = useState("all");
   const [salesGroupBy, setSalesGroupBy] = useState("monthly");
-  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
   // Create a single filter state that changes based on active report type
   const getFilterValue = () => {
@@ -93,9 +81,8 @@ export default function ReportsPage() {
     setReportType(value);
   };
   
-  // Set fixed date range (last 12 months) instead of using filters
+  // Set fixed period - always showing last 12 months
   const fixedPeriod = {
-    // Simple 12-month period with no need for date picker
     period: "last12months"
   };
   
@@ -137,6 +124,24 @@ export default function ReportsPage() {
       case 'INR': 
       default: return '₹';
     }
+  };
+  
+  // Helper to format currency
+  const formatCurrency = (amount: number | string, currencyCode: string | null = null): string => {
+    let numAmount = 0;
+    
+    if (typeof amount === 'string') {
+      numAmount = parseFloat(amount);
+    } else {
+      numAmount = amount;
+    }
+    
+    if (isNaN(numAmount)) {
+      numAmount = 0;
+    }
+    
+    const symbol = getCurrencySymbol(currencyCode);
+    return `${symbol}${numAmount.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
   };
   
   // Prepare data for outstanding invoices export
@@ -262,8 +267,8 @@ export default function ReportsPage() {
     }
     
     // Get dates for the report
-    const fromDate = format(dateRange.from, "dd MMM yyyy");
-    const toDate = format(dateRange.to, "dd MMM yyyy");
+    const fromDate = format(new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()), "dd MMM yyyy");
+    const toDate = format(new Date(), "dd MMM yyyy");
     const currentDate = format(new Date(), "dd MMM yyyy, hh:mm a");
     
     // Calculate totals
@@ -529,9 +534,17 @@ export default function ReportsPage() {
                 <span>Period Range:</span>
                 <span>${fromDate} - ${toDate}</span>
               </div>
-              <div class="summary-item summary-total">
+              <div class="summary-item">
+                <span>Filter:</span>
+                <span>${outstandingFilter === "all" 
+                  ? "All Outstanding" 
+                  : outstandingFilter === "pending" 
+                    ? "Pending Only" 
+                    : "Overdue Only"}</span>
+              </div>
+              <div class="summary-total">
                 <span>Total Outstanding Amount:</span>
-                <span>${formatCurrency(totalAmount, 'INR')}</span>
+                <span>${formatCurrency(totalAmount)}</span>
               </div>
             </div>
             
@@ -539,7 +552,7 @@ export default function ReportsPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Invoice #</th>
+                    <th>Invoice No</th>
                     <th>Party Name</th>
                     <th>Invoice Date</th>
                     <th>Due Date</th>
@@ -556,9 +569,7 @@ export default function ReportsPage() {
                       <td>${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</td>
                       <td>${format(new Date(invoice.dueDate), "MMM dd, yyyy")}</td>
                       <td class="${invoice.daysOverdue > 0 ? 'days-overdue' : ''}">
-                        ${invoice.daysOverdue > 0 
-                          ? `${invoice.daysOverdue} days` 
-                          : "Not overdue"}
+                        ${invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue"}
                       </td>
                       <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
                       <td>
@@ -573,79 +584,579 @@ export default function ReportsPage() {
             </div>
             
             <div class="footer">
-              <p>This is a computer-generated report from BussNote. No signature is required.</p>
               <p>© ${new Date().getFullYear()} BussNote. All rights reserved.</p>
+              <p>This report was generated automatically and is valid as of ${currentDate}.</p>
             </div>
           </div>
         </body>
       </html>
     `);
     
-    // Wait for window to load then trigger print
     printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 500);
     
     toast({
-      title: "PDF ready",
-      description: "Your PDF is ready. Click the 'Print PDF' button in the new window."
+      title: "PDF export prepared",
+      description: "Print dialog should open shortly. Save as PDF to complete the export."
     });
   };
   
-  // Enhanced formatCurrency function with currency parameter
-  const formatCurrency = (amount: number | string, currency: string | null = null) => {
-    try {
-      // Handle special case for database "0.00" string value
-      // We need to check specifically for this pattern to handle our database data
-      if (typeof amount === 'string') {
-        if (amount === "0.00") {
-          // Check currency and use appropriate subtotal value
-          if (currency === "USD") {
-            console.log("Special case: Using 166255.14 for USD instead of 0");
-            return "$166,255.14";
-          } else if (currency === "INR") {
-            console.log("Special case: Using 1572766.00 for INR instead of 0");
-            return "₹1,572,766.00";
-          }
-        }
-      }
-      
-      // Convert to number if it's a string
-      const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-      
-      // Choose appropriate currency symbol
-      let symbol = '₹'; // Default to INR
-      
-      if (currency) {
-        const code = currency.toUpperCase();
-        switch (code) {
-          case 'USD': symbol = '$'; break;
-          case 'EUR': symbol = '€'; break;
-          case 'GBP': symbol = '£'; break;
-          case 'JPY': symbol = '¥'; break;
-          // Default is INR (₹)
-        }
-      }
-      
-      // Format the number with 2 decimal places
-      const formattedAmount = new Intl.NumberFormat('en-IN', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(numericAmount);
-      
-      // Return the formatted currency
-      return `${symbol}${formattedAmount}`;
-    } catch (error) {
-      console.error("Currency formatting error:", error);
-      return `₹${Number(amount || 0).toFixed(2)}`;
+  // Closed reports export
+  const prepareClosedExportData = () => {
+    if (!filteredClosedData || filteredClosedData.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no closed invoices matching your current filters.",
+        variant: "destructive"
+      });
+      return null;
     }
+    
+    // Map the data for export
+    const exportData = filteredClosedData.map(invoice => ({
+      "Invoice No": invoice.invoiceNo,
+      "Party Name": invoice.partyName,
+      "Invoice Date": format(new Date(invoice.invoiceDate), "MMM dd, yyyy"),
+      "Closed Date": invoice.paymentDate ? format(new Date(invoice.paymentDate), "MMM dd, yyyy") : "N/A",
+      "Amount": formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency).replace(getCurrencySymbol(invoice.currency), ''),
+      "Status": invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
+    }));
+    
+    return exportData;
   };
-
+  
+  const exportClosedToCsv = () => {
+    const data = prepareClosedExportData();
+    if (!data) return;
+    
+    // Create headers
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => 
+          `"${row[header as keyof typeof row]}"`
+        ).join(',')
+      )
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `closed_invoices_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported ${data.length} closed invoices to CSV file.`
+    });
+  };
+  
+  const exportClosedToExcel = () => {
+    const data = prepareClosedExportData();
+    if (!data) return;
+    
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    
+    const maxWidths: Record<number, number> = {};
+    const headers = Object.keys(data[0]);
+    
+    headers.forEach((header, index) => {
+      maxWidths[index] = header.length;
+    });
+    
+    data.forEach(row => {
+      headers.forEach((header, index) => {
+        const value = String(row[header as keyof typeof row]);
+        if (value.length > maxWidths[index]) {
+          maxWidths[index] = value.length;
+        }
+      });
+    });
+    
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[parseInt(key)] + 2 }));
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Closed Invoices");
+    XLSX.writeFile(workbook, `closed_invoices_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported ${data.length} closed invoices to Excel file.`
+    });
+  };
+  
+  const exportClosedToPdf = () => {
+    const data = prepareClosedExportData();
+    if (!data) return;
+    
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      toast({
+        title: "Export failed",
+        description: "Please allow pop-ups to export as PDF.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Get dates for the report
+    const fromDate = format(new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()), "dd MMM yyyy");
+    const toDate = format(new Date(), "dd MMM yyyy");
+    const currentDate = format(new Date(), "dd MMM yyyy, hh:mm a");
+    
+    // Calculate totals
+    const totalAmount = filteredClosedData.reduce((sum, invoice) => 
+      sum + Number(invoice.total || invoice.subtotal || 0), 0);
+    
+    // Reusing the same styles from the previous export function
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Closed Invoices Report - BussNote</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            
+            :root {
+              --primary-color: #7c3aed;
+              --primary-light: #ede9fe;
+              --secondary-color: #0ea5e9;
+              --accent-color: #f59e0b;
+              --text-dark: #1e293b;
+              --text-light: #64748b;
+              --background-light: #f8fafc;
+              --border-color: #e2e8f0;
+              --danger-color: #ef4444;
+              --success-color: #10b981;
+            }
+            
+            body {
+              font-family: 'Inter', sans-serif;
+              margin: 0;
+              padding: 0;
+              color: var(--text-dark);
+              background: white;
+              line-height: 1.5;
+            }
+            
+            .container {
+              max-width: 1200px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            
+            .report-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              padding-bottom: 15px;
+              border-bottom: 1px solid var(--border-color);
+            }
+            
+            .company-info {
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .company-name {
+              font-size: 24px;
+              font-weight: 700;
+              color: var(--primary-color);
+              margin: 0;
+            }
+            
+            .report-name {
+              font-size: 18px;
+              font-weight: 600;
+              margin: 5px 0 0 0;
+            }
+            
+            .header-right {
+              text-align: right;
+            }
+            
+            .report-date {
+              font-size: 14px;
+              color: var(--text-light);
+              margin-bottom: 5px;
+            }
+            
+            .report-info {
+              font-size: 14px;
+              color: var(--text-light);
+            }
+            
+            .highlight {
+              color: var(--primary-color);
+              font-weight: 500;
+            }
+            
+            .badge {
+              display: inline-block;
+              padding: 3px 8px;
+              border-radius: 9999px;
+              font-size: 12px;
+              font-weight: 500;
+            }
+            
+            .badge-paid {
+              background-color: #d1fae5;
+              color: var(--success-color);
+            }
+            
+            .badge-cancelled {
+              background-color: #fef2f2;
+              color: var(--danger-color);
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 20px 0 30px 0;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              border-radius: 8px;
+              overflow: hidden;
+            }
+            
+            thead {
+              background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+              color: white;
+            }
+            
+            th {
+              text-align: left;
+              padding: 12px 15px;
+              font-weight: 600;
+              font-size: 14px;
+            }
+            
+            td {
+              padding: 12px 15px;
+              border-bottom: 1px solid var(--border-color);
+              font-size: 14px;
+            }
+            
+            tr:last-child td {
+              border-bottom: none;
+            }
+            
+            tr:nth-child(even) {
+              background-color: var(--background-light);
+            }
+            
+            .table-container {
+              overflow-x: auto;
+              margin-bottom: 30px;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid var(--border-color);
+              font-size: 12px;
+              color: var(--text-light);
+            }
+            
+            .report-summary {
+              background-color: var(--primary-light);
+              border-radius: 8px;
+              padding: 15px 20px;
+              margin-bottom: 20px;
+            }
+            
+            .summary-title {
+              font-weight: 600;
+              font-size: 16px;
+              margin-bottom: 10px;
+              color: var(--primary-color);
+            }
+            
+            .summary-item {
+              display: flex;
+              justify-content: space-between;
+              padding: 5px 0;
+              font-size: 14px;
+            }
+            
+            .summary-total {
+              font-weight: 600;
+              font-size: 16px;
+              color: var(--primary-color);
+              margin-top: 10px;
+              padding-top: 10px;
+              border-top: 1px dashed var(--border-color);
+            }
+            
+            .print-button {
+              display: block;
+              margin: 20px auto;
+              padding: 10px 20px;
+              background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 16px;
+              font-weight: 500;
+              transition: all 0.2s ease;
+            }
+            
+            .print-button:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+            }
+            
+            @media print {
+              body { 
+                margin: 0;
+                padding: 15px; 
+              }
+              .no-print { 
+                display: none; 
+              }
+              .container {
+                padding: 0;
+              }
+              table {
+                box-shadow: none;
+              }
+              thead {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <button class="print-button no-print" onclick="window.print(); setTimeout(() => window.close(), 500);">
+              Print PDF
+            </button>
+            
+            <div class="report-header">
+              <div class="company-info">
+                <h1 class="company-name">BussNote</h1>
+                <p class="report-name">Closed Invoices Report</p>
+              </div>
+              <div class="header-right">
+                <p class="report-date">Generated: ${currentDate}</p>
+                <p class="report-info">Period: <span class="highlight">${fromDate} to ${toDate}</span></p>
+                <p class="report-info">Status: <span class="highlight">
+                  ${closedFilter === "all" 
+                    ? "All Closed" 
+                    : closedFilter === "paid" 
+                      ? "Paid Only" 
+                      : "Cancelled Only"}
+                </span></p>
+              </div>
+            </div>
+            
+            <div class="report-summary">
+              <div class="summary-title">Summary</div>
+              <div class="summary-item">
+                <span>Total Invoices:</span>
+                <span>${filteredClosedData.length}</span>
+              </div>
+              <div class="summary-item">
+                <span>Period Range:</span>
+                <span>${fromDate} - ${toDate}</span>
+              </div>
+              <div class="summary-item">
+                <span>Filter:</span>
+                <span>${closedFilter === "all" 
+                  ? "All Closed" 
+                  : closedFilter === "paid" 
+                    ? "Paid Only" 
+                    : "Cancelled Only"}</span>
+              </div>
+              <div class="summary-total">
+                <span>Total Amount:</span>
+                <span>${formatCurrency(totalAmount)}</span>
+              </div>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Invoice No</th>
+                    <th>Party Name</th>
+                    <th>Invoice Date</th>
+                    <th>Closed Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${filteredClosedData.map(invoice => `
+                    <tr>
+                      <td>${invoice.invoiceNo}</td>
+                      <td>${invoice.partyName}</td>
+                      <td>${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</td>
+                      <td>${invoice.paymentDate ? format(new Date(invoice.paymentDate), "MMM dd, yyyy") : "N/A"}</td>
+                      <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
+                      <td>
+                        <span class="badge ${invoice.status === 'paid' ? 'badge-paid' : 'badge-cancelled'}">
+                          ${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                        </span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} BussNote. All rights reserved.</p>
+              <p>This report was generated automatically and is valid as of ${currentDate}.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 500);
+    
+    toast({
+      title: "PDF export prepared",
+      description: "Print dialog should open shortly. Save as PDF to complete the export."
+    });
+  };
+  
+  // Prepare sales report export
+  const prepareSalesExportData = () => {
+    if (!salesData?.periods || salesData.periods.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There is no sales data available for the selected period.",
+        variant: "destructive"
+      });
+      return null;
+    }
+    
+    // Create export data
+    return salesData.periods.map((period: any) => ({
+      "Period": period.label,
+      "Invoice Count": period.invoiceCount,
+      "Total Sales": formatCurrency(period.total || 0).replace(getCurrencySymbol(null), ''),
+      "Brokerage": formatCurrency(period.brokerage || 0).replace(getCurrencySymbol(null), '')
+    }));
+  };
+  
+  const exportSalesToCsv = () => {
+    const data = prepareSalesExportData();
+    if (!data) return;
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map((row: any) => 
+        headers.map(header => 
+          `"${row[header]}"`
+        ).join(',')
+      )
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `sales_report_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported sales report data to CSV file.`
+    });
+  };
+  
+  const exportSalesToExcel = () => {
+    const data = prepareSalesExportData();
+    if (!data) return;
+    
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    
+    const maxWidths: Record<number, number> = {};
+    const headers = Object.keys(data[0]);
+    
+    headers.forEach((header, index) => {
+      maxWidths[index] = header.length;
+    });
+    
+    data.forEach((row: any) => {
+      headers.forEach((header, index) => {
+        const value = String(row[header]);
+        if (value.length > maxWidths[index]) {
+          maxWidths[index] = value.length;
+        }
+      });
+    });
+    
+    worksheet['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[parseInt(key)] + 2 }));
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+    XLSX.writeFile(workbook, `sales_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    
+    toast({
+      title: "Export successful",
+      description: `Exported sales report data to Excel file.`
+    });
+  };
+  
+  // Prepare chart data from sales data
+  const prepareChartData = () => {
+    if (!salesData?.periods || salesData.periods.length === 0) {
+      return [];
+    }
+    
+    // Map the data for the chart
+    return salesData.periods.map((period: any) => ({
+      name: period.label,
+      Sales: period.total || 0,
+      Brokerage: period.brokerage || 0
+    }));
+  };
+  
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">Reports</h2>
-        <p className="text-muted-foreground">
-          View and analyze your invoice data with detailed reports
-        </p>
+    <div className="p-6">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Reports</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              View and export financial reports for your business
+            </p>
+          </div>
+          
+          <div className="flex gap-2 self-start">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard">
+                Go to Dashboard
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
       
       <Card className="mb-6">
@@ -711,19 +1222,69 @@ export default function ReportsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Choose Format</DropdownMenuLabel>
+                    <DropdownMenuLabel>Choose format</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={exportOutstandingToCsv} className="cursor-pointer">
+                    <DropdownMenuItem onClick={exportOutstandingToCsv}>
                       <FileDown className="h-4 w-4 mr-2" />
-                      <span>CSV</span>
+                      CSV
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={exportOutstandingToExcel} className="cursor-pointer">
+                    <DropdownMenuItem onClick={exportOutstandingToExcel}>
                       <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      <span>Excel</span>
+                      Excel
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={exportOutstandingToPdf} className="cursor-pointer">
+                    <DropdownMenuItem onClick={exportOutstandingToPdf}>
                       <Download className="h-4 w-4 mr-2" />
-                      <span>PDF</span>
+                      PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {reportType === "closed" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" className="flex items-center gap-1">
+                      <DownloadCloud className="h-4 w-4" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Choose format</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={exportClosedToCsv}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportClosedToExcel}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportClosedToPdf}>
+                      <Download className="h-4 w-4 mr-2" />
+                      PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {reportType === "sales" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" className="flex items-center gap-1">
+                      <DownloadCloud className="h-4 w-4" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Choose format</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={exportSalesToCsv}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportSalesToExcel}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Excel
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -731,301 +1292,232 @@ export default function ReportsPage() {
             </div>
           </div>
         </CardHeader>
-      </Card>
-      
-      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Filter Options</DialogTitle>
-            <DialogDescription>
-              Set filter criteria for your report view
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            {reportType === "outstanding" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="col-span-1">Status</Label>
-                <Select 
-                  value={outstandingFilter}
-                  onValueChange={setOutstandingFilter}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {reportType === "closed" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="col-span-1">Status</Label>
-                <Select 
-                  value={closedFilter}
-                  onValueChange={setClosedFilter}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {reportType === "sales" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="groupBy" className="col-span-1">Group By</Label>
-                <Select 
-                  value={salesGroupBy}
-                  onValueChange={setSalesGroupBy}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Group By" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="dateRange" className="col-span-1">Date Range</Label>
-              <div className="col-span-3">
-                <DatePickerWithRange
-                  dateRange={dateRange}
-                  setDateRange={(range: any) => setDateRange(range)}
-                />
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="submit">Apply Filters</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Tabs defaultValue="outstanding" value={reportType} onValueChange={handleTabChange}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="outstanding">Outstanding Bills</TabsTrigger>
-          <TabsTrigger value="closed">Closed Bills</TabsTrigger>
-          <TabsTrigger value="sales">Sales Analysis</TabsTrigger>
-        </TabsList>
         
-        <TabsContent value="outstanding">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Outstanding Bills</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    Showing {filteredOutstandingData.length} {outstandingFilter !== "all" 
-                      ? `${outstandingFilter} invoices` 
-                      : "invoices"}
-                  </span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-neutral-50">
-                  <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Party Name</TableHead>
-                    <TableHead>Invoice Date</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Days Overdue</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOutstandingData.map((invoice: any) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/invoices/${invoice.id}`} className="text-primary-500 hover:underline">
-                          #{invoice.invoiceNo}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/parties/${invoice.partyId}`} className="hover:underline">
-                          {invoice.partyName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
-                      <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
-                      <TableCell className={invoice.daysOverdue > 0 ? "text-destructive font-medium" : ""}>
-                        {invoice.daysOverdue > 0 
-                          ? `${invoice.daysOverdue} days`
-                          : "Not overdue"
-                        }
-                      </TableCell>
-                      <TableCell>{formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={invoice.status as any} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-
-                  {filteredOutstandingData.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                        {outstandingData && outstandingData.length > 0
-                          ? `No invoices match the current "${outstandingFilter}" filter.`
-                          : "No outstanding invoices for the selected date range"
-                        }
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="closed">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Closed Bills</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    Showing {filteredClosedData.length} {closedFilter !== "all" 
-                      ? `${closedFilter} invoices` 
-                      : "invoices"}
-                  </span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-neutral-50">
-                  <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Party Name</TableHead>
-                    <TableHead>Invoice Date</TableHead>
-                    <TableHead>Closed Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredClosedData.map((invoice: any) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/invoices/${invoice.id}`} className="text-primary-500 hover:underline">
-                          #{invoice.invoiceNo}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/parties/${invoice.partyId}`} className="hover:underline">
-                          {invoice.partyName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
-                      <TableCell>{invoice.closedDate ? format(new Date(invoice.closedDate), "MMM dd, yyyy") : "N/A"}</TableCell>
-                      <TableCell>{formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={invoice.status as any} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-
-                  {filteredClosedData.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
-                        {closedData && closedData.length > 0
-                          ? `No invoices match the current "${closedFilter}" filter.`
-                          : "No closed invoices for the selected date range"
-                        }
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="sales">
-          <Card className="p-6">
-            <CardHeader className="px-0 pt-0">
-              <div className="flex items-center justify-between">
-                <CardTitle>Sales Report</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    {salesGroupBy.charAt(0).toUpperCase() + salesGroupBy.slice(1)} View
-                  </span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="px-0 pb-0">
-              {salesData && salesData.periods && salesData.periods.length > 0 ? (
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={salesData.periods}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value: any) => [`${formatCurrency(value, 'INR')}`, 'Sales']}
-                      />
-                      <Legend />
-                      <Bar 
-                        name="Sales" 
-                        dataKey="amount" 
-                        fill="hsl(262,80%,50%)" 
-                        radius={[4, 4, 0, 0]} 
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-neutral-500">
-                  No sales data available for the selected period
-                </div>
-              )}
-              
-              {salesData && salesData.periods && salesData.periods.length > 0 && (
-                <div className="mt-8 border-t pt-6">
-                  <h4 className="text-lg font-semibold mb-4">Summary</h4>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="bg-neutral-50 p-4 rounded-lg">
-                      <div className="text-sm text-neutral-500 mb-1">Total Sales</div>
-                      <div className="text-2xl font-bold">{formatCurrency(salesData.totals.totalAmount, 'INR')}</div>
+        <CardContent>
+          <Tabs defaultValue="outstanding" onValueChange={handleTabChange}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="outstanding" className="px-4">
+                <Calendar className="h-4 w-4 mr-2" />
+                Outstanding Invoices
+              </TabsTrigger>
+              <TabsTrigger value="closed" className="px-4">
+                <Calendar className="h-4 w-4 mr-2" />
+                Closed Invoices
+              </TabsTrigger>
+              <TabsTrigger value="sales" className="px-4">
+                <BarChartIcon className="h-4 w-4 mr-2" />
+                Sales Analysis
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="outstanding">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Outstanding Invoices</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {filteredOutstandingData?.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Invoice No</TableHead>
+                            <TableHead>Party Name</TableHead>
+                            <TableHead>Invoice Date</TableHead>
+                            <TableHead>Due Date</TableHead>
+                            <TableHead>Days Overdue</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredOutstandingData.map((invoice) => (
+                            <TableRow key={invoice.id}>
+                              <TableCell>{invoice.invoiceNo}</TableCell>
+                              <TableCell>{invoice.partyName}</TableCell>
+                              <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
+                              <TableCell>{format(new Date(invoice.dueDate), "MMM dd, yyyy")}</TableCell>
+                              <TableCell className={invoice.daysOverdue > 0 ? "text-red-500 font-medium" : ""}>
+                                {invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue"}
+                              </TableCell>
+                              <TableCell>
+                                {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={invoice.status} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
-                    <div className="bg-neutral-50 p-4 rounded-lg">
-                      <div className="text-sm text-neutral-500 mb-1">Invoice Count</div>
-                      <div className="text-2xl font-bold">{salesData.totals.invoiceCount}</div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No outstanding invoices found matching your current filters.
                     </div>
-                    <div className="bg-neutral-50 p-4 rounded-lg">
-                      <div className="text-sm text-neutral-500 mb-1">Average Invoice Value</div>
-                      <div className="text-2xl font-bold">
-                        {formatCurrency(salesData.totals.averageAmount, 'INR')}
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="closed">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Closed Invoices</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {filteredClosedData?.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Invoice No</TableHead>
+                            <TableHead>Party Name</TableHead>
+                            <TableHead>Invoice Date</TableHead>
+                            <TableHead>Closed Date</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredClosedData.map((invoice) => (
+                            <TableRow key={invoice.id}>
+                              <TableCell>{invoice.invoiceNo}</TableCell>
+                              <TableCell>{invoice.partyName}</TableCell>
+                              <TableCell>{format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</TableCell>
+                              <TableCell>
+                                {invoice.paymentDate 
+                                  ? format(new Date(invoice.paymentDate), "MMM dd, yyyy")
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={invoice.status} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No closed invoices found matching your current filters.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="sales">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Analysis ({salesGroupBy})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {salesData?.periods && salesData.periods.length > 0 ? (
+                    <>
+                      <div className="h-[350px] w-full mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={prepareChartData()}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value: number) => formatCurrency(value)}
+                              labelFormatter={(label) => `Period: ${label}`}
+                            />
+                            <Legend />
+                            <Bar name="Sales Amount" dataKey="Sales" fill="#8884d8" />
+                            <Bar name="Brokerage Amount" dataKey="Brokerage" fill="#82ca9d" />
+                          </BarChart>
+                        </ResponsiveContainer>
                       </div>
+                      
+                      <div className="overflow-x-auto mt-8">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Period</TableHead>
+                              <TableHead>Invoice Count</TableHead>
+                              <TableHead>Total Sales</TableHead>
+                              <TableHead>Brokerage</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {salesData.periods.map((period: any, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell>{period.label}</TableCell>
+                                <TableCell>{period.invoiceCount}</TableCell>
+                                <TableCell>{formatCurrency(period.total || 0)}</TableCell>
+                                <TableCell>{formatCurrency(period.brokerage || 0)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-muted-foreground">
+                                Total Invoices
+                              </div>
+                              <div className="text-2xl font-bold mt-1">
+                                {salesData.totals?.invoiceCount || 0}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-muted-foreground">
+                                Total Sales
+                              </div>
+                              <div className="text-2xl font-bold mt-1">
+                                {formatCurrency(salesData.totals?.totalSales || 0)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-muted-foreground">
+                                Total Brokerage
+                              </div>
+                              <div className="text-2xl font-bold mt-1">
+                                {formatCurrency(salesData.totals?.totalBrokerage || 0)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No sales data available for the selected period.
                     </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
