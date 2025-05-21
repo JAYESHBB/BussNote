@@ -221,6 +221,7 @@ export async function getSalesTrends(req: Request, res: Response) {
         SUM(CAST(subtotal AS NUMERIC)) AS sales,
         COUNT(*) AS invoice_count,
         SUM(CAST(brokerage_inr AS NUMERIC)) AS brokerage,
+        SUM(CAST(received_brokerage AS NUMERIC)) AS received_brokerage,
         ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avg_exchange_rate
       FROM invoices
       WHERE invoice_date >= ${fromDate}
