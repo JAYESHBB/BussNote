@@ -860,7 +860,7 @@ export default function InvoiceDetailsPage() {
 
               <div className="flex justify-between">
                 <span className="text-neutral-600">Balance Brokerage:</span>
-                <span className="font-medium">{formatCurrency(invoice.balanceBrokerage || '0', 'INR')}</span>
+                <span className="font-medium">{formatCurrency(Math.round(Number(invoice.balanceBrokerage || '0')), 'INR')}</span>
               </div>
               
               <div className="flex justify-between">
