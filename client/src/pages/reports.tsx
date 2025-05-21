@@ -44,7 +44,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+// Removed date picker import
 import {
   Select,
   SelectContent,
@@ -92,13 +92,11 @@ export default function ReportsPage() {
   const handleTabChange = (value: string) => {
     setReportType(value);
   };
-  const [dateRange, setDateRange] = useState<{
-    from: Date;
-    to: Date;
-  }>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
+  // Set fixed date range (last 12 months) instead of using filters
+  const fixedDateRange = {
+    from: subMonths(new Date(), 12), // 12 months ago
+    to: new Date(), // Today
+  };
   
   // Function to apply filters
   const handleOpenFilterDialog = () => {
@@ -106,15 +104,15 @@ export default function ReportsPage() {
   };
   
   const { data: outstandingData } = useQuery<any[]>({
-    queryKey: ['/api/reports/outstanding', dateRange],
+    queryKey: ['/api/reports/outstanding', fixedDateRange],
   });
   
   const { data: closedData } = useQuery<any[]>({
-    queryKey: ['/api/reports/closed', dateRange],
+    queryKey: ['/api/reports/closed', fixedDateRange],
   });
   
   const { data: salesData } = useQuery({
-    queryKey: ['/api/reports/sales', dateRange],
+    queryKey: ['/api/reports/sales', fixedDateRange],
   });
   
   // Filter outstanding invoices based on status filter
