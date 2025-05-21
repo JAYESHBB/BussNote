@@ -596,14 +596,28 @@ export default function ReportsPage() {
     });
   };
   
+  // Helper function to determine if a value represents zero
+  const isZero = (value: any): boolean => {
+    if (!value) return true;
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return parsed === 0 || isNaN(parsed);
+    }
+    return value === 0;
+  };
+
   // Enhanced formatCurrency function with currency parameter
-  const formatCurrency = (amount: number | string, currency: string | null = null) => {
+  const formatCurrency = (amount: number | string, currency: string | null = null, subtotal?: number | string) => {
     try {
-      // Convert to number if it's a string
-      const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+      // If amount is zero and we have a subtotal, use the subtotal instead
+      let actualAmount = amount;
+      if (isZero(amount) && subtotal && !isZero(subtotal)) {
+        actualAmount = subtotal;
+        console.log("Using subtotal instead of zero total:", subtotal);
+      }
       
-      // For debugging
-      console.log("Formatting currency:", numericAmount, "with currency:", currency);
+      // Convert to number if it's a string
+      const numericAmount = typeof actualAmount === 'string' ? parseFloat(actualAmount) : actualAmount;
       
       // Choose appropriate currency symbol
       let symbol = '₹'; // Default to INR
@@ -629,7 +643,7 @@ export default function ReportsPage() {
       return `${symbol}${formattedAmount}`;
     } catch (error) {
       console.error("Currency formatting error:", error);
-      return `₹${Number(amount).toFixed(2)}`;
+      return `₹${Number(amount || 0).toFixed(2)}`;
     }
   };
 
