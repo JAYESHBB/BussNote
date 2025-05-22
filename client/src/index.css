@@ -27,11 +27,22 @@
 
 /* Card hover effects */
 .card-hover {
-  @apply bg-card border border-border/40 shadow-sm;
+  @apply bg-card border border-border/40 shadow-sm transition-all duration-200;
 }
 
 .card-hover:hover {
   @apply shadow-md border-primary/20;
+  transform: translateY(-2px);
+}
+
+.dark .card-hover {
+  @apply bg-card border-border/30 shadow-sm;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 0 0 1px hsla(var(--border), 0.3);
+}
+
+.dark .card-hover:hover {
+  @apply border-primary/30;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 0 1px hsla(var(--primary), 0.2);
 }
 
 /* Static effect for hover elements */
@@ -41,19 +52,36 @@
   overflow: hidden;
 }
 
-/* Simple input styles without animations */
+/* Enhanced input styles with dark mode support */
 input.form-input {
-  @apply rounded-md bg-background/80 backdrop-blur-sm;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  @apply rounded-md bg-background/80 backdrop-blur-sm border-input text-foreground;
+  box-shadow: 0 0 0 1px hsla(var(--input), 0.2), inset 0 1px 2px hsla(var(--input), 0.1);
+  transition: all 0.2s ease;
 }
 
 input.form-input:focus {
-  @apply bg-background;
-  box-shadow: 0 0 0 2px rgba(79, 94, 197, 0.3);
+  @apply bg-background border-primary;
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.2);
 }
 
 input.form-input:hover:not(:focus) {
-  box-shadow: 0 0 0 1px rgba(79, 94, 197, 0.2);
+  @apply border-primary/30;
+  box-shadow: 0 0 0 1px hsla(var(--primary), 0.15);
+}
+
+.dark input.form-input {
+  @apply bg-muted/50 border-input;
+  box-shadow: 0 0 0 1px hsla(var(--input), 0.3), inset 0 1px 2px hsla(var(--input), 0.1);
+}
+
+.dark input.form-input:focus {
+  @apply bg-muted/80 border-primary;
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.3);
+}
+
+.dark input.form-input:hover:not(:focus) {
+  @apply border-primary/40;
+  box-shadow: 0 0 0 1px hsla(var(--primary), 0.25);
 }
 
 /* Simple form styling without animations */
@@ -84,18 +112,44 @@ input.form-input:hover:not(:focus) {
   width: 100%;
 }
 
-/* Simple button styles without animations */
+/* Enhanced button styles with dark mode support */
 button, .button {
   overflow: hidden;
   position: relative;
+  transition: all 0.2s ease;
 }
 
 button:hover, .button:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 button:active, .button:active {
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(0);
+}
+
+/* Primary button with gradient */
+.btn-primary, button[class*="bg-primary"] {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.9) 100%);
+  border: 1px solid hsl(var(--primary)/0.1);
+}
+
+.dark .btn-primary, .dark button[class*="bg-primary"] {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
+  border: 1px solid hsl(var(--primary)/0.2);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Secondary button with gradient */
+.btn-secondary, button[class*="bg-secondary"] {
+  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.9) 100%);
+  border: 1px solid hsl(var(--secondary)/0.1);
+}
+
+.dark .btn-secondary, .dark button[class*="bg-secondary"] {
+  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.8) 100%);
+  border: 1px solid hsl(var(--secondary)/0.2);
 }
 
 @layer base {
@@ -273,19 +327,31 @@ button:active, .button:active {
 
 @layer components {
   .sidebar-link {
-    @apply flex items-center pl-6 pr-4 py-3 text-neutral-700 hover:bg-neutral-100;
+    @apply flex items-center pl-6 pr-4 py-3 text-muted-foreground hover:bg-muted/50 hover:text-foreground;
     position: relative;
     overflow: hidden;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+  }
+  
+  .sidebar-link:hover {
+    @apply border-l-4 border-primary/30;
   }
   
   .sidebar-link.active {
     @apply bg-sidebar-accent text-sidebar-primary border-l-4 border-primary;
-    background: linear-gradient(90deg, rgba(231, 236, 253, 1) 0%, rgba(231, 236, 253, 0.5) 100%);
+    background: linear-gradient(90deg, hsl(var(--sidebar-accent)) 0%, hsl(var(--sidebar-accent)/0.5) 100%);
+    font-weight: 500;
+  }
+  
+  .dark .sidebar-link {
+    @apply text-muted-foreground hover:text-foreground hover:bg-muted/30;
   }
   
   .dark .sidebar-link.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
-    background: linear-gradient(90deg, rgba(45, 55, 90, 1) 0%, rgba(45, 55, 90, 0.5) 100%);
+    @apply bg-sidebar-accent text-sidebar-accent-foreground border-primary;
+    background: linear-gradient(90deg, hsl(var(--sidebar-accent)) 0%, hsl(var(--sidebar-accent)/0.3) 100%);
+    box-shadow: inset 0 0 10px hsla(var(--primary), 0.05);
   }
   
   .sidebar-link.active::after {
@@ -303,17 +369,33 @@ button:active, .button:active {
     position: relative;
     z-index: 1;
     overflow: hidden;
+    background: linear-gradient(135deg, hsla(var(--primary), 0.15) 0%, hsla(var(--primary), 0.05) 100%);
+    color: hsl(var(--primary));
+    transition: all 0.3s ease;
+  }
+  
+  .dark .stat-card-icon {
+    background: linear-gradient(135deg, hsla(var(--primary), 0.25) 0%, hsla(var(--primary), 0.15) 100%);
+    color: hsl(var(--primary));
   }
   
   .colorful-bg-pattern {
     background-color: hsla(var(--background));
     background-image: 
-      radial-gradient(at 47% 33%, hsla(231, 55%, 92%, 0.8) 0, transparent 59%), 
-      radial-gradient(at 82% 65%, hsla(122, 52%, 95%, 0.6) 0, transparent 55%),
-      radial-gradient(at 23% 75%, hsla(30, 100%, 95%, 0.5) 0, transparent 45%);
+      radial-gradient(at 47% 33%, hsla(var(--primary), 15%, 0.4) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsla(var(--secondary), 15%, 0.3) 0, transparent 55%),
+      radial-gradient(at 23% 75%, hsla(var(--accent), 15%, 0.2) 0, transparent 45%);
     position: relative;
     z-index: 0;
     overflow: hidden;
+    transition: background-image 0.5s ease;
+  }
+  
+  .dark .colorful-bg-pattern {
+    background-image: 
+      radial-gradient(at 47% 33%, hsla(var(--primary), 25%, 0.15) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsla(var(--secondary), 30%, 0.1) 0, transparent 55%),
+      radial-gradient(at 23% 75%, hsla(var(--accent), 15%, 0.1) 0, transparent 45%);
   }
   
   /* Static decorative elements */
@@ -374,9 +456,10 @@ button:active, .button:active {
   
   .colorful-header {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
-    @apply text-white p-6 rounded-t-lg;
+    @apply text-primary-foreground p-6 rounded-t-lg;
     position: relative;
     overflow: hidden;
+    transition: background 0.3s ease;
   }
   
   .colorful-header.secondary {
@@ -385,6 +468,20 @@ button:active, .button:active {
   
   .colorful-header.accent {
     background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.8) 100%);
+  }
+  
+  .dark .colorful-header {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.7) 100%);
+    @apply text-primary-foreground;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .dark .colorful-header.secondary {
+    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.7) 100%);
+  }
+  
+  .dark .colorful-header.accent {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.7) 100%);
   }
   
   .colorful-header::before {

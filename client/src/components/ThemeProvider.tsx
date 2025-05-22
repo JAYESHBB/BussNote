@@ -41,10 +41,29 @@ export function ThemeProvider({
         : "light";
 
       root.classList.add(systemTheme);
-      return;
+      
+      // Add a listener for system theme changes
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => {
+        root.classList.remove("light", "dark");
+        root.classList.add(mediaQuery.matches ? "dark" : "light");
+      };
+      
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
     }
 
     root.classList.add(theme);
+    
+    // Apply smooth transition effect when theme changes
+    const applyTransitionEffect = () => {
+      document.body.style.transition = "background-color 0.5s ease, color 0.5s ease";
+      setTimeout(() => {
+        document.body.style.transition = "";
+      }, 500);
+    };
+    
+    applyTransitionEffect();
   }, [theme]);
 
   const value = {
