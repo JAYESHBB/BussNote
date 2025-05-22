@@ -1656,7 +1656,7 @@ export default function ReportsPage() {
                                   ₹{(period.grossSales || 0).toLocaleString('en-IN')}
                                   
                                   {/* Currency breakdown if available */}
-                                  {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 1 && (
+                                  {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 0 && (
                                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                                       {Object.entries(period.currencyBreakdown || {}).map(([currency, amount]) => (
                                         <div key={currency} className="flex items-center">

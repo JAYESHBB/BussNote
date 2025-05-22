@@ -860,15 +860,32 @@ class DatabaseStorage implements IStorage {
             invoiceCount: 0,
             grossSales: 0,
             brokerage: 0,
-            netSales: 0
+            receivedBrokerage: 0,
+            netSales: 0,
+            currencyBreakdown: {},
+            currencies: []
           });
         }
         
         const period = periodMap.get(weekKey);
+        const amount = Number(parseFloat(invoice.subtotal as any) || 0);
+        const currency = invoice.currency || "INR";
+        
+        // Add currency breakdown if not exists
+        if (!period.currencyBreakdown[currency]) {
+          period.currencyBreakdown[currency] = 0;
+          period.currencies.push(currency);
+        }
+        
+        // Update period values
         period.invoiceCount += 1;
-        period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
+        period.grossSales += amount;
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
+        period.receivedBrokerage += Number(parseFloat(invoice.receivedBrokerage as any) || 0);
+        period.netSales += amount;
+        
+        // Update currency breakdown
+        period.currencyBreakdown[currency] += amount;
       }
     } else if (groupBy === "monthly") {
       // Group by month
@@ -883,15 +900,32 @@ class DatabaseStorage implements IStorage {
             invoiceCount: 0,
             grossSales: 0,
             brokerage: 0,
-            netSales: 0
+            receivedBrokerage: 0,
+            netSales: 0,
+            currencyBreakdown: {},
+            currencies: []
           });
         }
         
         const period = periodMap.get(monthKey);
+        const amount = Number(parseFloat(invoice.subtotal as any) || 0);
+        const currency = invoice.currency || "INR";
+        
+        // Add currency breakdown if not exists
+        if (!period.currencyBreakdown[currency]) {
+          period.currencyBreakdown[currency] = 0;
+          period.currencies.push(currency);
+        }
+        
+        // Update period values
         period.invoiceCount += 1;
-        period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
+        period.grossSales += amount;
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
+        period.receivedBrokerage += Number(parseFloat(invoice.receivedBrokerage as any) || 0);
+        period.netSales += amount;
+        
+        // Update currency breakdown
+        period.currencyBreakdown[currency] += amount;
       }
     } else if (groupBy === "quarterly") {
       // Group by quarter
@@ -909,15 +943,32 @@ class DatabaseStorage implements IStorage {
             invoiceCount: 0,
             grossSales: 0,
             brokerage: 0,
-            netSales: 0
+            receivedBrokerage: 0,
+            netSales: 0,
+            currencyBreakdown: {},
+            currencies: []
           });
         }
         
         const period = periodMap.get(quarterKey);
+        const amount = Number(parseFloat(invoice.subtotal as any) || 0);
+        const currency = invoice.currency || "INR";
+        
+        // Add currency breakdown if not exists
+        if (!period.currencyBreakdown[currency]) {
+          period.currencyBreakdown[currency] = 0;
+          period.currencies.push(currency);
+        }
+        
+        // Update period values
         period.invoiceCount += 1;
-        period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
+        period.grossSales += amount;
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
+        period.receivedBrokerage += Number(parseFloat(invoice.receivedBrokerage as any) || 0);
+        period.netSales += amount;
+        
+        // Update currency breakdown
+        period.currencyBreakdown[currency] += amount;
       }
     }
     
