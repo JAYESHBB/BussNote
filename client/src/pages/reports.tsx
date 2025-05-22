@@ -1469,7 +1469,7 @@ export default function ReportsPage() {
                                   : "N/A"}
                               </TableCell>
                               <TableCell>
-                                {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}
+                                {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency, invoice)}
                               </TableCell>
                               <TableCell>
                                 <StatusBadge status={invoice.status} />
