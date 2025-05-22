@@ -118,7 +118,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light">
+      <ThemeProvider>
         <AuthProvider>
           <Router />
           <Toaster />
