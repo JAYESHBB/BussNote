@@ -227,7 +227,7 @@ export async function getSalesTrends(req: Request, res: Response) {
     
     console.log(`Fetching sales trends with date range: ${fromDate.toISOString()} to ${toDate.toISOString()}, period type: ${periodType}`);
     
-    // Get sales trends data using user-selected date range
+    // Get sales trends data using user-selected date range with currency breakdown
     const trendData = await db.execute(sql`
       SELECT 
         ${timeFormat} AS period,
@@ -235,11 +235,12 @@ export async function getSalesTrends(req: Request, res: Response) {
         COUNT(*) AS invoiceCount,
         SUM(CAST(brokerage_inr AS NUMERIC)) AS totalBrokerage,
         SUM(CAST(received_brokerage AS NUMERIC)) AS receivedBrokerage,
-        ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avgExchangeRate
+        ROUND(AVG(CAST(exchange_rate AS NUMERIC)), 2) AS avgExchangeRate,
+        COALESCE(currency, 'INR') AS currency
       FROM invoices
       WHERE invoice_date BETWEEN ${fromDate} AND ${toDate}
-      GROUP BY ${timeGroup}
-      ORDER BY ${timeGroup}
+      GROUP BY ${timeGroup}, currency
+      ORDER BY ${timeGroup}, currency
     `);
     
     // Get year-over-year comparison data
@@ -263,18 +264,60 @@ export async function getSalesTrends(req: Request, res: Response) {
       ORDER BY period_num
     `);
     
-    // Transform data into the expected format for the frontend
+    // Transform data into the expected format for the frontend with currency info
     const trendsData = trendData.rows.map(row => ({
-      period: row.period,
-      totalSales: parseFloat(row.totalsales || "0"),
-      totalBrokerage: parseFloat(row.totalbrokerage || "0"),
-      receivedBrokerage: parseFloat(row.receivedbrokerage || "0"),
-      invoiceCount: parseInt(row.invoicecount || "0"),
-      avgExchangeRate: parseFloat(row.avgexchangerate || "0")
+      period: row.period as string,
+      totalSales: parseFloat(row.totalsales as string || "0"),
+      totalBrokerage: parseFloat(row.totalbrokerage as string || "0"),
+      receivedBrokerage: parseFloat(row.receivedbrokerage as string || "0"),
+      invoiceCount: parseInt(row.invoicecount as string || "0"),
+      avgExchangeRate: parseFloat(row.avgexchangerate as string || "0"),
+      currency: row.currency as string || "INR"
     }));
+    
+    // Group data by period to combine multiple currencies in same period
+    interface TrendItem {
+      period: string;
+      totalSales: number;
+      totalBrokerage: number;
+      receivedBrokerage: number;
+      invoiceCount: number;
+      avgExchangeRate: number;
+      currency: string;
+      currencies?: string[];
+      [key: string]: any; // For dynamic currency-specific fields
+    }
+    
+    const groupedTrends: TrendItem[] = trendsData.reduce((acc: TrendItem[], curr: TrendItem) => {
+      const existingPeriod = acc.find(item => item.period === curr.period);
+      
+      if (existingPeriod) {
+        // Append currency-specific data
+        existingPeriod[`sales_${curr.currency}`] = curr.totalSales;
+        existingPeriod[`brokerage_${curr.currency}`] = curr.totalBrokerage;
+        existingPeriod[`received_${curr.currency}`] = curr.receivedBrokerage;
+        
+        // Update totals
+        existingPeriod.totalSales += curr.totalSales;
+        existingPeriod.totalBrokerage += curr.totalBrokerage;
+        existingPeriod.receivedBrokerage += curr.receivedBrokerage;
+        existingPeriod.currencies = [...(existingPeriod.currencies || []), curr.currency];
+      } else {
+        // Create new period entry with currency data
+        acc.push({
+          ...curr,
+          [`sales_${curr.currency}`]: curr.totalSales,
+          [`brokerage_${curr.currency}`]: curr.totalBrokerage,
+          [`received_${curr.currency}`]: curr.receivedBrokerage,
+          currencies: [curr.currency]
+        });
+      }
+      
+      return acc;
+    }, []);
 
     res.json({
-      data: trendsData,
+      data: groupedTrends,
       comparison: {
         data: comparisonData.rows,
         periodType: compareLabel
