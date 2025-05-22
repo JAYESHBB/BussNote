@@ -100,95 +100,115 @@ button:active, .button:active {
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 13%;
+    /* Light mode - crisp, clean color palette */
+    --background: 220 25% 98%;
+    --foreground: 222 47% 11%;
     
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
+    --card-foreground: 222 47% 11%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover-foreground: 222 47% 11%;
     
     --primary: 231 55% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 210 40% 98%;
     
-    --secondary: 122 52% 34%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 210 40% 98%;
     
-    --accent: 30 100% 48%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 35 92% 50%;
+    --accent-foreground: 210 40% 98%;
     
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 46%;
     
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 231 55% 45%;
     
     --radius: 0.5rem;
 
     --chart-1: 231 55% 45%;
-    --chart-2: 122 52% 34%;
-    --chart-3: 30 100% 48%;
-    --chart-4: 0 0% 45%; 
+    --chart-2: 142 76% 36%;
+    --chart-3: 35 92% 50%;
+    --chart-4: 258 90% 66%; 
     --chart-5: 0 84% 60%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 13%;
+    --sidebar-foreground: 222 47% 11%;
     --sidebar-primary: 231 55% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 231 80% 95%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 231 80% 96%;
     --sidebar-accent-foreground: 231 55% 45%;
-    --sidebar-border: 0 0% 88%;
+    --sidebar-border: 214 32% 91%;
     --sidebar-ring: 231 55% 45%;
+
+    /* Custom shadow values */
+    --shadow-color: 220 3% 15%;
+    --shadow-strength: 1%;
+    --shadow-sm: 0 1px 2px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%));
+    --shadow-md: 0 3px 6px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%)), 
+                 0 5px 15px -3px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%));
+    --shadow-lg: 0 10px 30px -4px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%)), 
+                 0 15px 40px -6px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%));
   }
  
   .dark {
-    --background: 0 0% 13%;
-    --foreground: 0 0% 98%;
+    /* Dark mode - sophisticated and modern */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
     
-    --card: 0 0% 17%;
-    --card-foreground: 0 0% 98%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
     
-    --popover: 0 0% 17%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
     
-    --primary: 231 55% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
     
-    --secondary: 122 52% 34%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 142 77% 73%;
+    --secondary-foreground: 222 47% 11%;
     
-    --accent: 30 100% 48%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 35 92% 50%;
+    --accent-foreground: 210 40% 98%;
     
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 223 47% 18%;
+    --muted-foreground: 215 20.2% 65.1%;
     
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 25%;
-    --input: 0 0% 25%;
-    --ring: 231 55% 50%;
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
+    --ring: 224 76% 48%;
 
-    --chart-1: 231 60% 60%;
-    --chart-2: 122 60% 45%;
-    --chart-3: 30 100% 55%;
-    --chart-4: 0 0% 65%;
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 77% 73%;
+    --chart-3: 35 92% 65%;
+    --chart-4: 258 90% 66%;
     --chart-5: 0 84% 70%;
 
-    --sidebar-background: 0 0% 17%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 231 55% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 231 30% 25%;
-    --sidebar-accent-foreground: 231 80% 95%;
-    --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 231 55% 50%;
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 223 47% 11%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 217 19% 27%;
+    --sidebar-ring: 224 76% 48%;
+
+    /* Dark mode shadow values with adjusted strength */
+    --shadow-color: 220 40% 3%;
+    --shadow-strength: 25%;
+    --shadow-sm: 0 1px 3px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%));
+    --shadow-md: 0 5px 15px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 10%)), 
+                 0 10px 20px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 8%));
+    --shadow-lg: 0 10px 35px -3px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 20%)), 
+                 0 20px 45px -10px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 15%));
   }
 
   * {
@@ -197,11 +217,12 @@ button:active, .button:active {
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(231, 55%, 97%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220, 25%, 95%) 100%);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   .dark body {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(231, 40%, 13%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(225, 45%, 7%) 100%);
   }
   
   /* Set all form elements to 11px font size */
@@ -216,16 +237,17 @@ button:active, .button:active {
     min-height: 100vh;
     background-color: transparent;
     background-image: 
-      radial-gradient(at 47% 33%, hsla(231, 55%, 90%, 0.6) 0, transparent 59%), 
-      radial-gradient(at 82% 65%, hsla(122, 52%, 90%, 0.5) 0, transparent 55%),
-      radial-gradient(at 23% 75%, hsla(30, 100%, 90%, 0.4) 0, transparent 45%);
+      radial-gradient(at 47% 33%, hsla(var(--primary), 15%, 0.4) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsla(var(--secondary), 15%, 0.3) 0, transparent 55%),
+      radial-gradient(at 23% 75%, hsla(var(--accent), 15%, 0.2) 0, transparent 45%);
+    transition: background-image 0.5s ease;
   }
   
   .dark #root {
     background-image: 
-      radial-gradient(at 47% 33%, hsla(231, 55%, 20%, 0.6) 0, transparent 59%), 
-      radial-gradient(at 82% 65%, hsla(122, 52%, 15%, 0.5) 0, transparent 55%),
-      radial-gradient(at 23% 75%, hsla(30, 100%, 15%, 0.4) 0, transparent 45%);
+      radial-gradient(at 47% 33%, hsla(var(--primary), 30%, 0.2) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsla(var(--secondary), 30%, 0.15) 0, transparent 55%),
+      radial-gradient(at 23% 75%, hsla(var(--accent), 20%, 0.1) 0, transparent 45%);
   }
 }
 
@@ -325,16 +347,29 @@ button:active, .button:active {
   }
   
   .colorful-card {
-    @apply bg-white;
-    background: linear-gradient(to right bottom, white, hsl(231, 55%, 99%));
-    border: 1px solid rgba(231, 233, 250, 0.7);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    @apply bg-card;
+    background: linear-gradient(to right bottom, hsl(var(--card)), hsl(var(--card)/0.8));
+    border: 1px solid hsl(var(--border)/0.7);
+    box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
+    transition: all 0.2s ease-in-out;
   }
   
   .colorful-card:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(79, 94, 197, 0.05);
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--primary)/0.2);
+  }
+  
+  .dark .colorful-card {
+    background: linear-gradient(to right bottom, hsl(var(--card)), hsl(var(--card)/0.9));
+    border: 1px solid hsl(var(--border)/0.7);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .dark .colorful-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: hsl(var(--primary)/0.3);
   }
   
   .colorful-header {
