@@ -687,7 +687,7 @@ export default function ReportsPage() {
       "Party Name": invoice.partyName,
       "Invoice Date": format(new Date(invoice.invoiceDate), "MMM dd, yyyy"),
       "Closed Date": invoice.paymentDate ? format(new Date(invoice.paymentDate), "MMM dd, yyyy") : "N/A",
-      "Amount": formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency).replace(getCurrencySymbol(invoice.currency), ''),
+      "Amount": formatCurrency(Number(invoice.total) === 0 ? invoice.subtotal : (invoice.total || invoice.subtotal || 0), invoice.currency).replace(getCurrencySymbol(invoice.currency), ''),
       "Status": invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
     }));
     
