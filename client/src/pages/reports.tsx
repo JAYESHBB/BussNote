@@ -1545,8 +1545,7 @@ export default function ReportsPage() {
                             Total Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
-                              sum + Number(invoice.brokerageInINR || 0), 0))}
+                            ₹{Math.round(dashboardStats?.totalBrokerage || 0)}
                           </div>
                         </div>
                       </CardContent>
