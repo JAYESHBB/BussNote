@@ -1431,9 +1431,51 @@ export default function ReportsPage() {
                   <CardTitle>Sales Analysis ({salesGroupBy})</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* We always show summary cards, even with empty data */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-8">
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            Total Invoices
+                          </div>
+                          <div className="text-2xl font-bold mt-1">
+                            {salesData.totals?.invoiceCount || 0}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            Total Sales
+                          </div>
+                          <div className="text-2xl font-bold mt-1">
+                            {formatCurrency(salesData.totals?.totalSales || 0)}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            Total Brokerage
+                          </div>
+                          <div className="text-2xl font-bold mt-1">
+                            {formatCurrency(salesData.totals?.totalBrokerage || 0)}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
                   {salesData?.periods && salesData.periods.length > 0 ? (
                     <>
-                      <div className="h-[350px] w-full mt-4">
+                      <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={prepareChartData()}
@@ -1480,51 +1522,15 @@ export default function ReportsPage() {
                           </TableBody>
                         </Table>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-center">
-                              <div className="text-sm font-medium text-muted-foreground">
-                                Total Invoices
-                              </div>
-                              <div className="text-2xl font-bold mt-1">
-                                {salesData.totals?.invoiceCount || 0}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-center">
-                              <div className="text-sm font-medium text-muted-foreground">
-                                Total Sales
-                              </div>
-                              <div className="text-2xl font-bold mt-1">
-                                {formatCurrency(salesData.totals?.totalSales || 0)}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="text-center">
-                              <div className="text-sm font-medium text-muted-foreground">
-                                Total Brokerage
-                              </div>
-                              <div className="text-2xl font-bold mt-1">
-                                {formatCurrency(salesData.totals?.totalBrokerage || 0)}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
                     </>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No sales data available for the selected period.
+                    <div className="text-center py-12 border rounded-lg bg-muted/10">
+                      <BarChartIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No period-wise sales data available</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        This report shows sales analytics grouped by time periods. 
+                        Create and mark invoices as paid to see your sales data visualized here.
+                      </p>
                     </div>
                   )}
                 </CardContent>
