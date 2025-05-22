@@ -430,11 +430,13 @@ export function InvoiceForm({ open, onOpenChange, invoice }: InvoiceFormProps) {
   useEffect(() => {
     // Get the current currency value to avoid repeated triggers
     const currentCurrency = form.getValues("currency");
+    // Get the default currency from settings
+    const defaultCurrency = getDefaultCurrency();
 
     const subscription = form.watch((value, { name }) => {
       if (name === "currency" && value.currency !== currentCurrency) {
-        // Set exchange rate to 1.00 if currency is INR, otherwise don't modify it
-        if (value.currency === "INR") {
+        // Set exchange rate to 1.00 if currency matches default currency
+        if (value.currency === defaultCurrency) {
           // Use setTimeout to break the potential call stack cycle
           setTimeout(() => {
             form.setValue("exchangeRate", 1.0, { shouldValidate: true });
