@@ -137,6 +137,16 @@ export default function ReportsPage() {
     return invoice.status === closedFilter;
   }) || [];
   
+  // Helper component for displaying correct amount based on invoice data
+  const InvoiceAmount = ({ invoice }: { invoice: any }) => {
+    // If total is 0 but subtotal has value, use subtotal instead
+    const amountToShow = Number(invoice.total) === 0 && Number(invoice.subtotal) > 0 
+      ? invoice.subtotal 
+      : (invoice.total || invoice.subtotal || 0);
+      
+    return <>{formatCurrency(amountToShow, invoice.currency)}</>;
+  };
+  
   // Helper function to get currency symbol
   const getCurrencySymbol = (currencyCode: string | null): string => {
     if (!currencyCode) return '₹'; // Default to INR
