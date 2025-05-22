@@ -35,15 +35,7 @@
   transform: translateY(-2px);
 }
 
-.dark .card-hover {
-  @apply bg-card border-border/30 shadow-sm;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 0 0 1px hsla(var(--border), 0.3);
-}
 
-.dark .card-hover:hover {
-  @apply border-primary/30;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 0 1px hsla(var(--primary), 0.2);
-}
 
 /* Static effect for hover elements */
 .glow-on-hover {
@@ -69,20 +61,7 @@ input.form-input:hover:not(:focus) {
   box-shadow: 0 0 0 1px hsla(var(--primary), 0.15);
 }
 
-.dark input.form-input {
-  @apply bg-muted/50 border-input;
-  box-shadow: 0 0 0 1px hsla(var(--input), 0.3), inset 0 1px 2px hsla(var(--input), 0.1);
-}
 
-.dark input.form-input:focus {
-  @apply bg-muted/80 border-primary;
-  box-shadow: 0 0 0 2px hsla(var(--primary), 0.3);
-}
-
-.dark input.form-input:hover:not(:focus) {
-  @apply border-primary/40;
-  box-shadow: 0 0 0 1px hsla(var(--primary), 0.25);
-}
 
 /* Simple form styling without animations */
 .form-field {
@@ -135,21 +114,10 @@ button:active, .button:active {
   border: 1px solid hsl(var(--primary)/0.1);
 }
 
-.dark .btn-primary, .dark button[class*="bg-primary"] {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
-  border: 1px solid hsl(var(--primary)/0.2);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
 /* Secondary button with gradient */
 .btn-secondary, button[class*="bg-secondary"] {
   background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.9) 100%);
   border: 1px solid hsl(var(--secondary)/0.1);
-}
-
-.dark .btn-secondary, .dark button[class*="bg-secondary"] {
-  background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.8) 100%);
-  border: 1px solid hsl(var(--secondary)/0.2);
 }
 
 @layer base {
