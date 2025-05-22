@@ -1410,7 +1410,7 @@ export default function ReportsPage() {
                                 {invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue"}
                               </TableCell>
                               <TableCell>
-                                {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}
+                                {formatCurrency(Number(invoice.total) === 0 ? invoice.subtotal : (invoice.total || invoice.subtotal || 0), invoice.currency)}
                               </TableCell>
                               <TableCell>
                                 ₹{Math.round(Number(invoice.brokerageInINR || 0))}
