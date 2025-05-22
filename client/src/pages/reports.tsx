@@ -190,7 +190,7 @@ export default function ReportsPage() {
       "Amount": formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency).replace(getCurrencySymbol(invoice.currency), ''), // Remove currency symbol
       "Total Brokerage": Math.round(Number(invoice.brokerageInINR || 0)),
       "Received Brokerage": Math.round(Number(invoice.receivedBrokerage || 0)),
-      "Balance Brokerage": Math.round(Number(invoice.balanceBrokerage || 0)),
+      "Balance Brokerage": Math.round(Number(invoice.brokerageInINR || 0) - Number(invoice.receivedBrokerage || 0)),
       "Status": invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
     }));
     
@@ -605,7 +605,7 @@ export default function ReportsPage() {
                       <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
                       <td>₹${Math.round(Number(invoice.brokerageInINR || 0))}</td>
                       <td>₹${Math.round(Number(invoice.receivedBrokerage || 0))}</td>
-                      <td>₹${Math.round(Number(invoice.balanceBrokerage || 0))}</td>
+                      <td>₹${Math.round(Number(invoice.brokerageInINR || 0) - Number(invoice.receivedBrokerage || 0))}</td>
                       <td>
                         <span class="badge ${invoice.status === 'pending' ? 'badge-pending' : 'badge-overdue'}">
                           ${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
@@ -1387,7 +1387,7 @@ export default function ReportsPage() {
                                 ₹{Math.round(Number(invoice.receivedBrokerage || 0))}
                               </TableCell>
                               <TableCell>
-                                ₹{Math.round(Number(invoice.balanceBrokerage || 0))}
+                                ₹{Math.round(Number(invoice.brokerageInINR || 0) - Number(invoice.receivedBrokerage || 0))}
                               </TableCell>
                               <TableCell>
                                 <StatusBadge status={invoice.status} />
@@ -1541,8 +1541,13 @@ export default function ReportsPage() {
                             Outstanding Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
-                              sum + Number(invoice.balanceBrokerage || 0), 0))}
+                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => {
+                              // Calculate balance brokerage: brokerageInINR - receivedBrokerage
+                              const brokerageInINR = Number(invoice.brokerageInINR || 0);
+                              const receivedBrokerage = Number(invoice.receivedBrokerage || 0);
+                              const balanceBrokerage = brokerageInINR - receivedBrokerage;
+                              return sum + balanceBrokerage;
+                            }, 0))}
                           </div>
                         </div>
                       </CardContent>
