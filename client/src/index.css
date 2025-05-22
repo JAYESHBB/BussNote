@@ -44,7 +44,7 @@
   overflow: hidden;
 }
 
-/* Enhanced input styles with dark mode support */
+/* Enhanced input styles */
 input.form-input {
   @apply rounded-md bg-background/80 backdrop-blur-sm border-input text-foreground;
   box-shadow: 0 0 0 1px hsla(var(--input), 0.2), inset 0 1px 2px hsla(var(--input), 0.1);
@@ -91,7 +91,7 @@ input.form-input:hover:not(:focus) {
   width: 100%;
 }
 
-/* Enhanced button styles with dark mode support */
+/* Enhanced button styles */
 button, .button {
   overflow: hidden;
   position: relative;
@@ -178,60 +178,7 @@ button:active, .button:active {
                  0 15px 40px -6px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%));
   }
  
-  .dark {
-    /* Dark mode - sophisticated and modern */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    
-    --popover: 224 71% 4%;
-    --popover-foreground: 215 20.2% 65.1%;
-    
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    
-    --secondary: 142 77% 73%;
-    --secondary-foreground: 222 47% 11%;
-    
-    --accent: 35 92% 50%;
-    --accent-foreground: 210 40% 98%;
-    
-    --muted: 223 47% 18%;
-    --muted-foreground: 215 20.2% 65.1%;
-    
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
 
-    --border: 217 19% 27%;
-    --input: 217 19% 27%;
-    --ring: 224 76% 48%;
-
-    --chart-1: 217 91% 60%;
-    --chart-2: 142 77% 73%;
-    --chart-3: 35 92% 65%;
-    --chart-4: 258 90% 66%;
-    --chart-5: 0 84% 70%;
-
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 223 47% 11%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 217 19% 27%;
-    --sidebar-ring: 224 76% 48%;
-
-    /* Dark mode shadow values with adjusted strength */
-    --shadow-color: 220 40% 3%;
-    --shadow-strength: 25%;
-    --shadow-sm: 0 1px 3px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%));
-    --shadow-md: 0 5px 15px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 10%)), 
-                 0 10px 20px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 8%));
-    --shadow-lg: 0 10px 35px -3px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 20%)), 
-                 0 20px 45px -10px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 15%));
-  }
 
   * {
     @apply border-border;
@@ -243,10 +190,7 @@ button:active, .button:active {
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  .dark body {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(225, 45%, 7%) 100%);
-  }
-  
+
   /* Set all form elements to 11px font size */
   input, select, textarea, label, button, .form-control, 
   .card-content, table, th, td, .text-neutral-600, 
@@ -265,12 +209,7 @@ button:active, .button:active {
     transition: background-image 0.5s ease;
   }
   
-  .dark #root {
-    background-image: 
-      radial-gradient(at 47% 33%, hsla(var(--primary), 30%, 0.2) 0, transparent 59%), 
-      radial-gradient(at 82% 65%, hsla(var(--secondary), 30%, 0.15) 0, transparent 55%),
-      radial-gradient(at 23% 75%, hsla(var(--accent), 20%, 0.1) 0, transparent 45%);
-  }
+
 }
 
 /* Remove all form animations */
@@ -312,15 +251,7 @@ button:active, .button:active {
     font-weight: 500;
   }
   
-  .dark .sidebar-link {
-    @apply text-muted-foreground hover:text-foreground hover:bg-muted/30;
-  }
-  
-  .dark .sidebar-link.active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground border-primary;
-    background: linear-gradient(90deg, hsl(var(--sidebar-accent)) 0%, hsl(var(--sidebar-accent)/0.3) 100%);
-    box-shadow: inset 0 0 10px hsla(var(--primary), 0.05);
-  }
+
   
   .sidebar-link.active::after {
     content: "";
@@ -342,10 +273,7 @@ button:active, .button:active {
     transition: all 0.3s ease;
   }
   
-  .dark .stat-card-icon {
-    background: linear-gradient(135deg, hsla(var(--primary), 0.25) 0%, hsla(var(--primary), 0.15) 100%);
-    color: hsl(var(--primary));
-  }
+
   
   .colorful-bg-pattern {
     background-color: hsla(var(--background));
@@ -359,12 +287,7 @@ button:active, .button:active {
     transition: background-image 0.5s ease;
   }
   
-  .dark .colorful-bg-pattern {
-    background-image: 
-      radial-gradient(at 47% 33%, hsla(var(--primary), 25%, 0.15) 0, transparent 59%), 
-      radial-gradient(at 82% 65%, hsla(var(--secondary), 30%, 0.1) 0, transparent 55%),
-      radial-gradient(at 23% 75%, hsla(var(--accent), 15%, 0.1) 0, transparent 45%);
-  }
+
   
   /* Static decorative elements */
   .colorful-bg-pattern::after {
