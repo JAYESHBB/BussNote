@@ -1614,7 +1614,7 @@ export default function ReportsPage() {
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
+                          <XAxis dataKey="label" />
                           <YAxis />
                           <Tooltip 
                             formatter={(value: number) => value.toLocaleString('en-IN')}
