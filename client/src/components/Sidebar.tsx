@@ -78,7 +78,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {sidebarItems.map((section, index) => (
           <div key={index} className={`animate-slide-in-left`} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="px-4 py-2">
-              <h3 className="text-xs font-normal uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 transition-all duration-300">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-800 transition-all duration-300">
                 {section.title}
               </h3>
             </div>
@@ -100,7 +100,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     {item.icon}
                   </div>
                   
-                  <span className="relative z-10 transition-all duration-300 group-hover:text-primary-700 font-light">
+                  <span className="relative z-10 transition-all duration-300 group-hover:text-primary-700 font-light text-neutral-800">
                     {item.name}
                   </span>
                 </div>
