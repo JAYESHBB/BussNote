@@ -17,6 +17,8 @@ import PartyDetailsPage from "@/pages/party-details";
 import InvoiceDetailsPage from "@/pages/invoice-details";
 import ReportsPage from "@/pages/reports";
 import AnalyticsPage from "@/pages/analytics";
+import UserManagementPage from "@/pages/settings/users";
+import SystemSettingsPage from "@/pages/settings/system";
 import { PageLayout } from "@/components/PageLayout";
 
 function Router() {
@@ -93,6 +95,18 @@ function Router() {
       <ProtectedRoute path="/analytics">
         <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
           <AnalyticsPage />
+        </PageLayout>
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/settings/users">
+        <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+          <UserManagementPage />
+        </PageLayout>
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/settings/system">
+        <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+          <SystemSettingsPage />
         </PageLayout>
       </ProtectedRoute>
       
