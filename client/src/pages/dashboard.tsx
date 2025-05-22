@@ -12,7 +12,8 @@ import {
   BarChart,
   UserPlus,
   MessageSquare,
-  Edit
+  Edit,
+  Percent
 } from "lucide-react";
 import { LoadingState } from "@/components/ui/loading-state";
 import { 
