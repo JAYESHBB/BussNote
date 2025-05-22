@@ -1652,8 +1652,9 @@ export default function ReportsPage() {
                                 <TableCell>{period.label}</TableCell>
                                 <TableCell>{period.invoiceCount || 0}</TableCell>
                                 <TableCell>
-                                  {/* Display total with currency prefix */}
-                                  ₹{(period.grossSales || 0).toLocaleString('en-IN')}
+                                  {/* Display total with main currency prefix */}
+                                  {period.currencies && period.currencies.length === 1 && period.currencies[0] === "USD" ? 
+                                    "$" : "₹"}{(period.grossSales || 0).toLocaleString('en-IN')}
                                   
                                   {/* Currency breakdown if available */}
                                   {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 0 && (
