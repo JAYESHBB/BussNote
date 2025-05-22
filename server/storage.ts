@@ -789,14 +789,13 @@ class DatabaseStorage implements IStorage {
     const start = fromDate;
     const end = toDate;
     
-    // Get all invoices in the date range with status 'paid'
+    // Get all invoices in the date range (both paid and pending)
     const allInvoices = await db
       .select()
       .from(invoices)
       .where(and(
         gte(invoices.invoiceDate, start),
-        lte(invoices.invoiceDate, end),
-        eq(invoices.status, "paid")
+        lte(invoices.invoiceDate, end)
       ));
     
     const relevantInvoices = allInvoices;
@@ -820,15 +819,30 @@ class DatabaseStorage implements IStorage {
             brokerage: 0,
             receivedBrokerage: 0,
             netSales: 0,
-            currencyBreakdown: {}
+            currencyBreakdown: {},
+            currencies: []
           });
         }
         
         const period = periodMap.get(dayKey);
+        const amount = Number(parseFloat(invoice.subtotal as any) || 0);
+        const currency = invoice.currency || "INR";
+        
+        // Add currency breakdown if not exists
+        if (!period.currencyBreakdown[currency]) {
+          period.currencyBreakdown[currency] = 0;
+          period.currencies.push(currency);
+        }
+        
+        // Update period values
         period.invoiceCount += 1;
-        period.grossSales += Number(parseFloat(invoice.subtotal as any) || 0);
+        period.grossSales += amount;
         period.brokerage += Number(parseFloat(invoice.brokerageInINR as any) || 0);
-        period.netSales += Number(parseFloat(invoice.subtotal as any)) || 0;
+        period.receivedBrokerage += Number(parseFloat(invoice.receivedBrokerage as any) || 0);
+        period.netSales += amount;
+        
+        // Update currency breakdown
+        period.currencyBreakdown[currency] += amount;
       }
     } else if (groupBy === "weekly") {
       // Group by week
