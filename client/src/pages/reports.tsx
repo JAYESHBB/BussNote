@@ -162,7 +162,16 @@ export default function ReportsPage() {
   };
   
   // Helper to format currency
-  const formatCurrency = (amount: number | string, currencyCode: string | null = null): string => {
+  const formatCurrency = (amount: number | string, currencyCode: string | null = null, invoice?: any): string => {
+    // Handle special case for closed invoices with 0 total but non-zero subtotal
+    if (invoice) {
+      if (typeof amount === 'string' && parseFloat(amount) === 0 && invoice.subtotal) {
+        amount = invoice.subtotal;
+      } else if (typeof amount === 'number' && amount === 0 && invoice.subtotal) {
+        amount = invoice.subtotal;
+      }
+    }
+    
     let numAmount = 0;
     
     if (typeof amount === 'string') {
