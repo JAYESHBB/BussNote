@@ -1621,7 +1621,7 @@ export default function ReportsPage() {
                             labelFormatter={(label) => `Period: ${label}`}
                           />
                           <Legend />
-                          <Bar name="Total Sales" dataKey="total" fill="#8884d8" />
+                          <Bar name="Total Sales" dataKey="grossSales" fill="#8884d8" />
                           <Bar name="Total Brokerage" dataKey="brokerage" fill="#82ca9d" />
                         </BarChart>
                       </ResponsiveContainer>
@@ -1650,10 +1650,10 @@ export default function ReportsPage() {
                             salesData.periods.map((period: any, index: number) => (
                               <TableRow key={index}>
                                 <TableCell>{period.label}</TableCell>
-                                <TableCell>{period.invoices || 0}</TableCell>
+                                <TableCell>{period.invoiceCount || 0}</TableCell>
                                 <TableCell>
                                   {/* Display total with currency prefix */}
-                                  ₹{(period.total || 0).toLocaleString('en-IN')}
+                                  ₹{(period.grossSales || 0).toLocaleString('en-IN')}
                                   
                                   {/* Currency breakdown if available */}
                                   {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 1 && (
