@@ -1605,7 +1605,7 @@ export default function ReportsPage() {
                     <div className="h-[350px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={getChartData()}
+                          data={salesData.periods || []}
                           margin={{
                             top: 20,
                             right: 30,
@@ -1621,8 +1621,8 @@ export default function ReportsPage() {
                             labelFormatter={(label) => `Period: ${label}`}
                           />
                           <Legend />
-                          <Bar name="Sales Amount" dataKey="Sales" fill="#8884d8" />
-                          <Bar name="Brokerage Amount" dataKey="Brokerage" fill="#82ca9d" />
+                          <Bar name="Total Sales" dataKey="total" fill="#8884d8" />
+                          <Bar name="Total Brokerage" dataKey="brokerage" fill="#82ca9d" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -1646,21 +1646,41 @@ export default function ReportsPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {[
-                            { period: "Jan 2025", invoices: 5, sales: 120000, brokerage: 6000 },
-                            { period: "Feb 2025", invoices: 8, sales: 160000, brokerage: 8000 },
-                            { period: "Mar 2025", invoices: 10, sales: 180000, brokerage: 9000 },
-                            { period: "Apr 2025", invoices: 12, sales: 220000, brokerage: 11000 },
-                            { period: "May 2025", invoices: 15, sales: 260000, brokerage: 13000 },
-                            { period: "Jun 2025", invoices: 18, sales: 320000, brokerage: 16000 },
-                          ].map((period, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{period.period}</TableCell>
-                              <TableCell>{period.invoices}</TableCell>
-                              <TableCell>{period.sales.toLocaleString('en-IN')}</TableCell>
-                              <TableCell>{period.brokerage.toLocaleString('en-IN')}</TableCell>
+                          {salesData.periods.length > 0 ? (
+                            salesData.periods.map((period: any, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell>{period.label}</TableCell>
+                                <TableCell>{period.invoices || 0}</TableCell>
+                                <TableCell>
+                                  {/* Display total with currency prefix */}
+                                  ₹{(period.total || 0).toLocaleString('en-IN')}
+                                  
+                                  {/* Currency breakdown if available */}
+                                  {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 1 && (
+                                    <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                                      {Object.entries(period.currencyBreakdown || {}).map(([currency, amount]) => (
+                                        <div key={currency} className="flex items-center">
+                                          <span>
+                                            {currency === "INR" ? "₹" : 
+                                             currency === "USD" ? "$" : 
+                                             currency === "EUR" ? "€" : ""}
+                                            {Number(amount).toLocaleString('en-IN')} {currency}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </TableCell>
+                                <TableCell>₹{(period.brokerage || 0).toLocaleString('en-IN')}</TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                                कोई डेटा उपलब्ध नहीं है
+                              </TableCell>
                             </TableRow>
-                          ))}
+                          )}
                         </TableBody>
                       </Table>
                     </div>
