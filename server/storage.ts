@@ -970,6 +970,7 @@ class DatabaseStorage implements IStorage {
     // Prepare data structures for calculations
     let totalSales = 0;
     let outstanding = 0;
+    let totalBrokerage = 0; // Add total brokerage calculation
     let salesByCurrency: Record<string, number> = {};
     let outstandingByCurrency: Record<string, number> = {};
     
@@ -987,6 +988,10 @@ class DatabaseStorage implements IStorage {
         salesByCurrency[currency] = 0;
       }
       salesByCurrency[currency] += amount;
+      
+      // Add brokerageInINR to total brokerage regardless of status
+      const brokerageAmount = Number(invoice.brokerageInINR) || 0;
+      totalBrokerage += brokerageAmount;
       
       // Only add to outstanding if status is pending
       if (invoice.status === "pending") {
@@ -1036,6 +1041,7 @@ class DatabaseStorage implements IStorage {
       salesByCurrency,
       outstanding,
       outstandingByCurrency,
+      totalBrokerage,
       totalInvoices,
       activeParties,
       pendingInvoices,
