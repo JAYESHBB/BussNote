@@ -219,7 +219,7 @@ export default function ReportsPage() {
       "Invoice Date": format(new Date(invoice.invoiceDate), "MMM dd, yyyy"),
       "Due Date": format(new Date(invoice.dueDate), "MMM dd, yyyy"),
       "Days Overdue": invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue",
-      "Amount": formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency).replace(getCurrencySymbol(invoice.currency), ''), // Remove currency symbol
+      "Amount": formatCurrency(Number(invoice.total) === 0 ? invoice.subtotal : (invoice.total || invoice.subtotal || 0), invoice.currency).replace(getCurrencySymbol(invoice.currency), ''), // Remove currency symbol
       "Total Brokerage": Math.round(Number(invoice.brokerageInINR || 0)),
       "Received Brokerage": Math.round(Number(invoice.receivedBrokerage || 0)),
       "Balance Brokerage": Math.round(Number(invoice.brokerageInINR || 0) - Number(invoice.receivedBrokerage || 0)),
@@ -1072,7 +1072,7 @@ export default function ReportsPage() {
                       <td>${invoice.partyName}</td>
                       <td>${format(new Date(invoice.invoiceDate), "MMM dd, yyyy")}</td>
                       <td>${invoice.paymentDate ? format(new Date(invoice.paymentDate), "MMM dd, yyyy") : "N/A"}</td>
-                      <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
+                      <td>${formatCurrency(Number(invoice.total) === 0 ? invoice.subtotal : (invoice.total || invoice.subtotal || 0), invoice.currency)}</td>
                       <td>
                         <span class="badge ${invoice.status === 'paid' ? 'badge-paid' : 'badge-cancelled'}">
                           ${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
