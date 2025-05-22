@@ -188,6 +188,9 @@ export default function ReportsPage() {
       "Due Date": format(new Date(invoice.dueDate), "MMM dd, yyyy"),
       "Days Overdue": invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue",
       "Amount": formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency).replace(getCurrencySymbol(invoice.currency), ''), // Remove currency symbol
+      "Total Brokerage": Math.round(Number(invoice.brokerageInINR || 0)),
+      "Received Brokerage": Math.round(Number(invoice.receivedBrokerage || 0)),
+      "Balance Brokerage": Math.round(Number(invoice.balanceBrokerage || 0)),
       "Status": invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
     }));
     
@@ -1352,6 +1355,9 @@ export default function ReportsPage() {
                             <TableHead>Due Date</TableHead>
                             <TableHead>Days Overdue</TableHead>
                             <TableHead>Amount</TableHead>
+                            <TableHead>Total Brokerage</TableHead>
+                            <TableHead>Received</TableHead>
+                            <TableHead>Balance</TableHead>
                             <TableHead>Status</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -1443,7 +1449,7 @@ export default function ReportsPage() {
                 <CardContent>
                   {/* We always show summary cards, even with empty data */}
                   {/* Cards with total stats and currency-wise breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-8">
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-center">
@@ -1492,7 +1498,7 @@ export default function ReportsPage() {
                             Total Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {formatCurrency(filteredOutstandingData.reduce((sum, invoice) => 
+                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
                               sum + Number(invoice.brokerageInINR || 0), 0))}
                           </div>
                         </div>
@@ -1503,27 +1509,27 @@ export default function ReportsPage() {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <div className="text-sm font-medium text-muted-foreground">
-                            Outstanding Amount
+                            Received Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {formatCurrency(dashboardStats?.outstanding || 0)}
+                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
+                              sum + Number(invoice.receivedBrokerage || 0), 0))}
                           </div>
                         </div>
-                        
-                        {/* Currency-wise breakdown */}
-                        {dashboardStats?.outstandingByCurrency && Object.keys(dashboardStats.outstandingByCurrency).length > 0 && (
-                          <div className="border-t pt-2 mt-2">
-                            <div className="text-xs font-medium text-muted-foreground mb-1 text-center">
-                              Currency Breakdown
-                            </div>
-                            {Object.entries(dashboardStats.outstandingByCurrency).map(([currency, amount]: [string, any]) => (
-                              <div key={currency} className="flex justify-between text-sm py-1">
-                                <span>{currency}:</span>
-                                <span className="font-medium">{formatCurrency(amount, currency)}</span>
-                              </div>
-                            ))}
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            Outstanding Brokerage
                           </div>
-                        )}
+                          <div className="text-2xl font-bold mt-1">
+                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
+                              sum + Number(invoice.balanceBrokerage || 0), 0))}
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
