@@ -1652,13 +1652,9 @@ export default function ReportsPage() {
                                 <TableCell>{period.label}</TableCell>
                                 <TableCell>{period.invoiceCount || 0}</TableCell>
                                 <TableCell>
-                                  {/* Display total with main currency prefix */}
-                                  {period.currencies && period.currencies.length === 1 && period.currencies[0] === "USD" ? 
-                                    "$" : "₹"}{(period.grossSales || 0).toLocaleString('en-IN')}
-                                  
-                                  {/* Currency breakdown if available */}
-                                  {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 0 && (
-                                    <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                                  {/* Only show currency breakdown if available */}
+                                  {period.currencyBreakdown && Object.keys(period.currencyBreakdown || {}).length > 0 ? (
+                                    <div className="space-y-0.5">
                                       {Object.entries(period.currencyBreakdown || {}).map(([currency, amount]) => (
                                         <div key={currency} className="flex items-center">
                                           <span>
@@ -1670,6 +1666,10 @@ export default function ReportsPage() {
                                         </div>
                                       ))}
                                     </div>
+                                  ) : (
+                                    // If no breakdown available, show the total with correct prefix
+                                    <>{period.currencies && period.currencies.length === 1 && period.currencies[0] === "USD" ? 
+                                       "$" : "₹"}{(period.grossSales || 0).toLocaleString('en-IN')}</>
                                   )}
                                 </TableCell>
                                 <TableCell>₹{(period.brokerage || 0).toLocaleString('en-IN')}</TableCell>
