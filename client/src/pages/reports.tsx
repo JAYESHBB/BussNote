@@ -113,6 +113,16 @@ export default function ReportsPage() {
     }
   });
   
+  // Get dashboard stats for currency-wise data
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/stats');
+      if (!res.ok) throw new Error('Failed to fetch dashboard stats');
+      return res.json();
+    }
+  });
+  
   // Filter outstanding invoices based on status filter
   const filteredOutstandingData = outstandingData?.filter(invoice => {
     if (outstandingFilter === "all") return true;
@@ -1432,6 +1442,7 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                   {/* We always show summary cards, even with empty data */}
+                  {/* Cards with total stats and currency-wise breakdown */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-8">
                     <Card>
                       <CardContent className="pt-6">
@@ -1440,22 +1451,37 @@ export default function ReportsPage() {
                             Total Invoices
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {salesData.totals?.invoiceCount || 0}
+                            {dashboardStats?.totalInvoices || 0}
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="overflow-hidden">
                       <CardContent className="pt-6">
-                        <div className="text-center">
+                        <div className="text-center mb-2">
                           <div className="text-sm font-medium text-muted-foreground">
                             Total Sales
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {formatCurrency(salesData.totals?.totalSales || 0)}
+                            {formatCurrency(dashboardStats?.totalSales || 0)}
                           </div>
                         </div>
+                        
+                        {/* Currency-wise breakdown */}
+                        {dashboardStats?.salesByCurrency && Object.keys(dashboardStats.salesByCurrency).length > 0 && (
+                          <div className="border-t pt-2 mt-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-1 text-center">
+                              Currency Breakdown
+                            </div>
+                            {Object.entries(dashboardStats.salesByCurrency).map(([currency, amount]: [string, any]) => (
+                              <div key={currency} className="flex justify-between text-sm py-1">
+                                <span>{currency}:</span>
+                                <span className="font-medium">{formatCurrency(amount, currency)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                     
@@ -1463,12 +1489,27 @@ export default function ReportsPage() {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <div className="text-sm font-medium text-muted-foreground">
-                            Total Brokerage
+                            Outstanding Amount
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {formatCurrency(salesData.totals?.totalBrokerage || 0)}
+                            {formatCurrency(dashboardStats?.outstanding || 0)}
                           </div>
                         </div>
+                        
+                        {/* Currency-wise breakdown */}
+                        {dashboardStats?.outstandingByCurrency && Object.keys(dashboardStats.outstandingByCurrency).length > 0 && (
+                          <div className="border-t pt-2 mt-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-1 text-center">
+                              Currency Breakdown
+                            </div>
+                            {Object.entries(dashboardStats.outstandingByCurrency).map(([currency, amount]: [string, any]) => (
+                              <div key={currency} className="flex justify-between text-sm py-1">
+                                <span>{currency}:</span>
+                                <span className="font-medium">{formatCurrency(amount, currency)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
