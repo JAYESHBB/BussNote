@@ -334,16 +334,7 @@ button:active, .button:active {
     border-color: hsl(var(--primary)/0.2);
   }
   
-  .dark .colorful-card {
-    background: linear-gradient(to right bottom, hsl(var(--card)), hsl(var(--card)/0.9));
-    border: 1px solid hsl(var(--border)/0.7);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .dark .colorful-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: hsl(var(--primary)/0.3);
-  }
+
   
   .colorful-header {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
@@ -361,19 +352,7 @@ button:active, .button:active {
     background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.8) 100%);
   }
   
-  .dark .colorful-header {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.7) 100%);
-    @apply text-primary-foreground;
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .dark .colorful-header.secondary {
-    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.7) 100%);
-  }
-  
-  .dark .colorful-header.accent {
-    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.7) 100%);
-  }
+
   
   .colorful-header::before {
     content: "";
