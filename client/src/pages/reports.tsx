@@ -1672,7 +1672,7 @@ export default function ReportsPage() {
                                        "$" : "₹"}{(period.grossSales || 0).toLocaleString('en-IN')}</>
                                   )}
                                 </TableCell>
-                                <TableCell>₹{(period.brokerage || 0).toLocaleString('en-IN')}</TableCell>
+                                <TableCell>₹{Math.round(period.brokerage || 0).toLocaleString('en-IN')}</TableCell>
                               </TableRow>
                             ))
                           ) : (
