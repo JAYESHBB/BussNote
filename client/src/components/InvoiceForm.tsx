@@ -6,6 +6,7 @@ import { X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
+import { getDefaultCurrency } from "@/lib/settings";
 import { Party, Invoice } from "@shared/schema";
 
 import {

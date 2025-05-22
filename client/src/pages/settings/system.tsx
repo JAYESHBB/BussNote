@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { getSettings, saveSettings } from "@/lib/settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -13,14 +14,9 @@ export default function SystemSettingsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("general");
   
-  // General settings
-  const [generalSettings, setGeneralSettings] = useState({
-    companyName: "BussNote",
-    contactEmail: "support@bussnote.com",
-    defaultCurrency: "INR",
-    dateFormat: "DD/MM/YYYY",
-    autoLogout: "30",
-    enableNotifications: true
+  // General settings - load from storage or use defaults
+  const [generalSettings, setGeneralSettings] = useState(() => {
+    return getSettings();
   });
 
   // Backup settings
@@ -82,11 +78,21 @@ export default function SystemSettingsPage() {
   };
 
   const saveGeneralSettings = () => {
-    // Here we would normally save to an API
-    toast({
-      title: "Settings Saved",
-      description: "General settings have been updated successfully.",
-    });
+    // Save to localStorage and eventually we can also save to API
+    const success = saveSettings(generalSettings);
+    
+    if (success) {
+      toast({
+        title: "Settings Saved",
+        description: "General settings have been updated successfully.",
+      });
+    } else {
+      toast({
+        title: "Error Saving Settings",
+        description: "There was a problem saving your settings. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const saveBackupSettings = () => {
