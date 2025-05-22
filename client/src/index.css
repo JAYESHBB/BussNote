@@ -239,6 +239,7 @@ button:active, .button:active {
     overflow: hidden;
     transition: all 0.2s ease;
     border-left: 4px solid transparent;
+    font-weight: 300;
   }
   
   .sidebar-link:hover {
@@ -248,7 +249,7 @@ button:active, .button:active {
   .sidebar-link.active {
     @apply bg-sidebar-accent text-sidebar-primary border-l-4 border-primary;
     background: linear-gradient(90deg, hsl(var(--sidebar-accent)) 0%, hsl(var(--sidebar-accent)/0.5) 100%);
-    font-weight: 500;
+    font-weight: 400;
   }
   
 

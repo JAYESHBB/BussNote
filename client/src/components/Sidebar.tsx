@@ -113,15 +113,15 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 animate-slide-in-bottom" style={{ animationDelay: '400ms' }}>
-        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-800/30 hover:from-primary-200 hover:to-primary-100 dark:hover:from-primary-900/50 dark:hover:to-primary-800/50 transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-1 glow-on-hover">
-          <div className="w-10 h-10 bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden group">
+      <div className="p-4 border-t border-neutral-200 animate-slide-in-bottom" style={{ animationDelay: '400ms' }}>
+        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-primary-100 to-primary-50 hover:from-primary-200 hover:to-primary-100 transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-1 glow-on-hover">
+          <div className="w-10 h-10 bg-white text-primary-600 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden group">
             <div className="absolute inset-0 bg-primary/10 transform scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
             <HelpCircle className="h-5 w-5 relative z-10 animate-pulse-subtle" />
           </div>
           <div className="transform transition-all duration-300 group-hover:translate-x-1">
-            <p className="text-sm font-medium text-primary-700 dark:text-primary-300">Need help?</p>
-            <p className="text-xs text-primary-500 dark:text-primary-400">Contact support</p>
+            <p className="text-sm font-light text-primary-700">Need help?</p>
+            <p className="text-xs font-light text-primary-500">Contact support</p>
           </div>
         </div>
       </div>
