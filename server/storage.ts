@@ -816,7 +816,9 @@ class DatabaseStorage implements IStorage {
             invoiceCount: 0,
             grossSales: 0,
             brokerage: 0,
-            netSales: 0
+            receivedBrokerage: 0,
+            netSales: 0,
+            currencyBreakdown: {}
           });
         }
         
