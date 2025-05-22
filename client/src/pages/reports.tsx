@@ -1485,7 +1485,7 @@ export default function ReportsPage() {
                             Total Sales
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            {formatCurrency(dashboardStats?.totalSales || 0)}
+                            {(dashboardStats?.totalSales || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                           </div>
                         </div>
                         
@@ -1559,7 +1559,7 @@ export default function ReportsPage() {
                       <BarChartIcon className="h-16 w-16 text-primary/30 mb-4" />
                       <h3 className="text-xl font-semibold mb-2">Sales Analytics</h3>
                       <p className="text-muted-foreground max-w-md text-center mb-4">
-                        Mark any invoice as "Paid" to see your sales data automatically appear here as beautiful charts and tables. Sales analytics will show your business performance over time.
+                        All invoices (regardless of status) are included in sales analytics. The charts and tables will show your overall business performance over time.
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mt-4">
                         <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
