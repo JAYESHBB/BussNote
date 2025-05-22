@@ -331,6 +331,28 @@ export default function AnalyticsPage() {
                           dot={false}
                           activeDot={{ r: 8 }}
                         />
+                        {salesTrendsData.data.some(item => item.sales_USD) && (
+                          <Line
+                            type="monotone"
+                            dataKey="sales_USD"
+                            name="Sales (USD)"
+                            stroke="#8884d8"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
+                        {salesTrendsData.data.some(item => item.sales_EUR) && (
+                          <Line
+                            type="monotone"
+                            dataKey="sales_EUR"
+                            name="Sales (EUR)"
+                            stroke="#82ca9d"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
                         <Line
                           type="monotone"
                           dataKey="totalBrokerage"
