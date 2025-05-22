@@ -634,7 +634,7 @@ export default function ReportsPage() {
                       <td class="${invoice.daysOverdue > 0 ? 'days-overdue' : ''}">
                         ${invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue"}
                       </td>
-                      <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
+                      <td>${formatCurrency(Number(invoice.total) === 0 ? invoice.subtotal : (invoice.total || invoice.subtotal || 0), invoice.currency)}</td>
                       <td>₹${Math.round(Number(invoice.brokerageInINR || 0))}</td>
                       <td>₹${Math.round(Number(invoice.receivedBrokerage || 0))}</td>
                       <td>₹${Math.round(Number(invoice.brokerageInINR || 0) - Number(invoice.receivedBrokerage || 0))}</td>
