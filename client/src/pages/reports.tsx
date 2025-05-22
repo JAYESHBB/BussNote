@@ -1554,66 +1554,29 @@ export default function ReportsPage() {
                     </Card>
                   </div>
                   
-                  {salesData?.periods && salesData.periods.length > 0 ? (
-                    <>
-                      <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={prepareChartData()}
-                            margin={{
-                              top: 20,
-                              right: 30,
-                              left: 20,
-                              bottom: 5,
-                            }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip 
-                              formatter={(value: number) => formatCurrency(value)}
-                              labelFormatter={(label) => `Period: ${label}`}
-                            />
-                            <Legend />
-                            <Bar name="Sales Amount" dataKey="Sales" fill="#8884d8" />
-                            <Bar name="Brokerage Amount" dataKey="Brokerage" fill="#82ca9d" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                      
-                      <div className="overflow-x-auto mt-8">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Period</TableHead>
-                              <TableHead>Invoice Count</TableHead>
-                              <TableHead>Total Sales</TableHead>
-                              <TableHead>Brokerage</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {salesData.periods.map((period: any, index: number) => (
-                              <TableRow key={index}>
-                                <TableCell>{period.label}</TableCell>
-                                <TableCell>{period.invoiceCount}</TableCell>
-                                <TableCell>{formatCurrency(period.total || 0)}</TableCell>
-                                <TableCell>{formatCurrency(period.brokerage || 0)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-12 border rounded-lg bg-muted/10">
-                      <BarChartIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No period-wise sales data available</h3>
-                      <p className="text-muted-foreground max-w-md mx-auto">
-                        This report shows sales analytics grouped by time periods. 
-                        Create and mark invoices as paid to see your sales data visualized here.
+                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-r from-purple-50 to-blue-50 p-8 dark:from-purple-950/20 dark:to-blue-950/20">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <BarChartIcon className="h-16 w-16 text-primary/30 mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Sales Analytics</h3>
+                      <p className="text-muted-foreground max-w-md text-center mb-4">
+                        Mark any invoice as "Paid" to see your sales data automatically appear here as beautiful charts and tables. Sales analytics will show your business performance over time.
                       </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mt-4">
+                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
+                          <h4 className="font-medium text-sm mb-1">Monthly View</h4>
+                          <p className="text-xs text-muted-foreground">Month-by-month sales trends</p>
+                        </div>
+                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
+                          <h4 className="font-medium text-sm mb-1">Quarterly View</h4>
+                          <p className="text-xs text-muted-foreground">Performance by quarter</p>
+                        </div>
+                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
+                          <h4 className="font-medium text-sm mb-1">Yearly View</h4>
+                          <p className="text-xs text-muted-foreground">Annual performance metrics</p>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
