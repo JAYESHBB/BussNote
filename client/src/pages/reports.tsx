@@ -1664,7 +1664,7 @@ export default function ReportsPage() {
                                             {currency === "INR" ? "₹" : 
                                              currency === "USD" ? "$" : 
                                              currency === "EUR" ? "€" : ""}
-                                            {Number(amount).toLocaleString('en-IN')} {currency}
+                                            {Number(amount).toLocaleString('en-IN')} {currency !== "INR" ? currency : ""}
                                           </span>
                                         </div>
                                       ))}
