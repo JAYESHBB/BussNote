@@ -1204,6 +1204,22 @@ export default function ReportsPage() {
     }));
   };
   
+  // Function to get chart data for the BarChart
+  const getChartData = () => {
+    if (!salesData.periods || salesData.periods.length === 0) {
+      return [
+        { name: "Jan", Sales: 0, Brokerage: 0 },
+        { name: "Feb", Sales: 0, Brokerage: 0 },
+        { name: "Mar", Sales: 0, Brokerage: 0 },
+        { name: "Apr", Sales: 0, Brokerage: 0 },
+        { name: "May", Sales: 0, Brokerage: 0 },
+        { name: "Jun", Sales: 0, Brokerage: 0 },
+      ];
+    }
+    
+    return prepareChartData();
+  };
+  
   return (
     <div className="p-6">
       <div className="flex flex-col space-y-6">
@@ -1558,7 +1574,7 @@ export default function ReportsPage() {
                             Received Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => 
+                            ₹{Math.round([...(outstandingData || []), ...(closedData || [])].reduce((sum, invoice) => 
                               sum + Number(invoice.receivedBrokerage || 0), 0))}
                           </div>
                         </div>
@@ -1572,7 +1588,7 @@ export default function ReportsPage() {
                             Outstanding Brokerage
                           </div>
                           <div className="text-2xl font-bold mt-1">
-                            ₹{Math.round(filteredOutstandingData.reduce((sum, invoice) => {
+                            ₹{Math.round([...(outstandingData || [])].reduce((sum, invoice) => {
                               // Calculate balance brokerage: brokerageInINR - receivedBrokerage
                               const brokerageInINR = Number(invoice.brokerageInINR || 0);
                               const receivedBrokerage = Number(invoice.receivedBrokerage || 0);
@@ -1589,14 +1605,7 @@ export default function ReportsPage() {
                     <div className="h-[350px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={[
-                            { name: "Jan", Sales: 120000, Brokerage: 6000 },
-                            { name: "Feb", Sales: 160000, Brokerage: 8000 },
-                            { name: "Mar", Sales: 180000, Brokerage: 9000 },
-                            { name: "Apr", Sales: 220000, Brokerage: 11000 },
-                            { name: "May", Sales: 260000, Brokerage: 13000 },
-                            { name: "Jun", Sales: 320000, Brokerage: 16000 },
-                          ]}
+                          data={getChartData()}
                           margin={{
                             top: 20,
                             right: 30,
@@ -1618,12 +1627,13 @@ export default function ReportsPage() {
                       </ResponsiveContainer>
                     </div>
                     
-                    <div className="text-center mt-6">
-                      <p className="text-muted-foreground max-w-md mx-auto text-sm">
-                        यह एक प्रदर्शन ग्राफ है जो आपके ऐप में दिखने वाले डेटा का उदाहरण दिखाता है।
-                        <br />जब आप इनवॉइस बनाएंगे, तब वास्तविक डेटा यहां दिखाई देगा।
-                      </p>
-                    </div>
+                    {salesData.periods.length === 0 && (
+                      <div className="text-center mt-6">
+                        <p className="text-muted-foreground max-w-md mx-auto text-sm">
+                          कोई डेटा उपलब्ध नहीं है। जब आप इनवॉइस बनाएंगे, तब वास्तविक डेटा यहां दिखाई देगा।
+                        </p>
+                      </div>
+                    )}
                     
                     <div className="overflow-x-auto mt-8">
                       <Table>
