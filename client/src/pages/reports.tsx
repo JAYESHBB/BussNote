@@ -586,6 +586,9 @@ export default function ReportsPage() {
                     <th>Due Date</th>
                     <th>Days Overdue</th>
                     <th>Amount</th>
+                    <th>Total Brokerage</th>
+                    <th>Received</th>
+                    <th>Balance</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -600,6 +603,9 @@ export default function ReportsPage() {
                         ${invoice.daysOverdue > 0 ? `${invoice.daysOverdue} days` : "Not overdue"}
                       </td>
                       <td>${formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}</td>
+                      <td>₹${Math.round(Number(invoice.brokerageInINR || 0))}</td>
+                      <td>₹${Math.round(Number(invoice.receivedBrokerage || 0))}</td>
+                      <td>₹${Math.round(Number(invoice.balanceBrokerage || 0))}</td>
                       <td>
                         <span class="badge ${invoice.status === 'pending' ? 'badge-pending' : 'badge-overdue'}">
                           ${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
@@ -1373,6 +1379,15 @@ export default function ReportsPage() {
                               </TableCell>
                               <TableCell>
                                 {formatCurrency(invoice.total || invoice.subtotal || 0, invoice.currency)}
+                              </TableCell>
+                              <TableCell>
+                                ₹{Math.round(Number(invoice.brokerageInINR || 0))}
+                              </TableCell>
+                              <TableCell>
+                                ₹{Math.round(Number(invoice.receivedBrokerage || 0))}
+                              </TableCell>
+                              <TableCell>
+                                ₹{Math.round(Number(invoice.balanceBrokerage || 0))}
                               </TableCell>
                               <TableCell>
                                 <StatusBadge status={invoice.status} />
