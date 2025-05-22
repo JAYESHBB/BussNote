@@ -1489,6 +1489,20 @@ export default function ReportsPage() {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <div className="text-sm font-medium text-muted-foreground">
+                            Total Brokerage
+                          </div>
+                          <div className="text-2xl font-bold mt-1">
+                            {formatCurrency(filteredOutstandingData.reduce((sum, invoice) => 
+                              sum + Number(invoice.brokerageInINR || 0), 0))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-muted-foreground">
                             Outstanding Amount
                           </div>
                           <div className="text-2xl font-bold mt-1">
