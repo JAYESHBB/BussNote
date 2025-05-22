@@ -169,6 +169,19 @@ export default function ReportsPage() {
     return `${symbol}${numAmount.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
   };
   
+  // Helper to get effective amount (handles zero total with non-zero subtotal)
+  const getEffectiveAmount = (invoice: any): number | string => {
+    const total = typeof invoice.total === 'string' ? parseFloat(invoice.total) : (invoice.total || 0);
+    const subtotal = typeof invoice.subtotal === 'string' ? parseFloat(invoice.subtotal) : (invoice.subtotal || 0);
+    
+    // If total is 0 and subtotal has value, use subtotal
+    if (total === 0 && subtotal > 0) {
+      return invoice.subtotal;
+    }
+    
+    return invoice.total || invoice.subtotal || 0;
+  };
+  
   // Prepare data for outstanding invoices export
   const prepareOutstandingExportData = () => {
     if (!filteredOutstandingData || filteredOutstandingData.length === 0) {
