@@ -63,6 +63,7 @@ export default function Dashboard() {
     salesByCurrency: Record<string, number>;
     outstanding: number;
     outstandingByCurrency: Record<string, number>;
+    totalBrokerage: number;
     totalInvoices: number;
     activeParties: number;
     pendingInvoices: number;
@@ -74,6 +75,7 @@ export default function Dashboard() {
     salesByCurrency: {},
     outstanding: 0,
     outstandingByCurrency: {},
+    totalBrokerage: 0,
     totalInvoices: 0, 
     activeParties: 0,
     pendingInvoices: 0,
@@ -318,6 +320,46 @@ export default function Dashboard() {
                 {(!dashboardStats.outstandingByCurrency || Object.keys(dashboardStats.outstandingByCurrency).length === 0) && (
                   <div className="text-sm text-neutral-500 italic">No outstanding data available</div>
                 )}
+              </div>
+            </>
+          )}
+        </Card>
+        
+        <Card className="p-4 bg-gradient-to-br from-secondary-50 to-white rounded-lg border border-secondary-100 shadow-sm min-h-[180px]">
+          {isLoadingStats ? (
+            <div className="h-[150px] flex items-center justify-center">
+              <LoadingState 
+                type="data" 
+                title="Loading Brokerage Data"
+                message="Please wait..." 
+                size="sm"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-secondary-50 flex items-center justify-center mr-3">
+                    <Percent className="h-5 w-5 text-secondary-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-neutral-800">Total Brokerage</h3>
+                </div>
+                <div className="text-xs bg-white px-2 py-1 rounded-full border border-gray-200 text-neutral-600">
+                  {formatDateRange()}
+                </div>
+              </div>
+              
+              <div className="text-2xl font-bold text-neutral-900 mb-2">
+                {Math.round(dashboardStats.totalBrokerage)}
+              </div>
+              
+              <div className="space-y-1 mt-3 border-t pt-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-neutral-700">INR:</span>
+                  <span className="text-neutral-900">
+                    {Math.round(dashboardStats.totalBrokerage)}
+                  </span>
+                </div>
               </div>
             </>
           )}
