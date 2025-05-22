@@ -312,14 +312,42 @@ export default function AnalyticsPage() {
                             }).format(value)
                           }
                         />
-                        <Tooltip
-                          formatter={(value) =>
-                            new Intl.NumberFormat("en-IN", {
-                              style: "currency",
-                              currency: "INR",
-                              maximumFractionDigits: 0,
-                            }).format(Number(value))
-                          }
+                        <Tooltip 
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length > 0) {
+                              return (
+                                <div className="custom-tooltip bg-white p-3 border rounded-md shadow-md">
+                                  <p className="font-semibold mb-2">{`Period: ${label}`}</p>
+                                  <div className="space-y-1">
+                                    {payload.map((entry, index) => {
+                                      const dataKey = entry.dataKey as string;
+                                      let currencySymbol = "₹";
+                                      
+                                      // Determine currency based on data key name
+                                      if (dataKey.includes("USD")) {
+                                        currencySymbol = "$";
+                                      } else if (dataKey.includes("EUR")) {
+                                        currencySymbol = "€";
+                                      }
+                                      
+                                      return (
+                                        <div key={`item-${index}`} style={{ color: entry.color }} className="text-sm flex items-center">
+                                          <span className="inline-block w-3 h-3 mr-2" style={{ backgroundColor: entry.color }}></span>
+                                          <span className="mr-2">{entry.name}:</span>
+                                          <span className="font-medium">{currencySymbol}
+                                            {Number(entry.value).toLocaleString('en-IN', {
+                                              maximumFractionDigits: 0
+                                            })}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
                         />
                         <Legend />
                         <Line
@@ -339,7 +367,7 @@ export default function AnalyticsPage() {
                             stroke="#8884d8"
                             strokeWidth={2}
                             dot={false}
-                            activeDot={{ r: 8 }}
+                            activeDot={{ r: 6 }}
                           />
                         )}
                         {salesTrendsData.data.some(item => item.sales_EUR) && (
@@ -350,7 +378,18 @@ export default function AnalyticsPage() {
                             stroke="#82ca9d"
                             strokeWidth={2}
                             dot={false}
-                            activeDot={{ r: 8 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        )}
+                        {salesTrendsData.data.some(item => item.sales_INR) && (
+                          <Line
+                            type="monotone"
+                            dataKey="sales_INR"
+                            name="Sales (INR)"
+                            stroke="#d4af37"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 6 }}
                           />
                         )}
                         <Line
