@@ -59,9 +59,9 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   return (
     <aside
-      className={`w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0 flex flex-col h-full transition-all duration-500 ease-in-out ${
+      className={`w-64 bg-white border-r border-neutral-200 flex-shrink-0 flex flex-col h-full transition-all duration-500 ease-in-out ${
         isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"
-      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} animated-gradient bg-gradient-to-b from-white to-primary-50 dark:from-neutral-900 dark:to-neutral-800`}
+      } ${isMobile ? "fixed z-40 shadow-lg" : "relative"} animated-gradient bg-gradient-to-b from-white to-primary-50`}
     >
       <div className="p-4 flex-shrink-0 animate-fade-in">
         <div className="relative">
@@ -69,7 +69,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           <Input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 text-sm border-primary-100 dark:border-primary-900 focus:border-primary-300 dark:focus:border-primary-700 focus:ring-primary-200 dark:focus:ring-primary-900 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm transition-all duration-300 hover:shadow-md"
+            className="w-full pl-10 text-sm border-primary-100 focus:border-primary-300 focus:ring-primary-200 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-md"
           />
         </div>
       </div>
@@ -78,7 +78,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {sidebarItems.map((section, index) => (
           <div key={index} className={`animate-slide-in-left`} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="px-4 py-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 transition-all duration-300">
+              <h3 className="text-xs font-normal uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 transition-all duration-300">
                 {section.title}
               </h3>
             </div>
@@ -100,7 +100,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     {item.icon}
                   </div>
                   
-                  <span className="relative z-10 transition-all duration-300 group-hover:text-primary-700 dark:group-hover:text-primary-300 group-hover:font-medium">
+                  <span className="relative z-10 transition-all duration-300 group-hover:text-primary-700 font-light">
                     {item.name}
                   </span>
                 </div>
