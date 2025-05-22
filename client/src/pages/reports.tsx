@@ -1554,27 +1554,74 @@ export default function ReportsPage() {
                     </Card>
                   </div>
                   
-                  <div className="relative overflow-hidden rounded-xl border bg-gradient-to-r from-purple-50 to-blue-50 p-8 dark:from-purple-950/20 dark:to-blue-950/20">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <BarChartIcon className="h-16 w-16 text-primary/30 mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">Sales Analytics</h3>
-                      <p className="text-muted-foreground max-w-md text-center mb-4">
-                        All invoices (regardless of status) are included in sales analytics. The charts and tables will show your overall business performance over time.
+                  <div className="relative overflow-hidden rounded-xl border p-8">
+                    <div className="h-[350px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={[
+                            { name: "Jan", Sales: 120000, Brokerage: 6000 },
+                            { name: "Feb", Sales: 160000, Brokerage: 8000 },
+                            { name: "Mar", Sales: 180000, Brokerage: 9000 },
+                            { name: "Apr", Sales: 220000, Brokerage: 11000 },
+                            { name: "May", Sales: 260000, Brokerage: 13000 },
+                            { name: "Jun", Sales: 320000, Brokerage: 16000 },
+                          ]}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip 
+                            formatter={(value: number) => value.toLocaleString('en-IN')}
+                            labelFormatter={(label) => `Period: ${label}`}
+                          />
+                          <Legend />
+                          <Bar name="Sales Amount" dataKey="Sales" fill="#8884d8" />
+                          <Bar name="Brokerage Amount" dataKey="Brokerage" fill="#82ca9d" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    <div className="text-center mt-6">
+                      <p className="text-muted-foreground max-w-md mx-auto text-sm">
+                        यह एक प्रदर्शन ग्राफ है जो आपके ऐप में दिखने वाले डेटा का उदाहरण दिखाता है।
+                        <br />जब आप इनवॉइस बनाएंगे, तब वास्तविक डेटा यहां दिखाई देगा।
                       </p>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mt-4">
-                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
-                          <h4 className="font-medium text-sm mb-1">Monthly View</h4>
-                          <p className="text-xs text-muted-foreground">Month-by-month sales trends</p>
-                        </div>
-                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
-                          <h4 className="font-medium text-sm mb-1">Quarterly View</h4>
-                          <p className="text-xs text-muted-foreground">Performance by quarter</p>
-                        </div>
-                        <div className="bg-white/50 dark:bg-background/50 p-4 rounded-lg shadow-sm border border-border/50">
-                          <h4 className="font-medium text-sm mb-1">Yearly View</h4>
-                          <p className="text-xs text-muted-foreground">Annual performance metrics</p>
-                        </div>
-                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto mt-8">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Period</TableHead>
+                            <TableHead>Invoice Count</TableHead>
+                            <TableHead>Total Sales</TableHead>
+                            <TableHead>Brokerage</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[
+                            { period: "Jan 2025", invoices: 5, sales: 120000, brokerage: 6000 },
+                            { period: "Feb 2025", invoices: 8, sales: 160000, brokerage: 8000 },
+                            { period: "Mar 2025", invoices: 10, sales: 180000, brokerage: 9000 },
+                            { period: "Apr 2025", invoices: 12, sales: 220000, brokerage: 11000 },
+                            { period: "May 2025", invoices: 15, sales: 260000, brokerage: 13000 },
+                            { period: "Jun 2025", invoices: 18, sales: 320000, brokerage: 16000 },
+                          ].map((period, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{period.period}</TableCell>
+                              <TableCell>{period.invoices}</TableCell>
+                              <TableCell>{period.sales.toLocaleString('en-IN')}</TableCell>
+                              <TableCell>{period.brokerage.toLocaleString('en-IN')}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 </CardContent>
