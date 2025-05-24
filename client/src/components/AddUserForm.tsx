@@ -108,8 +108,8 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
     }
   };
 
-  // Email validation
-  const validateEmail = (email: string) => {
+  // Email validation with availability check
+  const validateEmail = async (email: string) => {
     if (email.length === 0) {
       setValidations(prev => ({
         ...prev,
@@ -119,21 +119,40 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(email)) {
-      setValidations(prev => ({
-        ...prev,
-        email: { isValid: true, message: "Valid email address" }
-      }));
-    } else {
+    if (!emailRegex.test(email)) {
       setValidations(prev => ({
         ...prev,
         email: { isValid: false, message: "Please enter a valid email address" }
       }));
+      return;
+    }
+
+    // Check availability
+    try {
+      const response = await fetch(`/api/check-email?email=${email}`);
+      const data = await response.json();
+      
+      if (data.available) {
+        setValidations(prev => ({
+          ...prev,
+          email: { isValid: true, message: "Email is available" }
+        }));
+      } else {
+        setValidations(prev => ({
+          ...prev,
+          email: { isValid: false, message: "Email is already registered" }
+        }));
+      }
+    } catch (error) {
+      setValidations(prev => ({
+        ...prev,
+        email: { isValid: false, message: "Error checking email" }
+      }));
     }
   };
 
-  // Mobile validation
-  const validateMobile = (mobile: string) => {
+  // Mobile validation with availability check
+  const validateMobile = async (mobile: string) => {
     if (mobile.length === 0) {
       setValidations(prev => ({
         ...prev,
@@ -143,15 +162,34 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
     }
 
     const mobileRegex = /^[6-9]\d{9}$/;
-    if (mobileRegex.test(mobile)) {
-      setValidations(prev => ({
-        ...prev,
-        mobile: { isValid: true, message: "Valid mobile number" }
-      }));
-    } else {
+    if (!mobileRegex.test(mobile)) {
       setValidations(prev => ({
         ...prev,
         mobile: { isValid: false, message: "Please enter a valid 10-digit mobile number" }
+      }));
+      return;
+    }
+
+    // Check availability
+    try {
+      const response = await fetch(`/api/check-mobile?mobile=${mobile}`);
+      const data = await response.json();
+      
+      if (data.available) {
+        setValidations(prev => ({
+          ...prev,
+          mobile: { isValid: true, message: "Mobile number is available" }
+        }));
+      } else {
+        setValidations(prev => ({
+          ...prev,
+          mobile: { isValid: false, message: "Mobile number is already registered" }
+        }));
+      }
+    } catch (error) {
+      setValidations(prev => ({
+        ...prev,
+        mobile: { isValid: false, message: "Error checking mobile number" }
       }));
     }
   };

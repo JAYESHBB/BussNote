@@ -107,6 +107,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email availability check
+  app.get(`${apiPrefix}/check-email`, async (req: Request, res: Response) => {
+    try {
+      const email = req.query.email as string;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required", available: false });
+      }
+      
+      // Check if email exists in database
+      const existingUser = await storage.getUserByEmail(email);
+      
+      // Return result
+      res.json({ available: !existingUser });
+    } catch (error) {
+      console.error("Error checking email:", error);
+      res.status(500).json({ message: "Failed to check email availability", available: false });
+    }
+  });
+
+  // Mobile availability check
+  app.get(`${apiPrefix}/check-mobile`, async (req: Request, res: Response) => {
+    try {
+      const mobile = req.query.mobile as string;
+      
+      if (!mobile) {
+        return res.status(400).json({ message: "Mobile is required", available: false });
+      }
+      
+      // Check if mobile exists in database
+      const existingUser = await storage.getUserByMobile(mobile);
+      
+      // Return result
+      res.json({ available: !existingUser });
+    } catch (error) {
+      console.error("Error checking mobile:", error);
+      res.status(500).json({ message: "Failed to check mobile availability", available: false });
+    }
+  });
+
   // User Management Routes
   app.get(`${apiPrefix}/users`, async (req: Request, res: Response) => {
     if (!req.isAuthenticated()) {
