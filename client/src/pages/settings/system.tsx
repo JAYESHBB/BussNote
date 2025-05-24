@@ -49,9 +49,18 @@ export default function SystemSettingsPage() {
   
   const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    
+    // Auto-capitalize company name
+    let processedValue = value;
+    if (name === "companyName") {
+      processedValue = value.split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' ');
+    }
+    
     setGeneralSettings((prev: any) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : processedValue
     }));
   };
 
