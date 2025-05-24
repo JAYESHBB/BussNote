@@ -309,15 +309,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cannot delete administrator account" });
       }
 
-      // Delete the user (this would be actual deletion from database)
-      // For now, we'll set status to 'deleted' since we don't have a deleteUser method
-      const user = await storage.updateUserStatus(userId, 'deleted');
+      // Actually delete the user from database
+      const deleteSuccess = await storage.deleteUser(userId);
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!deleteSuccess) {
+        return res.status(500).json({ message: "Failed to delete user from database" });
       }
       
-      res.json({ message: "User deleted successfully", user });
+      res.json({ message: "User deleted successfully" });
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });

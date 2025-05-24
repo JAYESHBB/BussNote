@@ -46,6 +46,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
   updateUserStatus(id: number, status: string): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   userHasDependencies(id: number): Promise<boolean>;
   
   // Party methods
@@ -136,6 +137,20 @@ class DatabaseStorage implements IStorage {
   async updateUserStatus(id: number, status: string): Promise<User | undefined> {
     const result = await db.update(users).set({ status }).where(eq(users.id, id)).returning();
     return result[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(users)
+        .where(eq(users.id, id))
+        .returning();
+
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting user from database:", error);
+      return false;
+    }
   }
 
   async userHasDependencies(id: number): Promise<boolean> {
