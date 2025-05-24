@@ -52,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email,
         mobile,
         address: address || null,
-        password: '', // Empty password - users will set on first login
+        password: null, // No password - users will set on first login
         role: role || 'user',
         status: status || 'active'
       };
