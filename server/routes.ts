@@ -26,8 +26,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User Management API - Create New User (MUST BE FIRST!)
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
-    console.log("🚀 CREATE USER API CALLED");
+    console.log("🚀🚀🚀 CREATE USER API ENDPOINT HIT 🚀🚀🚀");
+    console.log("Request Method:", req.method);
+    console.log("Request Path:", req.path);
     console.log("Request Body:", JSON.stringify(req.body, null, 2));
+    console.log("Content-Type:", req.headers['content-type']);
     
     try {
       // Check authentication
