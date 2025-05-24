@@ -146,6 +146,7 @@ export default function UserManagementPage() {
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["/api/users"],
     retry: false,
+    enabled: !!user, // Only fetch when user is authenticated
   });
 
   // Create user mutation
@@ -340,7 +341,15 @@ export default function UserManagementPage() {
 
     // Create user with API call
     const { confirmPassword, ...userData } = newUser;
-    createUserMutation.mutate(userData);
+    createUserMutation.mutate({
+      username: userData.username,
+      fullName: userData.fullName,
+      email: userData.email,
+      mobile: userData.mobile,
+      password: userData.password,
+      role: userData.role,
+      status: "active"
+    });
   };
 
   const handleDeleteUser = (userId: number) => {
@@ -605,8 +614,8 @@ export default function UserManagementPage() {
                 <div className="flex items-center justify-center h-40">
                   <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
                 </div>
-              ) : error || !users || (Array.isArray(users) && users.length === 0) ? (
-                <div className="flex items-center justify-center h-40 text-destructive">
+              ) : !users || (Array.isArray(users) && users.length === 0) ? (
+                <div className="flex items-center justify-center h-40 text-muted-foreground">
                   <AlertCircle className="h-6 w-6 mr-2" />
                   <p>No users found. Add new users to get started.</p>
                 </div>
@@ -626,7 +635,7 @@ export default function UserManagementPage() {
                     {(users as any[]).map((user: any) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.fullName}</TableCell>
+                        <TableCell>{user.fullName || user.full_name}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             user.role === 'admin' ? 'bg-red-100 text-red-800' : 
