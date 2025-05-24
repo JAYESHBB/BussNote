@@ -19,6 +19,8 @@ import {
   invoiceItems, 
   transactions, 
   activities,
+  roles,
+  userRoles,
   InsertUser,
   User,
   InsertParty,
@@ -1191,6 +1193,202 @@ class DatabaseStorage implements IStorage {
       pendingInvoices,
       dateRange
     };
+  }
+
+  // Role Management Methods
+  async getAllRoles(): Promise<any[]> {
+    try {
+      const allRoles = await db.query.roles.findMany({
+        orderBy: (roles, { asc }) => [asc(roles.name)],
+      });
+
+      // Get user count for each role
+      const rolesWithUserCount = await Promise.all(
+        allRoles.map(async (role) => {
+          const userCount = await this.getRoleUserCount(role.id);
+          return {
+            ...role,
+            permissions: JSON.parse(role.permissions),
+            userCount,
+          };
+        })
+      );
+
+      return rolesWithUserCount;
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      return [];
+    }
+  }
+
+  async getRoleById(id: number): Promise<any | undefined> {
+    try {
+      const role = await db.query.roles.findFirst({
+        where: (roles, { eq }) => eq(roles.id, id),
+      });
+
+      if (role) {
+        return {
+          ...role,
+          permissions: JSON.parse(role.permissions),
+        };
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error fetching role by ID:", error);
+      return undefined;
+    }
+  }
+
+  async getRoleByName(name: string): Promise<any | undefined> {
+    try {
+      const role = await db.query.roles.findFirst({
+        where: (roles, { eq }) => eq(roles.name, name),
+      });
+
+      if (role) {
+        return {
+          ...role,
+          permissions: JSON.parse(role.permissions),
+        };
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error fetching role by name:", error);
+      return undefined;
+    }
+  }
+
+  async createRole(data: any): Promise<any> {
+    try {
+      const [newRole] = await db.insert(roles).values({
+        name: data.name,
+        description: data.description,
+        permissions: data.permissions,
+        isSystem: data.isSystem || false,
+      }).returning();
+
+      return {
+        ...newRole,
+        permissions: JSON.parse(newRole.permissions),
+        userCount: 0,
+      };
+    } catch (error) {
+      console.error("Error creating role:", error);
+      throw error;
+    }
+  }
+
+  async updateRole(id: number, data: any): Promise<any | undefined> {
+    try {
+      const [updatedRole] = await db.update(roles)
+        .set({
+          name: data.name,
+          description: data.description,
+          permissions: data.permissions,
+          updatedAt: new Date(),
+        })
+        .where(eq(roles.id, id))
+        .returning();
+
+      if (updatedRole) {
+        const userCount = await this.getRoleUserCount(id);
+        return {
+          ...updatedRole,
+          permissions: JSON.parse(updatedRole.permissions),
+          userCount,
+        };
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error updating role:", error);
+      throw error;
+    }
+  }
+
+  async deleteRole(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(roles).where(eq(roles.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      return false;
+    }
+  }
+
+  async getRoleUserCount(roleId: number): Promise<number> {
+    try {
+      const result = await db.select({ count: sql`count(*)` })
+        .from(userRoles)
+        .where(eq(userRoles.roleId, roleId));
+      
+      return parseInt(result[0].count as string) || 0;
+    } catch (error) {
+      console.error("Error getting role user count:", error);
+      return 0;
+    }
+  }
+
+  // User-Role Methods
+  async getUserRole(userId: number, roleId: number): Promise<any | undefined> {
+    try {
+      const assignment = await db.query.userRoles.findFirst({
+        where: (userRoles, { eq, and }) => 
+          and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleId)),
+      });
+      return assignment;
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+      return undefined;
+    }
+  }
+
+  async assignUserRole(data: any): Promise<any> {
+    try {
+      const [assignment] = await db.insert(userRoles).values({
+        userId: data.userId,
+        roleId: data.roleId,
+        assignedBy: data.assignedBy,
+      }).returning();
+
+      return assignment;
+    } catch (error) {
+      console.error("Error assigning user role:", error);
+      throw error;
+    }
+  }
+
+  async removeUserRole(userId: number, roleId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(userRoles)
+        .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleId)));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error removing user role:", error);
+      return false;
+    }
+  }
+
+  async getUserRoles(userId: number): Promise<any[]> {
+    try {
+      const assignments = await db.query.userRoles.findMany({
+        where: (userRoles, { eq }) => eq(userRoles.userId, userId),
+        with: {
+          role: true,
+        },
+      });
+
+      return assignments.map(assignment => ({
+        ...assignment,
+        role: {
+          ...assignment.role,
+          permissions: JSON.parse(assignment.role.permissions),
+        },
+      }));
+    } catch (error) {
+      console.error("Error fetching user roles:", error);
+      return [];
+    }
   }
 }
 
