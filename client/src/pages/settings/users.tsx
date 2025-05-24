@@ -314,37 +314,20 @@ export default function UserManagementPage() {
       return;
     }
 
-    // Mock success for now
-    toast({
-      title: "User Added",
-      description: `User ${newUser.username} has been added successfully.`,
-      variant: "default"
-    });
-    
-    setIsAddUserOpen(false);
-    // Reset form
-    setNewUser({
-      username: "",
-      fullName: "",
-      email: "",
-      mobile: "",
-      password: "",
-      confirmPassword: "",
-      role: "user"
-    });
-    
-    // Reset validation states
-    setUsernameAvailable(null);
-    setEmailValid(null);
-    setMobileValid(null);
-    setPasswordChecks({
-      length: false,
-      hasUppercase: false,
-      hasLowercase: false,
-      hasNumber: false,
-      hasSpecial: false
-    });
-    setPasswordsMatch(null);
+    // Create user with API call
+    const { confirmPassword, ...userData } = newUser;
+    createUserMutation.mutate(userData);
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      updateUserStatusMutation.mutate({ id: userId, status: 'deleted' });
+    }
+  };
+
+  const handleToggleUserStatus = (userId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    updateUserStatusMutation.mutate({ id: userId, status: newStatus });
   };
 
   return (
@@ -616,15 +599,18 @@ export default function UserManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {(users as any[]).map((user: any) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
                         <TableCell>{user.fullName}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            user.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                            user.role === 'admin' ? 'bg-red-100 text-red-800' : 
+                            user.role === 'manager' ? 'bg-blue-100 text-blue-800' : 
+                            'bg-gray-100 text-gray-800'
                           }`}>
-                            {user.role === 'admin' ? 'Administrator' : 'User'}
+                            {user.role === 'admin' ? 'Administrator' : 
+                             user.role === 'manager' ? 'Manager' : 'User'}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -634,17 +620,40 @@ export default function UserManagementPage() {
                             ) : (
                               <AlertCircle className="h-4 w-4 text-destructive mr-1" />
                             )}
-                            {user.status === 'active' ? 'Active' : 'Inactive'}
+                            <span className={user.status === 'active' ? 'text-green-700' : 'text-red-700'}>
+                              {user.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell>{new Date(user.lastLogin).toLocaleString()}</TableCell>
+                        <TableCell>
+                          {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" title="Edit User">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" title="Delete User" className="text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+                              onClick={() => handleToggleUserStatus(user.id, user.status)}
+                              disabled={updateUserStatusMutation.isPending}
+                            >
+                              {user.status === 'active' ? (
+                                <AlertCircle className="h-4 w-4 text-orange-500" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              )}
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title="Delete User" 
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={updateUserStatusMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
