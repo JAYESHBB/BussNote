@@ -80,7 +80,17 @@ export default function UsersPage() {
     }
   };
 
-  const handleToggleStatus = (userId: number, currentStatus: string) => {
+  const handleToggleStatus = (userId: number, currentStatus: string, userRole: string) => {
+    // Prevent deactivating administrators
+    if (userRole === 'admin' && currentStatus === 'active') {
+      toast({
+        title: "Cannot Deactivate",
+        description: "Administrator accounts cannot be deactivated",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     updateUserStatusMutation.mutate({ id: userId, status: newStatus });
   };
@@ -165,8 +175,9 @@ export default function UsersPage() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              onClick={() => handleToggleStatus(user.id, user.status)}
+                              onClick={() => handleToggleStatus(user.id, user.status, user.role)}
                               className={user.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                              disabled={user.role === 'admin' && user.status === 'active'}
                             >
                               {user.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             </Button>
