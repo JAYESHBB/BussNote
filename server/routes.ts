@@ -24,19 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log("Registering API routes with prefix:", apiPrefix);
 
-  // Debug middleware to track all requests
-  app.use((req, res, next) => {
-    console.log(`🚀 REQUEST: ${req.method} ${req.path}`);
-    if (req.method === 'POST' && req.path === '/api/users') {
-      console.log('🔥 INTERCEPTED POST /api/users - Body:', req.body);
-    }
-    next();
-  });
-
-  // Sets up /api/register, /api/login, /api/logout, /api/user  
-  setupAuth(app);
-
-  // User Management API - Create New User
+  // User Management API - Create New User (MUST BE FIRST!)
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
     console.log("🚀 CREATE USER API CALLED");
     console.log("Request Body:", JSON.stringify(req.body, null, 2));
@@ -48,10 +36,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { username, fullName, email, password, role } = req.body;
+      const { username, fullName, email, password, role, mobile } = req.body;
       
       // Validate required fields
-      if (!username || !fullName || !email || !password) {
+      if (!username || !fullName || !email || !password || !mobile) {
         console.log("❌ Missing required fields");
         return res.status(400).json({ error: "All fields are required" });
       }
@@ -75,6 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username,
         fullName,
         email,
+        mobile,
         password: hashedPassword,
         role: role || 'user'
       };
@@ -93,6 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: "Failed to create user" });
     }
   });
+
+  // Sets up /api/register, /api/login, /api/logout, /api/user  
+  setupAuth(app);
   
   // Username availability check
   app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
