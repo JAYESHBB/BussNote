@@ -19,11 +19,43 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // API Routes MUST come before auth setup to avoid conflicts
+  const apiPrefix = "/api";
+  
+  console.log("Registering API routes with prefix:", apiPrefix);
+
+  // Add User endpoint - MUST be before auth setup
+  app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    try {
+      console.log("POST /api/users called with body:", req.body);
+      console.log("Is authenticated:", req.isAuthenticated());
+      
+      if (!req.isAuthenticated()) {
+        console.log("Authentication failed for user creation");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const userData = req.body;
+      
+      // Validate required fields
+      if (!userData.username || !userData.fullName || !userData.email || !userData.password) {
+        console.log("Validation failed - missing required fields");
+        return res.status(400).json({ message: "All required fields must be provided" });
+      }
+      
+      console.log("Creating user with data:", userData);
+      const user = await storage.createUser(userData);
+      console.log("User created successfully:", user);
+      
+      return res.status(201).json(user);
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      return res.status(500).json({ message: error.message || "Failed to create user" });
+    }
+  });
+
   // Sets up /api/register, /api/login, /api/logout, /api/user
   setupAuth(app);
-
-  // API Routes
-  const apiPrefix = "/api";
   
   // Username availability check
   app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
@@ -58,35 +90,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
-    try {
-      console.log("POST /api/users called with body:", req.body);
-      console.log("Is authenticated:", req.isAuthenticated());
-      
-      if (!req.isAuthenticated()) {
-        console.log("Authentication failed for user creation");
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
-      const userData = req.body;
-      
-      // Validate required fields
-      if (!userData.username || !userData.fullName || !userData.email || !userData.password) {
-        console.log("Validation failed - missing required fields");
-        return res.status(400).json({ message: "All required fields must be provided" });
-      }
-      
-      console.log("Creating user with data:", userData);
-      const user = await storage.createUser(userData);
-      console.log("User created successfully:", user);
-      
-      return res.status(201).json(user);
-    } catch (error: any) {
-      console.error("Error creating user:", error);
-      return res.status(500).json({ message: error.message || "Failed to create user" });
     }
   });
 
