@@ -40,9 +40,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { username, fullName, email, role, mobile, address, status } = req.body;
       
+      // Debug: Log all received fields
+      console.log("📋 Received fields:");
+      console.log("- username:", username);
+      console.log("- fullName:", fullName);
+      console.log("- email:", email);
+      console.log("- mobile:", mobile);
+      console.log("- address:", address);
+      console.log("- role:", role);
+      console.log("- status:", status);
+      
       // Validate required fields (password not required - users will set on first login)
       if (!username || !fullName || !email || !mobile) {
         console.log("❌ Missing required fields");
+        console.log("Missing fields check:");
+        console.log("- username missing:", !username);
+        console.log("- fullName missing:", !fullName);
+        console.log("- email missing:", !email);
+        console.log("- mobile missing:", !mobile);
         return res.status(400).json({ error: "All fields are required" });
       }
 
