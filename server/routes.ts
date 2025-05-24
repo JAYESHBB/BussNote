@@ -24,51 +24,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log("Registering API routes with prefix:", apiPrefix);
 
-  // Add global middleware to catch all requests
-  app.use((req, res, next) => {
-    if (req.method === 'POST' && req.path === '/api/users') {
-      console.log("🔥 INTERCEPTED POST /api/users request");
-      console.log("Request body:", req.body);
-      console.log("Headers:", req.headers);
-    }
-    next();
-  });
-
   // Sets up /api/register, /api/login, /api/logout, /api/user  
   setupAuth(app);
 
-  // Add User endpoint for User Management (different from /api/register)
+  // Add User Management endpoint (different from auth register)
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
-    console.log("🎯 REACHED POST /api/users endpoint");
-    
     try {
-      console.log("POST /api/users called with body:", req.body);
-      console.log("Is authenticated:", req.isAuthenticated());
+      console.log("🎯 Add User endpoint called");
       
       if (!req.isAuthenticated()) {
-        console.log("Authentication failed for user creation");
         return res.status(401).json({ message: "Authentication required" });
       }
       
       const userData = req.body;
+      console.log("User data received:", userData);
       
       // Validate required fields
       if (!userData.username || !userData.fullName || !userData.email || !userData.password) {
-        console.log("Validation failed - missing required fields");
         return res.status(400).json({ message: "All required fields must be provided" });
       }
       
-      console.log("Creating user with data:", userData);
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
       
-      // Hash password before storing
-      const hashedPassword = await require('crypto').scryptSync(userData.password, 'salt', 64).toString('hex');
+      // Import crypto for password hashing
+      const crypto = require('crypto');
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = crypto.scryptSync(userData.password, salt, 64).toString('hex') + '.' + salt;
+      
       const userDataWithHashedPassword = {
         ...userData,
         password: hashedPassword
       };
       
       const user = await storage.createUser(userDataWithHashedPassword);
-      console.log("User created successfully:", user);
+      console.log("User created successfully:", user.id);
       
       return res.status(201).json(user);
     } catch (error: any) {
