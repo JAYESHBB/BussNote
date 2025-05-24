@@ -82,6 +82,21 @@ export interface IStorage {
   getSalesReport(fromDate?: Date, toDate?: Date, groupBy?: string): Promise<any>;
   getDashboardStats(dateRange: string): Promise<any>;
   
+  // Role methods
+  getAllRoles(): Promise<any[]>;
+  getRoleById(id: number): Promise<any | undefined>;
+  getRoleByName(name: string): Promise<any | undefined>;
+  createRole(data: any): Promise<any>;
+  updateRole(id: number, data: any): Promise<any | undefined>;
+  deleteRole(id: number): Promise<boolean>;
+  getRoleUserCount(roleId: number): Promise<number>;
+  
+  // User-Role methods
+  getUserRole(userId: number, roleId: number): Promise<any | undefined>;
+  assignUserRole(data: any): Promise<any>;
+  removeUserRole(userId: number, roleId: number): Promise<boolean>;
+  getUserRoles(userId: number): Promise<any[]>;
+  
   // Session store
   sessionStore: session.SessionStore;
 }

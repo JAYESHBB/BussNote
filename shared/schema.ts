@@ -204,3 +204,14 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   party: one(parties, { fields: [activities.partyId], references: [parties.id] }),
   invoice: one(invoices, { fields: [activities.invoiceId], references: [invoices.id] }),
 }));
+
+// Relations for roles
+export const rolesRelations = relations(roles, ({ many }) => ({
+  userRoles: many(userRoles),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, { fields: [userRoles.userId], references: [users.id] }),
+  role: one(roles, { fields: [userRoles.roleId], references: [roles.id] }),
+  assignedByUser: one(users, { fields: [userRoles.assignedBy], references: [users.id] }),
+}));

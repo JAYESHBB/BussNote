@@ -1110,6 +1110,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     getSalesTrends(req, res);
   });
 
+  // Role Management endpoints
+  app.get(`${apiPrefix}/roles`, async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post(`${apiPrefix}/roles`, async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { name, description, permissions } = req.body;
+      
+      if (!name || !description || !Array.isArray(permissions)) {
+        return res.status(400).json({ error: "Name, description, and permissions array are required" });
+      }
+
+      const existingRole = await storage.getRoleByName(name);
+      if (existingRole) {
+        return res.status(409).json({ error: "Role name already exists" });
+      }
+
+      const roleData = {
+        name,
+        description,
+        permissions: JSON.stringify(permissions),
+        isSystem: false
+      };
+
+      const newRole = await storage.createRole(roleData);
+      res.status(201).json(newRole);
+    } catch (error) {
+      console.error("Error creating role:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put(`${apiPrefix}/roles/:id`, async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const roleId = parseInt(req.params.id);
+      const { name, description, permissions } = req.body;
+
+      if (isNaN(roleId)) {
+        return res.status(400).json({ error: "Invalid role ID" });
+      }
+
+      const existingRole = await storage.getRoleById(roleId);
+      if (!existingRole) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+
+      if (existingRole.isSystem) {
+        return res.status(403).json({ error: "Cannot modify system roles" });
+      }
+
+      const updateData = {
+        name,
+        description,
+        permissions: JSON.stringify(permissions)
+      };
+
+      const updatedRole = await storage.updateRole(roleId, updateData);
+      res.json(updatedRole);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete(`${apiPrefix}/roles/:id`, async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const roleId = parseInt(req.params.id);
+
+      if (isNaN(roleId)) {
+        return res.status(400).json({ error: "Invalid role ID" });
+      }
+
+      const existingRole = await storage.getRoleById(roleId);
+      if (!existingRole) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+
+      if (existingRole.isSystem) {
+        return res.status(403).json({ error: "Cannot delete system roles" });
+      }
+
+      const userCount = await storage.getRoleUserCount(roleId);
+      if (userCount > 0) {
+        return res.status(400).json({ error: "Cannot delete role with assigned users" });
+      }
+
+      await storage.deleteRole(roleId);
+      res.json({ message: "Role deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
