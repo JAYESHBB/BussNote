@@ -175,6 +175,8 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
       const response = await fetch(`/api/check-mobile?mobile=${mobile}`);
       const data = await response.json();
       
+      console.log('Mobile validation response:', data);
+      
       if (data.available) {
         setValidations(prev => ({
           ...prev,
@@ -187,6 +189,7 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
         }));
       }
     } catch (error) {
+      console.error('Mobile validation error:', error);
       setValidations(prev => ({
         ...prev,
         mobile: { isValid: false, message: "Error checking mobile number" }
