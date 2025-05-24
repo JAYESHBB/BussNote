@@ -465,13 +465,32 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
 
           <div>
             <Label htmlFor="mobile">Mobile Number *</Label>
-            <Input
-              id="mobile"
-              value={formData.mobile}
-              onChange={(e) => handleInputChange("mobile", e.target.value)}
-              placeholder="Enter mobile number"
-              required
-            />
+            <div className="relative">
+              <Input
+                id="mobile"
+                value={formData.mobile}
+                onChange={(e) => handleInputChange("mobile", e.target.value)}
+                placeholder="Enter mobile number"
+                required
+                className="pr-10"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                {validations.mobile.isValid === true ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : validations.mobile.isValid === false ? (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                ) : null}
+              </div>
+            </div>
+            {validations.mobile.message && (
+              <p className={`text-xs mt-1 ${
+                validations.mobile.isValid === true
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}>
+                {validations.mobile.message}
+              </p>
+            )}
           </div>
 
           <div>
