@@ -34,7 +34,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Add User endpoint - MUST be before auth setup
+  // Sets up /api/register, /api/login, /api/logout, /api/user  
+  setupAuth(app);
+
+  // Add User endpoint for User Management (different from /api/register)
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
     console.log("🎯 REACHED POST /api/users endpoint");
     
@@ -56,7 +59,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Creating user with data:", userData);
-      const user = await storage.createUser(userData);
+      
+      // Hash password before storing
+      const hashedPassword = await require('crypto').scryptSync(userData.password, 'salt', 64).toString('hex');
+      const userDataWithHashedPassword = {
+        ...userData,
+        password: hashedPassword
+      };
+      
+      const user = await storage.createUser(userDataWithHashedPassword);
       console.log("User created successfully:", user);
       
       return res.status(201).json(user);
@@ -65,9 +76,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: error.message || "Failed to create user" });
     }
   });
-
-  // Sets up /api/register, /api/login, /api/logout, /api/user
-  setupAuth(app);
   
   // Username availability check
   app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
