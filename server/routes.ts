@@ -293,6 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has dependencies (invoices)
       const hasDependencies = await storage.userHasDependencies(userId);
+      console.log("User has dependencies:", hasDependencies);
       
       if (hasDependencies) {
         return res.status(400).json({ message: "Unable to Delete User" });
