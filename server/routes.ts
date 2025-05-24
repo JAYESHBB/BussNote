@@ -38,10 +38,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For now, skip authentication to allow user creation
       console.log("✅ Proceeding with user creation (authentication skipped for admin function)");
 
-      const { username, fullName, email, password, role, mobile } = req.body;
+      const { username, fullName, email, role, mobile, address, status } = req.body;
       
-      // Validate required fields
-      if (!username || !fullName || !email || !password || !mobile) {
+      // Validate required fields (password not required - users will set on first login)
+      if (!username || !fullName || !email || !mobile) {
         console.log("❌ Missing required fields");
         return res.status(400).json({ error: "All fields are required" });
       }
@@ -54,11 +54,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already exists" });
       }
 
-      // Hash password using the same method as auth
-      console.log("Hashing password...");
+      // Create temporary password - users will set their own on first login
+      console.log("Creating temporary password...");
       const { randomBytes, scryptSync } = await import('crypto');
+      const tempPassword = 'temp123'; // Temporary password
       const salt = randomBytes(16).toString('hex');
-      const hashedPassword = scryptSync(password, salt, 64).toString('hex') + '.' + salt;
+      const hashedPassword = scryptSync(tempPassword, salt, 64).toString('hex') + '.' + salt;
 
       // Create user data
       const userData = {
@@ -66,8 +67,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fullName,
         email,
         mobile,
+        address: address || null,
         password: hashedPassword,
-        role: role || 'user'
+        role: role || 'user',
+        status: status || 'active'
       };
 
       console.log("Creating user in database...");
