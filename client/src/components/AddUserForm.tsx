@@ -222,9 +222,10 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     const emailChanged = !isEditMode || formData.email !== user?.email;
     const mobileChanged = !isEditMode || formData.mobile !== user?.mobile;
 
-    if ((usernameChanged && validations.username.isValid !== true) ||
-        (emailChanged && validations.email.isValid !== true) ||
-        (mobileChanged && validations.mobile.isValid !== true)) {
+    // Only check validations if they have been checked (not null) and are false
+    if ((usernameChanged && validations.username.isValid === false) ||
+        (emailChanged && validations.email.isValid === false) ||
+        (mobileChanged && validations.mobile.isValid === false)) {
       toast({
         title: "Validation Error",
         description: "Please fix validation errors before submitting",
