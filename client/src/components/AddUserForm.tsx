@@ -23,6 +23,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     fullName: "",
     email: "",
     mobile: "",
+    address: "",
     role: "user"
   });
 
@@ -36,6 +37,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         fullName: user.fullName || user.full_name || "",
         email: user.email || "",
         mobile: user.mobile || "",
+        address: user.address || "",
         role: user.role || "user"
       });
     } else if (!user && open) {
@@ -44,6 +46,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         fullName: "",
         email: "",
         mobile: "",
+        address: "",
         role: "user"
       });
     }
@@ -241,6 +244,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         full_name: formData.fullName,
         email: formData.email,
         mobile: formData.mobile,
+        address: formData.address,
         role: formData.role,
         status: 'active'
       };
@@ -276,6 +280,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         fullName: "",
         email: "",
         mobile: "",
+        address: "",
         role: "user"
       });
       
@@ -356,6 +361,16 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
               placeholder="Enter full name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+              placeholder="Enter address (optional)"
             />
           </div>
 
