@@ -47,6 +47,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User Management Routes
   app.get(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -57,6 +61,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       const userData = req.body;
       const user = await storage.createUser(userData);
@@ -68,6 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       const userId = parseInt(req.params.id);
       const userData = req.body;
@@ -83,6 +95,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch(`${apiPrefix}/users/:id/status`, async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       const userId = parseInt(req.params.id);
       const { status } = req.body;
