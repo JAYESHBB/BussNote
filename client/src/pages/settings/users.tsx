@@ -73,18 +73,37 @@ export default function UserManagementPage() {
 
   // Validation functions
   const validateEmail = (email: string) => {
+    if (email.trim() === '') {
+      setEmailValid(null);
+      return false;
+    }
     const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
     setEmailValid(isValid);
     return isValid;
   };
 
   const validateMobile = (mobile: string) => {
+    if (mobile.trim() === '') {
+      setMobileValid(null);
+      return false;
+    }
     const isValid = /^\+?[0-9\s-]{10,15}$/.test(mobile);
     setMobileValid(isValid);
     return isValid;
   };
 
   const validatePassword = (password: string) => {
+    if (password.trim() === '') {
+      setPasswordChecks({
+        length: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasNumber: false,
+        hasSpecial: false
+      });
+      return false;
+    }
+    
     const checks = {
       length: password.length >= 8,
       hasUppercase: /[A-Z]/.test(password),
@@ -98,6 +117,10 @@ export default function UserManagementPage() {
   };
 
   const validatePasswordMatch = (password: string, confirmPassword: string) => {
+    if (confirmPassword.trim() === '') {
+      setPasswordsMatch(null);
+      return false;
+    }
     const match = password === confirmPassword && password.length > 0;
     setPasswordsMatch(match);
     return match;
