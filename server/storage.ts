@@ -32,7 +32,11 @@ import {
   Invoice,
   InvoiceItem,
   Transaction,
-  Activity
+  Activity,
+  Role,
+  InsertRole,
+  UserRole,
+  InsertUserRole
 } from "@shared/schema";
 import { pool } from "@db";
 import { eq, and, desc, asc, gt, lt, gte, lte, isNull, isNotNull, sql, SQL, count, sum, max } from "drizzle-orm";

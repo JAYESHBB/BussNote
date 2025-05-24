@@ -20,6 +20,7 @@ import AnalyticsPage from "@/pages/analytics";
 import ProfilePage from "@/pages/profile";
 import SetupPasswordPage from "@/pages/setup-password";
 import UserManagementPage from "@/pages/settings/users";
+import RoleManagementPage from "@/pages/settings/roles";
 import SystemSettingsPage from "@/pages/settings/system";
 import { PageLayout } from "@/components/PageLayout";
 
@@ -110,6 +111,12 @@ function Router() {
       <ProtectedRoute path="/settings/users">
         <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
           <UserManagementPage />
+        </PageLayout>
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/settings/roles">
+        <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+          <RoleManagementPage />
         </PageLayout>
       </ProtectedRoute>
       
