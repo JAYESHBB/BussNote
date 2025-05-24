@@ -147,6 +147,9 @@ export default function UserManagementPage() {
     queryKey: ["/api/users"],
   });
 
+  // Debug logging
+  console.log("Users query state:", { users, isLoading, error });
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
