@@ -402,7 +402,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
       // Success
       toast({
         title: "Success",
-        description: "User created successfully!",
+        description: `User ${isEditMode ? 'updated' : 'created'} successfully!`,
       });
 
       // Refresh users list and close dialog
@@ -426,7 +426,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit User' : 'Add New User'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -438,7 +438,8 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
                 placeholder="Enter username"
-                required
+                required={!isEditMode}
+                disabled={isEditMode}
                 className={`pr-10 ${
                   validations.username.isValid === true
                     ? "border-green-500 focus:border-green-500"
