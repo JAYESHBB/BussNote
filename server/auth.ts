@@ -97,6 +97,37 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Add User Management endpoint for admin users
+  app.post("/api/users", async (req, res, next) => {
+    try {
+      console.log("🎯 Add User Management endpoint called");
+      
+      if (!req.isAuthenticated()) {
+        console.log("❌ Not authenticated");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      console.log("✅ User authenticated, processing request");
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        console.log("❌ Username already exists");
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      console.log("Creating new user...");
+      const user = await storage.createUser({
+        ...req.body,
+        password: await hashPassword(req.body.password),
+      });
+
+      console.log("✅ User created successfully:", user.id);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("❌ Error creating user:", error);
+      next(error);
+    }
+  });
+
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) return next(err);
