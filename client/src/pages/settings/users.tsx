@@ -2,15 +2,25 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, CheckCircle, UserPlus, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { queryClient } from "@/lib/queryClient";
+
+// Function to capitalize each word in a string
+function capitalizeWords(str: string): string {
+  return str
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
 // Mock users for display until API integration
 const mockUsers = [
@@ -40,10 +50,74 @@ export default function UserManagementPage() {
   const [newUser, setNewUser] = useState({
     username: "",
     fullName: "",
+    email: "",
+    mobile: "",
     password: "",
     confirmPassword: "",
     role: "user"
   });
+
+  // Validation states
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
+  const [mobileValid, setMobileValid] = useState<boolean | null>(null);
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecial: false
+  });
+  const [passwordsMatch, setPasswordsMatch] = useState<boolean | null>(null);
+
+  // Validation functions
+  const validateEmail = (email: string) => {
+    const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+    setEmailValid(isValid);
+    return isValid;
+  };
+
+  const validateMobile = (mobile: string) => {
+    const isValid = /^\+?[0-9\s-]{10,15}$/.test(mobile);
+    setMobileValid(isValid);
+    return isValid;
+  };
+
+  const validatePassword = (password: string) => {
+    const checks = {
+      length: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[^A-Za-z0-9]/.test(password)
+    };
+    
+    setPasswordChecks(checks);
+    return Object.values(checks).every(check => check);
+  };
+
+  const validatePasswordMatch = (password: string, confirmPassword: string) => {
+    const match = password === confirmPassword && password.length > 0;
+    setPasswordsMatch(match);
+    return match;
+  };
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (username.length >= 3) {
+      setUsernameChecking(true);
+      try {
+        const response = await apiRequest('GET', `/api/check-username?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+        setUsernameAvailable(data.available);
+      } catch (error) {
+        console.error('Error checking username:', error);
+        setUsernameAvailable(null);
+      } finally {
+        setUsernameChecking(false);
+      }
+    }
+  };
 
   // We'll use this query in the future when the API is ready
   /*
@@ -60,12 +134,39 @@ export default function UserManagementPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewUser(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'fullName') {
+      // Auto capitalize full name
+      const capitalizedValue = capitalizeWords(value);
+      setNewUser(prev => ({ ...prev, [name]: capitalizedValue }));
+    } else if (name === 'email') {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+      validateEmail(value);
+    } else if (name === 'mobile') {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+      validateMobile(value);
+    } else if (name === 'password') {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+      validatePassword(value);
+      // Check password match if confirm password exists
+      if (newUser.confirmPassword) {
+        validatePasswordMatch(value, newUser.confirmPassword);
+      }
+    } else if (name === 'confirmPassword') {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+      validatePasswordMatch(newUser.password, value);
+    } else if (name === 'username') {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+      // Reset username availability when typing
+      setUsernameAvailable(null);
+    } else {
+      setNewUser(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleAddUser = () => {
-    // Basic validation
-    if (!newUser.username || !newUser.fullName || !newUser.password) {
+    // Comprehensive validation
+    if (!newUser.username || !newUser.fullName || !newUser.email || !newUser.mobile || !newUser.password) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -74,7 +175,43 @@ export default function UserManagementPage() {
       return;
     }
 
-    if (newUser.password !== newUser.confirmPassword) {
+    if (usernameAvailable === false) {
+      toast({
+        title: "Username Error",
+        description: "Username is already taken. Please choose another.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (emailValid === false) {
+      toast({
+        title: "Email Error",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (mobileValid === false) {
+      toast({
+        title: "Mobile Error",
+        description: "Please enter a valid mobile number.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!Object.values(passwordChecks).every(check => check)) {
+      toast({
+        title: "Password Error",
+        description: "Password must meet all requirements.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordsMatch === false) {
       toast({
         title: "Password Error",
         description: "Passwords do not match.",
@@ -91,13 +228,29 @@ export default function UserManagementPage() {
     });
     
     setIsAddUserOpen(false);
+    // Reset form
     setNewUser({
       username: "",
       fullName: "",
+      email: "",
+      mobile: "",
       password: "",
       confirmPassword: "",
       role: "user"
     });
+    
+    // Reset validation states
+    setUsernameAvailable(null);
+    setEmailValid(null);
+    setMobileValid(null);
+    setPasswordChecks({
+      length: false,
+      hasUppercase: false,
+      hasLowercase: false,
+      hasNumber: false,
+      hasSpecial: false
+    });
+    setPasswordsMatch(null);
   };
 
   return (
@@ -127,68 +280,216 @@ export default function UserManagementPage() {
                     Add User
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
                     <DialogDescription>
                       Create a new user account with specific role and permissions.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="username" className="text-right">Username</Label>
-                      <Input 
-                        id="username"
-                        name="username"
-                        value={newUser.username}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="fullName" className="text-right">Full Name</Label>
+                  <div className="space-y-4 py-4">
+                    {/* Full Name Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name *</Label>
                       <Input 
                         id="fullName"
                         name="fullName"
+                        placeholder="Enter full name"
                         value={newUser.fullName}
                         onChange={handleInputChange}
-                        className="col-span-3"
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="password" className="text-right">Password</Label>
+
+                    {/* Email Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address *</Label>
+                      <div className="relative">
+                        <Input 
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="Enter email address"
+                          value={newUser.email}
+                          onChange={handleInputChange}
+                          className="pr-8"
+                        />
+                        {emailValid === false && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                        {emailValid === true && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {emailValid === false && (
+                        <p className="text-xs text-red-500">Please enter a valid email address</p>
+                      )}
+                    </div>
+
+                    {/* Mobile Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile">Mobile Number *</Label>
+                      <div className="relative">
+                        <Input 
+                          id="mobile"
+                          name="mobile"
+                          placeholder="Enter mobile number"
+                          value={newUser.mobile}
+                          onChange={handleInputChange}
+                          className="pr-8"
+                        />
+                        {mobileValid === false && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                        {mobileValid === true && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {mobileValid === false && (
+                        <p className="text-xs text-red-500">Please enter a valid mobile number (10-15 digits)</p>
+                      )}
+                    </div>
+
+                    {/* Username Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username *</Label>
+                      <div className="relative">
+                        <Input 
+                          id="username"
+                          name="username"
+                          placeholder="Choose a unique username"
+                          value={newUser.username}
+                          onChange={handleInputChange}
+                          onBlur={() => checkUsernameAvailability(newUser.username)}
+                          className="pr-8"
+                        />
+                        {usernameChecking && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="h-4 w-4 rounded-full border-2 border-b-transparent border-primary animate-spin"></div>
+                          </div>
+                        )}
+                        {!usernameChecking && usernameAvailable === false && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                        {!usernameChecking && usernameAvailable === true && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {!usernameChecking && usernameAvailable === false && (
+                        <p className="text-xs text-red-500">This username is already taken. Please choose another.</p>
+                      )}
+                      {!usernameChecking && usernameAvailable === true && (
+                        <p className="text-xs text-green-500">Username is available!</p>
+                      )}
+                    </div>
+
+                    {/* Password Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password *</Label>
                       <Input 
                         id="password"
                         name="password"
                         type="password"
+                        placeholder="Create a strong password"
                         value={newUser.password}
                         onChange={handleInputChange}
-                        className="col-span-3"
                       />
+                      {newUser.password.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Password requirements:</p>
+                          <div className="grid grid-cols-2 gap-1 text-xs">
+                            <div className={`flex items-center ${passwordChecks.length ? 'text-green-600' : 'text-red-500'}`}>
+                              {passwordChecks.length ? '✓' : '✗'} 8+ characters
+                            </div>
+                            <div className={`flex items-center ${passwordChecks.hasUppercase ? 'text-green-600' : 'text-red-500'}`}>
+                              {passwordChecks.hasUppercase ? '✓' : '✗'} Uppercase
+                            </div>
+                            <div className={`flex items-center ${passwordChecks.hasLowercase ? 'text-green-600' : 'text-red-500'}`}>
+                              {passwordChecks.hasLowercase ? '✓' : '✗'} Lowercase
+                            </div>
+                            <div className={`flex items-center ${passwordChecks.hasNumber ? 'text-green-600' : 'text-red-500'}`}>
+                              {passwordChecks.hasNumber ? '✓' : '✗'} Number
+                            </div>
+                            <div className={`flex items-center ${passwordChecks.hasSpecial ? 'text-green-600' : 'text-red-500'}`}>
+                              {passwordChecks.hasSpecial ? '✓' : '✗'} Special char
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="confirmPassword" className="text-right">Confirm Password</Label>
-                      <Input 
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        value={newUser.confirmPassword}
-                        onChange={handleInputChange}
-                        className="col-span-3"
-                      />
+
+                    {/* Confirm Password Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <div className="relative">
+                        <Input 
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="Confirm your password"
+                          value={newUser.confirmPassword}
+                          onChange={handleInputChange}
+                          className="pr-8"
+                        />
+                        {newUser.confirmPassword.length > 0 && passwordsMatch === false && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                        {newUser.confirmPassword.length > 0 && passwordsMatch === true && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {newUser.confirmPassword.length > 0 && passwordsMatch === false && (
+                        <p className="text-xs text-red-500">Passwords do not match</p>
+                      )}
+                      {newUser.confirmPassword.length > 0 && passwordsMatch === true && (
+                        <p className="text-xs text-green-500">Passwords match!</p>
+                      )}
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="role" className="text-right">Role</Label>
-                      <select 
-                        id="role"
-                        name="role"
-                        value={newUser.role}
-                        onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value }))}
-                        className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="user">User</option>
-                        <option value="admin">Administrator</option>
-                      </select>
+
+                    {/* Role Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role *</Label>
+                      <Select value={newUser.role} onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select user role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="admin">Administrator</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <DialogFooter>
