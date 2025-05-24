@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, UserPlus, Edit, Trash2 } from "lucide-react";
+import { AlertCircle, UserPlus, Edit, Trash2, UserCheck, UserX } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { queryClient } from "@/lib/queryClient";
 import { AddUserForm } from "@/components/AddUserForm";
@@ -78,6 +78,11 @@ export default function UsersPage() {
     if (window.confirm("Are you sure you want to delete this user?")) {
       updateUserStatusMutation.mutate({ id: userId, status: "inactive" });
     }
+  };
+
+  const handleToggleStatus = (userId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    updateUserStatusMutation.mutate({ id: userId, status: newStatus });
   };
 
   return (
@@ -156,6 +161,14 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Button variant="outline" size="sm">
                               <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleToggleStatus(user.id, user.status)}
+                              className={user.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                            >
+                              {user.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             </Button>
                             <Button 
                               variant="outline" 
