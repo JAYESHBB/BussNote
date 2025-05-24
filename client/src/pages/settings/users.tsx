@@ -83,7 +83,15 @@ export default function UsersPage() {
         const errorText = await res.text();
         throw new Error(errorText || "Failed to delete user");
       }
-      return await res.json();
+      
+      // Check if response has content and is JSON
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await res.json();
+      } else {
+        // If not JSON, return a success message
+        return { message: "User deleted successfully" };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
