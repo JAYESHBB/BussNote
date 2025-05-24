@@ -241,7 +241,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
       
       const payload = {
         username: formData.username,
-        full_name: formData.fullName,
+        fullName: formData.fullName,
         email: formData.email,
         mobile: formData.mobile,
         address: formData.address,
