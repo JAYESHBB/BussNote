@@ -84,9 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sets up /api/register, /api/login, /api/logout, /api/user  
-  setupAuth(app);
-  
+  // Public endpoints (before auth setup)
   // Username availability check
   app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
     try {
@@ -146,6 +144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to check mobile availability", available: false });
     }
   });
+
+  // Sets up /api/register, /api/login, /api/logout, /api/user  
+  setupAuth(app);
 
   // User Management Routes
   app.get(`${apiPrefix}/users`, async (req: Request, res: Response) => {
