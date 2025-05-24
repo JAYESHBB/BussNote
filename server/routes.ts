@@ -62,23 +62,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-    
     try {
+      console.log("POST /api/users called with body:", req.body);
+      console.log("Is authenticated:", req.isAuthenticated());
+      
+      if (!req.isAuthenticated()) {
+        console.log("Authentication failed for user creation");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
       const userData = req.body;
       
       // Validate required fields
       if (!userData.username || !userData.fullName || !userData.email || !userData.password) {
+        console.log("Validation failed - missing required fields");
         return res.status(400).json({ message: "All required fields must be provided" });
       }
       
+      console.log("Creating user with data:", userData);
       const user = await storage.createUser(userData);
-      res.status(201).json(user);
+      console.log("User created successfully:", user);
+      
+      return res.status(201).json(user);
     } catch (error: any) {
       console.error("Error creating user:", error);
-      res.status(500).json({ message: error.message || "Failed to create user" });
+      return res.status(500).json({ message: error.message || "Failed to create user" });
     }
   });
 
