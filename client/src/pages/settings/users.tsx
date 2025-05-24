@@ -145,10 +145,8 @@ export default function UserManagementPage() {
   // Real-time user data from API
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["/api/users"],
+    retry: false,
   });
-
-  // Debug logging
-  console.log("Users query state:", { users, isLoading, error });
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -607,10 +605,10 @@ export default function UserManagementPage() {
                 <div className="flex items-center justify-center h-40">
                   <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
                 </div>
-              ) : error ? (
+              ) : error || !users || (Array.isArray(users) && users.length === 0) ? (
                 <div className="flex items-center justify-center h-40 text-destructive">
                   <AlertCircle className="h-6 w-6 mr-2" />
-                  <p>Failed to load users. Please try again.</p>
+                  <p>No users found. Add new users to get started.</p>
                 </div>
               ) : (
                 <Table>
