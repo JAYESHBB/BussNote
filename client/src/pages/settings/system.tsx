@@ -338,32 +338,7 @@ export default function SystemSettingsPage() {
         <p className="text-muted-foreground">Configure application settings and preferences</p>
       </div>
 
-      {/* Management Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <Link to="/settings/users">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="flex items-center p-6">
-              <Users className="h-8 w-8 text-blue-600 mr-4" />
-              <div>
-                <h3 className="text-lg font-semibold">User Management</h3>
-                <p className="text-gray-600">Manage users and accounts</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
 
-        <Link to="/settings/roles">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="flex items-center p-6">
-              <Shield className="h-8 w-8 text-purple-600 mr-4" />
-              <div>
-                <h3 className="text-lg font-semibold">Role & Permission Management</h3>
-                <p className="text-gray-600">Configure roles and access permissions</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-[400px]">
