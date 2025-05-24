@@ -99,6 +99,12 @@ function Router() {
         </PageLayout>
       </ProtectedRoute>
       
+      <ProtectedRoute path="/settings">
+        <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+          <UserManagementPage />
+        </PageLayout>
+      </ProtectedRoute>
+      
       <ProtectedRoute path="/settings/users">
         <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
           <UserManagementPage />
