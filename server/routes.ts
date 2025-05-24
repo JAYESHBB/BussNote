@@ -51,13 +51,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("- status:", status);
       
       // Validate required fields (password not required - users will set on first login)
-      if (!username || !fullName || !email || !mobile) {
+      if (!username || !fullName || !email || !mobile || 
+          username.trim() === '' || fullName.trim() === '' || 
+          email.trim() === '' || mobile.trim() === '') {
         console.log("❌ Missing required fields");
         console.log("Missing fields check:");
-        console.log("- username missing:", !username);
-        console.log("- fullName missing:", !fullName);
-        console.log("- email missing:", !email);
-        console.log("- mobile missing:", !mobile);
+        console.log("- username missing:", !username, "empty:", username?.trim() === '');
+        console.log("- fullName missing:", !fullName, "empty:", fullName?.trim() === '');
+        console.log("- email missing:", !email, "empty:", email?.trim() === '');
+        console.log("- mobile missing:", !mobile, "empty:", mobile?.trim() === '');
         return res.status(400).json({ error: "All fields are required" });
       }
 
