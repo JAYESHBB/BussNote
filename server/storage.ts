@@ -144,11 +144,10 @@ class DatabaseStorage implements IStorage {
       console.log("Attempting to delete user with ID:", id);
       const result = await db
         .delete(users)
-        .where(eq(users.id, id))
-        .returning();
+        .where(eq(users.id, id));
 
-      console.log("Delete result:", result);
-      return result.length > 0;
+      console.log("Delete operation completed for user ID:", id);
+      return true;
     } catch (error) {
       console.error("Error deleting user from database:", error);
       return false;
