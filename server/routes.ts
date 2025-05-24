@@ -25,73 +25,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log("Registering API routes with prefix:", apiPrefix);
 
-  // User Management API - Create New User (DIFFERENT ROUTE TO AVOID CONFLICTS!)
+  // Create User API endpoint - CLEAN VERSION
   app.post(`${apiPrefix}/create-user`, async (req: Request, res: Response) => {
-    console.log("🚀🚀🚀 CREATE USER API ENDPOINT HIT 🚀🚀🚀");
-    console.log("Request Method:", req.method);
-    console.log("Request Path:", req.path);
-    console.log("Request Body:", req.body);
-    console.log("Content-Type:", req.headers['content-type']);
-    
-    // IMMEDIATE RETURN FOR TESTING
-    return res.status(201).json({
-      success: true,
-      message: "Test successful - endpoint is working",
-      receivedData: req.body
-    });
+    console.log("🚀 CREATE USER ENDPOINT CALLED");
+    console.log("Body:", req.body);
     
     try {
-      // Note: For user creation, we should check if current user is admin
-      // For now, skip authentication to allow user creation
-      console.log("✅ Proceeding with user creation (authentication skipped for admin function)");
-
-      const { username, fullName, email, role, mobile, address, status } = req.body;
+      const { username, fullName, email, mobile, address, role, status } = req.body;
       
-      // Debug: Log all received fields
-      console.log("📋 Received fields:");
-      console.log("- username:", username);
-      console.log("- fullName:", fullName);
-      console.log("- email:", email);
-      console.log("- mobile:", mobile);
-      console.log("- address:", address);
-      console.log("- role:", role);
-      console.log("- status:", status);
-      
-      // First log the exact values we received
-      console.log("🔍 EXACT VALUES RECEIVED:");
-      console.log("username value:", JSON.stringify(username));
-      console.log("fullName value:", JSON.stringify(fullName));
-      console.log("email value:", JSON.stringify(email));
-      console.log("mobile value:", JSON.stringify(mobile));
-      
-      // Simple validation - just check if values exist
+      // Basic validation
       if (!username || !fullName || !email || !mobile) {
-        console.log("❌ BASIC VALIDATION FAILED:");
-        console.log("username exists:", !!username);
-        console.log("fullName exists:", !!fullName);
-        console.log("email exists:", !!email);
-        console.log("mobile exists:", !!mobile);
+        console.log("❌ Validation failed - missing fields");
         return res.status(400).json({ error: "All fields are required" });
       }
       
-      console.log("✅ Basic validation passed, proceeding...");
-
-      // Check if username already exists
-      console.log("Checking username availability...");
+      // Check username availability
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        console.log("❌ Username already exists");
         return res.status(409).json({ error: "Username already exists" });
       }
-
-      // Create temporary password - users will set their own on first login
-      console.log("Creating temporary password...");
-      const { randomBytes, scryptSync } = await import('crypto');
-      const tempPassword = 'temp123'; // Temporary password
-      const salt = randomBytes(16).toString('hex');
-      const hashedPassword = scryptSync(tempPassword, salt, 64).toString('hex') + '.' + salt;
-
-      // Create user data
+      
+      // Create password hash
+      const crypto = await import('crypto');
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = crypto.scryptSync('temp123', salt, 64).toString('hex') + '.' + salt;
+      
+      // Create user
       const userData = {
         username,
         fullName,
@@ -102,19 +61,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: role || 'user',
         status: status || 'active'
       };
-
-      console.log("Creating user in database...");
+      
       const newUser = await storage.createUser(userData);
+      console.log("✅ User created successfully");
       
-      console.log("✅ User created successfully with ID:", newUser.id);
-      
-      // Return user without password
+      // Return without password
       const { password: _, ...userResponse } = newUser;
-      return res.status(201).json(userResponse);
+      res.status(201).json(userResponse);
       
     } catch (error) {
-      console.error("❌ Error creating user:", error);
-      return res.status(500).json({ error: "Failed to create user" });
+      console.error("Error creating user:", error);
+      res.status(500).json({ error: "Failed to create user" });
     }
   });
 
