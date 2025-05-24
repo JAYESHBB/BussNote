@@ -284,6 +284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete user endpoint
   app.delete(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     console.log("=== DELETE USER REQUEST RECEIVED ===");
     console.log("Request params:", req.params);
     
