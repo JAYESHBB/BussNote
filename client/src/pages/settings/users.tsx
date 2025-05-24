@@ -255,13 +255,6 @@ export default function UsersPage() {
         onOpenChange={(open) => !open && setEditingUser(null)} 
         user={editingUser}
       />
-
-      {/* Edit User Form */}
-      <AddUserForm 
-        open={!!editingUser} 
-        onOpenChange={(open) => !open && setEditingUser(null)} 
-        user={editingUser}
-      />
     </div>
   );
 }
