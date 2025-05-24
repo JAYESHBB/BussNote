@@ -13,6 +13,7 @@ import { AlertCircle, CheckCircle, UserPlus, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { queryClient } from "@/lib/queryClient";
+import { AddUserForm } from "@/components/AddUserForm";
 
 // Function to capitalize each word in a string
 function capitalizeWords(str: string): string {
@@ -387,13 +388,11 @@ export default function UserManagementPage() {
                 <CardTitle>System Users</CardTitle>
                 <CardDescription>Manage user accounts in the system</CardDescription>
               </div>
-              <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </DialogTrigger>
+              <Button onClick={() => setIsAddUserOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
+            </CardHeader>
                 <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
