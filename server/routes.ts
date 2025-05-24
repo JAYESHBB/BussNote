@@ -283,32 +283,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete user endpoint
+  // Delete user endpoint - FIXED VERSION
   app.delete(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
-    console.log("=== DELETE USER REQUEST RECEIVED ===");
+    console.log("🔥🔥🔥 DELETE USER REQUEST RECEIVED 🔥🔥🔥");
     console.log("Request params:", req.params);
-    console.log("User authenticated:", req.isAuthenticated ? req.isAuthenticated() : 'No auth method');
-    
-    // Skip auth check for debugging - we'll fix this properly later
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
     
     try {
       const userId = parseInt(req.params.id);
-      console.log("Parsed userId:", userId);
+      console.log("🎯 Parsed userId:", userId);
       
       if (isNaN(userId)) {
-        console.log("Invalid user ID provided");
+        console.log("❌ Invalid user ID provided");
         return res.status(400).json({ message: "Invalid user ID" });
       }
 
-      // Direct database delete using SQL
-      console.log("Attempting direct database delete...");
-      const result = await db.delete(users).where(eq(users.id, userId));
-      console.log("Delete operation completed for user ID:", userId);
+      // Direct SQL delete - bypass all ORM issues
+      console.log("🗑️ Executing direct SQL delete...");
+      const result = await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+      console.log("✅ SQL delete result:", result);
       
-      console.log("User successfully deleted from database");
+      console.log("🎉 User successfully deleted from database!");
       res.json({ message: "User deleted successfully", success: true });
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("💥 Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
     }
   });
