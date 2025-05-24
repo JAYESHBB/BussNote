@@ -50,18 +50,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("- role:", role);
       console.log("- status:", status);
       
-      // Validate required fields (password not required - users will set on first login)
-      if (!username || !fullName || !email || !mobile || 
-          username.trim() === '' || fullName.trim() === '' || 
-          email.trim() === '' || mobile.trim() === '') {
-        console.log("❌ Missing required fields");
-        console.log("Missing fields check:");
-        console.log("- username missing:", !username, "empty:", username?.trim() === '');
-        console.log("- fullName missing:", !fullName, "empty:", fullName?.trim() === '');
-        console.log("- email missing:", !email, "empty:", email?.trim() === '');
-        console.log("- mobile missing:", !mobile, "empty:", mobile?.trim() === '');
+      // First log the exact values we received
+      console.log("🔍 EXACT VALUES RECEIVED:");
+      console.log("username value:", JSON.stringify(username));
+      console.log("fullName value:", JSON.stringify(fullName));
+      console.log("email value:", JSON.stringify(email));
+      console.log("mobile value:", JSON.stringify(mobile));
+      
+      // Simple validation - just check if values exist
+      if (!username || !fullName || !email || !mobile) {
+        console.log("❌ BASIC VALIDATION FAILED:");
+        console.log("username exists:", !!username);
+        console.log("fullName exists:", !!fullName);
+        console.log("email exists:", !!email);
+        console.log("mobile exists:", !!mobile);
         return res.status(400).json({ error: "All fields are required" });
       }
+      
+      console.log("✅ Basic validation passed, proceeding...");
 
       // Check if username already exists
       console.log("Checking username availability...");
