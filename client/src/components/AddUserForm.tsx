@@ -23,8 +23,6 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     fullName: "",
     email: "",
     mobile: "",
-    password: "",
-    confirmPassword: "",
     role: "user"
   });
 
@@ -38,8 +36,6 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         fullName: user.fullName || user.full_name || "",
         email: user.email || "",
         mobile: user.mobile || "",
-        password: "",
-        confirmPassword: "",
         role: user.role || "user"
       });
     } else if (!user && open) {
@@ -48,8 +44,6 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
         fullName: "",
         email: "",
         mobile: "",
-        password: "",
-        confirmPassword: "",
         role: "user"
       });
     }
@@ -59,9 +53,7 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
   const [validations, setValidations] = useState({
     username: { isValid: null as boolean | null, message: "", isChecking: false },
     email: { isValid: null as boolean | null, message: "" },
-    mobile: { isValid: null as boolean | null, message: "" },
-    password: { isValid: null as boolean | null, message: "" },
-    confirmPassword: { isValid: null as boolean | null, message: "" }
+    mobile: { isValid: null as boolean | null, message: "" }
   });
 
   const handleInputChange = (field: string, value: string) => {

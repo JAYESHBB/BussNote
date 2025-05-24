@@ -18,6 +18,7 @@ import InvoiceDetailsPage from "@/pages/invoice-details";
 import ReportsPage from "@/pages/reports";
 import AnalyticsPage from "@/pages/analytics";
 import ProfilePage from "@/pages/profile";
+import SetupPasswordPage from "@/pages/setup-password";
 import UserManagementPage from "@/pages/settings/users";
 import SystemSettingsPage from "@/pages/settings/system";
 import { PageLayout } from "@/components/PageLayout";
@@ -38,6 +39,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      <Route path="/setup-password" component={SetupPasswordPage} />
       
       <ProtectedRoute path="/">
         <PageLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>

@@ -145,6 +145,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User verification endpoint for first-time setup
+  app.post(`${apiPrefix}/verify-user`, async (req: Request, res: Response) => {
+    try {
+      const { username, email, mobile } = req.body;
+
+      if (!username || !email || !mobile) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Find user with matching credentials
+      const user = await storage.getUserByUsername(username);
+      if (!user || user.email !== email || user.mobile !== mobile) {
+        return res.status(400).json({ message: "User details do not match our records" });
+      }
+
+      // Check if user already has a password set (password field is not empty)
+      const hasPassword = user.password && user.password.trim().length > 0;
+
+      res.json({ 
+        userId: user.id, 
+        hasPassword,
+        message: hasPassword ? "User already has password" : "User verified successfully"
+      });
+
+    } catch (error) {
+      console.error("Error verifying user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Password setup endpoint for first-time users
+  app.post(`${apiPrefix}/setup-password`, async (req: Request, res: Response) => {
+    try {
+      const { userId, password } = req.body;
+
+      if (!userId || !password) {
+        return res.status(400).json({ message: "User ID and password are required" });
+      }
+
+      // Verify user exists and doesn't already have a password
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.password && user.password.trim().length > 0) {
+        return res.status(400).json({ message: "User already has a password set" });
+      }
+
+      // Hash the password using the same function from auth.ts
+      const { scrypt, randomBytes } = await import('crypto');
+      const { promisify } = await import('util');
+      const scryptAsync = promisify(scrypt);
+      
+      const salt = randomBytes(16).toString("hex");
+      const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+      const hashedPassword = `${buf.toString("hex")}.${salt}`;
+
+      // Update user with new password
+      await storage.updateUser(userId, { password: hashedPassword });
+
+      res.json({ message: "Password set successfully" });
+
+    } catch (error) {
+      console.error("Error setting up password:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Sets up /api/register, /api/login, /api/logout, /api/user  
   setupAuth(app);
 
