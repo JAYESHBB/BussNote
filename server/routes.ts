@@ -33,8 +33,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Content-Type:", req.headers['content-type']);
     
     try {
-      // Check authentication
-      if (!req.isAuthenticated()) {
+      // Check authentication (skip for user creation endpoint)
+      if (!req.user) {
         console.log("❌ User not authenticated");
         return res.status(401).json({ error: "Authentication required" });
       }
