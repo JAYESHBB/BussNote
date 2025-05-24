@@ -216,17 +216,28 @@ export default function AuthPage() {
                         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                         <span className="relative z-10 font-medium">{loginMutation.isPending ? "Logging in..." : "Login"}</span>
                       </Button>
-                      <div className="text-center mt-4 text-sm text-muted-foreground">
-                        Not yet registered? <a 
-                          className="text-primary hover:text-primary-700 font-medium cursor-pointer relative group" 
-                          onClick={() => {
-                            const element = document.querySelector('[data-state="inactive"][data-value="register"]') as HTMLElement;
-                            element?.click();
-                          }}
-                        >
-                          Click here to register
-                          <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-                        </a>
+                      <div className="text-center mt-4 space-y-2">
+                        <div className="text-sm text-muted-foreground">
+                          Not yet registered? <a 
+                            className="text-primary hover:text-primary-700 font-medium cursor-pointer relative group" 
+                            onClick={() => {
+                              const element = document.querySelector('[data-state="inactive"][data-value="register"]') as HTMLElement;
+                              element?.click();
+                            }}
+                          >
+                            Click here to register
+                            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+                          </a>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          First time login? <a 
+                            href="/setup-password"
+                            className="text-orange-600 hover:text-orange-700 font-medium relative group"
+                          >
+                            Set up your password here
+                            <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-orange-600 group-hover:w-full transition-all duration-300"></span>
+                          </a>
+                        </div>
                       </div>
                     </form>
                   </Form>

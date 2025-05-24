@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Check, X, Loader2 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
-import { CheckCircle, AlertCircle, Check } from "lucide-react";
 
 interface AddUserFormProps {
   open: boolean;
@@ -59,31 +59,18 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
-    // Trigger real-time validation
-    if (field === 'username') {
-      validateUsername(value);
-    } else if (field === 'email') {
-      validateEmail(value);
-    } else if (field === 'mobile') {
-      validateMobile(value);
-    } else if (field === 'password') {
-      validatePassword(value);
-    } else if (field === 'confirmPassword') {
-      validateConfirmPassword(value, formData.password);
+    // Reset validation for the field when user starts typing
+    if (field === 'username' || field === 'email' || field === 'mobile') {
+      setValidations(prev => ({
+        ...prev,
+        [field]: { isValid: null, message: "", isChecking: false }
+      }));
     }
   };
 
-  // Real-time username validation with availability check
-  const validateUsername = async (username: string) => {
-    if (username.length === 0) {
-      setValidations(prev => ({
-        ...prev,
-        username: { isValid: null, message: "", isChecking: false }
-      }));
-      return;
-    }
-
-    if (username.length < 3) {
+  // Real-time username availability check
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username.trim() || username.length < 3) {
       setValidations(prev => ({
         ...prev,
         username: { isValid: false, message: "Username must be at least 3 characters", isChecking: false }
@@ -91,53 +78,42 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
       return;
     }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    // Skip validation in edit mode for existing username
+    if (isEditMode && username === user?.username) {
       setValidations(prev => ({
         ...prev,
-        username: { isValid: false, message: "Username can only contain letters, numbers, and underscores", isChecking: false }
+        username: { isValid: true, message: "Current username", isChecking: false }
       }));
       return;
     }
 
-    // Check availability
     setValidations(prev => ({
       ...prev,
-      username: { isValid: null, message: "Checking availability...", isChecking: true }
+      username: { ...prev.username, isChecking: true }
     }));
 
     try {
-      const response = await fetch(`/api/check-username?username=${username}`);
+      const response = await fetch(`/api/check-username?username=${encodeURIComponent(username)}`);
       const data = await response.json();
       
-      if (data.available) {
-        setValidations(prev => ({
-          ...prev,
-          username: { isValid: true, message: "Username is available", isChecking: false }
-        }));
-      } else {
-        setValidations(prev => ({
-          ...prev,
-          username: { isValid: false, message: "Username is already taken", isChecking: false }
-        }));
-      }
+      setValidations(prev => ({
+        ...prev,
+        username: {
+          isValid: data.available,
+          message: data.available ? "Username is available" : "Username already exists",
+          isChecking: false
+        }
+      }));
     } catch (error) {
       setValidations(prev => ({
         ...prev,
-        username: { isValid: false, message: "Error checking username", isChecking: false }
+        username: { isValid: false, message: "Failed to check username", isChecking: false }
       }));
     }
   };
 
-  // Email validation with availability check
-  const validateEmail = async (email: string) => {
-    if (email.length === 0) {
-      setValidations(prev => ({
-        ...prev,
-        email: { isValid: null, message: "" }
-      }));
-      return;
-    }
-
+  // Real-time email availability check
+  const checkEmailAvailability = async (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setValidations(prev => ({
@@ -147,177 +123,109 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
       return;
     }
 
-    // Check availability
-    try {
-      const response = await fetch(`/api/check-email?email=${email}`);
-      const data = await response.json();
-      
-      if (data.available) {
-        setValidations(prev => ({
-          ...prev,
-          email: { isValid: true, message: "Email is available" }
-        }));
-      } else {
-        setValidations(prev => ({
-          ...prev,
-          email: { isValid: false, message: "Email is already registered" }
-        }));
-      }
-    } catch (error) {
+    // Skip validation in edit mode for existing email
+    if (isEditMode && email === user?.email) {
       setValidations(prev => ({
         ...prev,
-        email: { isValid: false, message: "Error checking email" }
-      }));
-    }
-  };
-
-  // Mobile validation with availability check
-  const validateMobile = async (mobile: string) => {
-    if (mobile.length === 0) {
-      setValidations(prev => ({
-        ...prev,
-        mobile: { isValid: null, message: "" }
+        email: { isValid: true, message: "Current email" }
       }));
       return;
     }
 
-    const mobileRegex = /^[6-9]\d{9}$/;
+    try {
+      const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      
+      setValidations(prev => ({
+        ...prev,
+        email: {
+          isValid: data.available,
+          message: data.available ? "Email is available" : "Email already exists"
+        }
+      }));
+    } catch (error) {
+      setValidations(prev => ({
+        ...prev,
+        email: { isValid: false, message: "Failed to check email" }
+      }));
+    }
+  };
+
+  // Real-time mobile availability check
+  const checkMobileAvailability = async (mobile: string) => {
+    const mobileRegex = /^\+?[\d\s\-\(\)]{10,}$/;
     if (!mobileRegex.test(mobile)) {
       setValidations(prev => ({
         ...prev,
-        mobile: { isValid: false, message: "Please enter a valid 10-digit mobile number" }
+        mobile: { isValid: false, message: "Please enter a valid mobile number" }
       }));
       return;
     }
 
-    // Check availability
+    // Skip validation in edit mode for existing mobile
+    if (isEditMode && mobile === user?.mobile) {
+      setValidations(prev => ({
+        ...prev,
+        mobile: { isValid: true, message: "Current mobile number" }
+      }));
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/check-mobile?mobile=${mobile}`);
+      const response = await fetch(`/api/check-mobile?mobile=${encodeURIComponent(mobile)}`);
       const data = await response.json();
       
-      console.log('Mobile validation response:', data);
-      
-      if (data.available) {
-        setValidations(prev => ({
-          ...prev,
-          mobile: { isValid: true, message: "Mobile number is available" }
-        }));
-      } else {
-        setValidations(prev => ({
-          ...prev,
-          mobile: { isValid: false, message: "Mobile number is already registered" }
-        }));
-      }
+      setValidations(prev => ({
+        ...prev,
+        mobile: {
+          isValid: data.available,
+          message: data.available ? "Mobile number is available" : "Mobile number already exists"
+        }
+      }));
     } catch (error) {
-      console.error('Mobile validation error:', error);
       setValidations(prev => ({
         ...prev,
-        mobile: { isValid: false, message: "Error checking mobile number" }
+        mobile: { isValid: false, message: "Failed to check mobile number" }
       }));
     }
   };
 
-  // Password validation
-  const validatePassword = (password: string) => {
-    if (password.length === 0) {
-      setValidations(prev => ({
-        ...prev,
-        password: { isValid: null, message: "" }
-      }));
-      return;
+  // Validation on blur
+  const handleBlur = (field: string, value: string) => {
+    if (field === 'username' && value.trim()) {
+      checkUsernameAvailability(value);
+    } else if (field === 'email' && value.trim()) {
+      checkEmailAvailability(value);
+    } else if (field === 'mobile' && value.trim()) {
+      checkMobileAvailability(value);
     }
-
-    if (password.length < 8) {
-      setValidations(prev => ({
-        ...prev,
-        password: { isValid: false, message: "Password must be at least 8 characters long" }
-      }));
-      return;
-    }
-
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)) {
-      setValidations(prev => ({
-        ...prev,
-        password: { isValid: false, message: "Password must contain uppercase, lowercase, number, and special character" }
-      }));
-    } else {
-      setValidations(prev => ({
-        ...prev,
-        password: { isValid: true, message: "Strong password" }
-      }));
-    }
-  };
-
-  // Confirm password validation
-  const validateConfirmPassword = (confirmPassword: string, password: string) => {
-    if (confirmPassword.length === 0) {
-      setValidations(prev => ({
-        ...prev,
-        confirmPassword: { isValid: null, message: "" }
-      }));
-      return;
-    }
-
-    if (confirmPassword === password) {
-      setValidations(prev => ({
-        ...prev,
-        confirmPassword: { isValid: true, message: "Passwords match" }
-      }));
-    } else {
-      setValidations(prev => ({
-        ...prev,
-        confirmPassword: { isValid: false, message: "Passwords do not match" }
-      }));
-    }
-  };
-
-  // Check if form is valid
-  const isFormValid = () => {
-    return (
-      formData.username &&
-      formData.fullName &&
-      formData.email &&
-      formData.mobile &&
-      formData.password &&
-      formData.confirmPassword &&
-      validations.username.isValid === true &&
-      validations.email.isValid === true &&
-      validations.mobile.isValid === true &&
-      validations.password.isValid === true &&
-      validations.confirmPassword.isValid === true
-    );
-  };
-
-  const resetForm = () => {
-    setFormData({
-      username: "",
-      fullName: "",
-      email: "",
-      mobile: "",
-      password: "",
-      confirmPassword: "",
-      role: "user"
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.username || !formData.fullName || !formData.email || !formData.mobile || !formData.password) {
+    // Validate required fields
+    if (!formData.username.trim() || !formData.fullName.trim() || !formData.email.trim() || !formData.mobile.trim()) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    // Check if validations are passing (only for new users or changed fields)
+    const usernameChanged = !isEditMode || formData.username !== user?.username;
+    const emailChanged = !isEditMode || formData.email !== user?.email;
+    const mobileChanged = !isEditMode || formData.mobile !== user?.mobile;
+
+    if ((usernameChanged && validations.username.isValid !== true) ||
+        (emailChanged && validations.email.isValid !== true) ||
+        (mobileChanged && validations.mobile.isValid !== true)) {
       toast({
-        title: "Password Error",
-        description: "Passwords do not match.",
-        variant: "destructive"
+        title: "Validation Error",
+        description: "Please fix validation errors before submitting",
+        variant: "destructive",
       });
       return;
     }
@@ -325,88 +233,63 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     setIsSubmitting(true);
 
     try {
-      console.log("🟢 Form: Starting user creation");
-      console.log("🟢 Form: Data to send:", formData);
+      const endpoint = isEditMode ? `/api/users/${user.id}` : '/api/create-user';
+      const method = isEditMode ? 'PUT' : 'POST';
       
-      let response;
-      
-      if (isEditMode) {
-        // Update existing user
-        const updateData: any = {
-          fullName: formData.fullName,
-          email: formData.email,
-          mobile: formData.mobile,
-          role: formData.role
-        };
-        
-        // Only include password if it's provided
-        if (formData.password.trim()) {
-          updateData.password = formData.password;
-        }
-        
-        response = await fetch(`/api/users/${user.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(updateData),
-        });
-      } else {
-        // Create new user
-        response = await fetch("/api/create-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            username: formData.username,
-            fullName: formData.fullName,
-            email: formData.email,
-            mobile: formData.mobile,
-            password: formData.password,
-            role: formData.role,
-            status: "active"
-          }),
-        });
-      }
+      const payload = {
+        username: formData.username,
+        full_name: formData.fullName,
+        email: formData.email,
+        mobile: formData.mobile,
+        role: formData.role,
+        status: 'active'
+      };
 
-      console.log("🟢 Form: Response status:", response.status);
-      console.log("🟢 Form: Response content-type:", response.headers.get("content-type"));
-
-      const responseText = await response.text();
-      console.log("🟢 Form: Raw response:", responseText);
-
-      if (!response.ok) {
-        throw new Error(responseText || `Failed to ${isEditMode ? 'update' : 'create'} user`);
-      }
-
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log("🟢 Form: Parsed result:", result);
-      } catch (parseError) {
-        console.error("🔴 Form: JSON parse error:", parseError);
-        throw new Error("Server returned invalid response");
-      }
-
-      // Success
-      toast({
-        title: "Success",
-        description: `User ${isEditMode ? 'updated' : 'created'} successfully!`,
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      // Refresh users list and close dialog
-      await queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      resetForm();
-      onOpenChange(false);
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to save user');
+      }
 
-    } catch (error: any) {
-      console.error("🔴 Form: Error creating user:", error);
+      await response.json();
+
+      toast({
+        title: "Success",
+        description: isEditMode ? "User updated successfully" : "User created successfully. They can now log in and set their password.",
+      });
+
+      // Invalidate users query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      
+      onOpenChange(false);
+      
+      // Reset form
+      setFormData({
+        username: "",
+        fullName: "",
+        email: "",
+        mobile: "",
+        role: "user"
+      });
+      
+      setValidations({
+        username: { isValid: null, message: "", isChecking: false },
+        email: { isValid: null, message: "" },
+        mobile: { isValid: null, message: "" }
+      });
+
+    } catch (error) {
+      console.error('Error saving user:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create user",
+        description: error instanceof Error ? error.message : "Failed to save user",
         variant: "destructive",
       });
     } finally {
@@ -414,136 +297,116 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
     }
   };
 
+  const getValidationIcon = (validation: { isValid: boolean | null; isChecking?: boolean }) => {
+    if (validation.isChecking) {
+      return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+    }
+    if (validation.isValid === true) {
+      return <Check className="h-4 w-4 text-green-600" />;
+    }
+    if (validation.isValid === false) {
+      return <X className="h-4 w-4 text-red-600" />;
+    }
+    return null;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Edit User" : "Add New User"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditMode 
+              ? "Update user details. Username cannot be changed." 
+              : "Create a new user account. The user will set their password during first login."
+            }
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="username">Username *</Label>
             <div className="relative">
               <Input
                 id="username"
                 value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                onBlur={(e) => handleBlur('username', e.target.value)}
                 placeholder="Enter username"
-                required={!isEditMode}
-                disabled={isEditMode}
-                className={`pr-10 ${
-                  validations.username.isValid === true
-                    ? "border-green-500 focus:border-green-500"
-                    : validations.username.isValid === false
-                    ? "border-red-500 focus:border-red-500"
-                    : ""
-                }`}
+                disabled={isEditMode} // Username cannot be changed in edit mode
+                className="pr-10"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {validations.username.isChecking ? (
-                  <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
-                ) : validations.username.isValid === true ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : validations.username.isValid === false ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                ) : null}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {getValidationIcon(validations.username)}
               </div>
             </div>
             {validations.username.message && (
-              <p className={`text-xs mt-1 ${
-                validations.username.isValid === true
-                  ? "text-green-600"
-                  : validations.username.isValid === false
-                  ? "text-red-600"
-                  : "text-blue-600"
-              }`}>
+              <p className={`text-sm ${validations.username.isValid ? 'text-green-600' : 'text-red-600'}`}>
                 {validations.username.message}
               </p>
             )}
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="fullName">Full Name *</Label>
             <Input
               id="fullName"
               value={formData.fullName}
-              onChange={(e) => handleInputChange("fullName", e.target.value)}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
               placeholder="Enter full name"
-              required
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="email">Email *</Label>
             <div className="relative">
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="Enter email"
-                required
-                className={`pr-10 ${
-                  validations.email.isValid === true
-                    ? "border-green-500 focus:border-green-500"
-                    : validations.email.isValid === false
-                    ? "border-red-500 focus:border-red-500"
-                    : ""
-                }`}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                onBlur={(e) => handleBlur('email', e.target.value)}
+                placeholder="Enter email address"
+                className="pr-10"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {validations.email.isValid === true ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : validations.email.isValid === false ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                ) : null}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {getValidationIcon(validations.email)}
               </div>
             </div>
             {validations.email.message && (
-              <p className={`text-xs mt-1 ${
-                validations.email.isValid === true
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}>
+              <p className={`text-sm ${validations.email.isValid ? 'text-green-600' : 'text-red-600'}`}>
                 {validations.email.message}
               </p>
             )}
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="mobile">Mobile Number *</Label>
             <div className="relative">
               <Input
                 id="mobile"
                 value={formData.mobile}
-                onChange={(e) => handleInputChange("mobile", e.target.value)}
+                onChange={(e) => handleInputChange('mobile', e.target.value)}
+                onBlur={(e) => handleBlur('mobile', e.target.value)}
                 placeholder="Enter mobile number"
-                required
                 className="pr-10"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {validations.mobile.isValid === true ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : validations.mobile.isValid === false ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                ) : null}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {getValidationIcon(validations.mobile)}
               </div>
             </div>
             {validations.mobile.message && (
-              <p className={`text-xs mt-1 ${
-                validations.mobile.isValid === true
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}>
+              <p className={`text-sm ${validations.mobile.isValid ? 'text-green-600' : 'text-red-600'}`}>
                 {validations.mobile.message}
               </p>
             )}
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="role">Role *</Label>
-            <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)}>
+            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -555,74 +418,24 @@ export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="password">Password *</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                placeholder="Enter password"
-                required
-                className="pr-10"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {validations.password.isValid === true ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : validations.password.isValid === false ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                ) : null}
-              </div>
-            </div>
-            {validations.password.message && (
-              <p className={`text-xs mt-1 ${
-                validations.password.isValid === true
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}>
-                {validations.password.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password *</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                placeholder="Confirm password"
-                required
-                className="pr-10"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {validations.confirmPassword.isValid === true ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : validations.confirmPassword.isValid === false ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                ) : null}
-              </div>
-            </div>
-            {validations.confirmPassword.message && (
-              <p className={`text-xs mt-1 ${
-                validations.confirmPassword.isValid === true
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}>
-                {validations.confirmPassword.message}
-              </p>
-            )}
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create User"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditMode ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                isEditMode ? "Update User" : "Create User"
+              )}
             </Button>
           </div>
         </form>
