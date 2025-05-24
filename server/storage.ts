@@ -41,6 +41,10 @@ export interface IStorage {
   getUser(id: number): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(data: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserStatus(id: number, status: string): Promise<User | undefined>;
+  userHasDependencies(id: number): Promise<boolean>;
   
   // Party methods
   getAllParties(): Promise<Party[]>;
@@ -104,6 +108,31 @@ class DatabaseStorage implements IStorage {
   async createUser(data: InsertUser): Promise<User> {
     const result = await db.insert(users).values(data).returning();
     return result[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const result = await db.select().from(users).orderBy(asc(users.fullName));
+    return result;
+  }
+
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
+    const result = await db.update(users).set(data).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+
+  async updateUserStatus(id: number, status: string): Promise<User | undefined> {
+    const result = await db.update(users).set({ status }).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+
+  async userHasDependencies(id: number): Promise<boolean> {
+    // Check if user has created any invoices
+    const invoiceCount = await db.select({ count: count() }).from(invoices).where(eq(invoices.userId, id));
+    
+    // Check if user has created any activities
+    const activityCount = await db.select({ count: count() }).from(activities).where(eq(activities.userId, id));
+    
+    return (invoiceCount[0]?.count || 0) > 0 || (activityCount[0]?.count || 0) > 0;
   }
   
   async getAllParties(): Promise<Party[]> {

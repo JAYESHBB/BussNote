@@ -119,18 +119,112 @@ export default function UserManagementPage() {
     }
   };
 
-  // We'll use this query in the future when the API is ready
-  /*
+  // Real-time user data from API
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["/api/users"],
-    queryFn: () => fetch("/api/users").then(res => res.json())
   });
-  */
-  
-  // Using mock data until API is ready
-  const users = mockUsers;
-  const isLoading = false;
-  const error = null;
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: any) => {
+      const res = await apiRequest("POST", "/api/users", userData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "User Created",
+        description: "New user has been added successfully.",
+      });
+      setIsAddUserOpen(false);
+      // Reset form
+      setNewUser({
+        username: "",
+        fullName: "",
+        email: "",
+        mobile: "",
+        password: "",
+        confirmPassword: "",
+        role: "user"
+      });
+      // Reset validation states
+      setUsernameAvailable(null);
+      setEmailValid(null);
+      setMobileValid(null);
+      setPasswordChecks({
+        length: false,
+        hasUppercase: false,
+        hasLowercase: false,
+        hasNumber: false,
+        hasSpecial: false
+      });
+      setPasswordsMatch(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create user",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, userData }: { id: number; userData: any }) => {
+      const res = await apiRequest("PUT", `/api/users/${id}`, userData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "User Updated",
+        description: "User has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update user status mutation (for delete/inactive)
+  const updateUserStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/users/${id}/status`, { status });
+      return await res.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      if (data.updatedStatus === 'inactive') {
+        toast({
+          title: "User Set to Inactive",
+          description: "Unable to delete user. User has associated data. User has been set to inactive instead.",
+          variant: "destructive"
+        });
+      } else if (variables.status === 'inactive') {
+        toast({
+          title: "User Deactivated",
+          description: "User has been deactivated successfully.",
+        });
+      } else {
+        toast({
+          title: "User Deleted",
+          description: "User has been deleted successfully.",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user status",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

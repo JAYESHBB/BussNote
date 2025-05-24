@@ -45,6 +45,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Management Routes
+  app.get(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    try {
+      const userData = req.body;
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.put(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const userData = req.body;
+      const user = await storage.updateUser(userId, userData);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.patch(`${apiPrefix}/users/:id/status`, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      // Check if user has dependencies (invoices, transactions, etc.)
+      const hasDependencies = await storage.userHasDependencies(userId);
+      
+      if (hasDependencies && status === 'deleted') {
+        return res.status(400).json({ 
+          message: "Unable to delete user. User has associated data. User has been set to inactive instead.",
+          updatedStatus: 'inactive'
+        });
+      }
+      
+      const user = await storage.updateUserStatus(userId, status === 'deleted' && hasDependencies ? 'inactive' : status);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
   // Party name availability check
   app.get(`${apiPrefix}/check-party-name`, async (req: Request, res: Response) => {
     try {
