@@ -20,7 +20,7 @@ import AnalyticsPage from "@/pages/analytics";
 import ProfilePage from "@/pages/profile";
 import SetupPasswordPage from "@/pages/setup-password";
 import UserManagementPage from "@/pages/settings/users";
-import RoleManagementPage from "@/pages/settings/roles";
+import RoleManagementPage from "@/pages/settings/roles-simple";
 import SystemSettingsPage from "@/pages/settings/system";
 import { PageLayout } from "@/components/PageLayout";
 
