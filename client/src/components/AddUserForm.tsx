@@ -509,26 +509,64 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
 
           <div>
             <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleInputChange("password", e.target.value)}
-              placeholder="Enter password"
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                placeholder="Enter password"
+                required
+                className="pr-10"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                {validations.password.isValid === true ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : validations.password.isValid === false ? (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                ) : null}
+              </div>
+            </div>
+            {validations.password.message && (
+              <p className={`text-xs mt-1 ${
+                validations.password.isValid === true
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}>
+                {validations.password.message}
+              </p>
+            )}
           </div>
 
           <div>
             <Label htmlFor="confirmPassword">Confirm Password *</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-              placeholder="Confirm password"
-              required
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                placeholder="Confirm password"
+                required
+                className="pr-10"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                {validations.confirmPassword.isValid === true ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : validations.confirmPassword.isValid === false ? (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                ) : null}
+              </div>
+            </div>
+            {validations.confirmPassword.message && (
+              <p className={`text-xs mt-1 ${
+                validations.confirmPassword.isValid === true
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}>
+                {validations.confirmPassword.message}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">
