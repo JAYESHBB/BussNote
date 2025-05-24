@@ -30,8 +30,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("🚀🚀🚀 CREATE USER API ENDPOINT HIT 🚀🚀🚀");
     console.log("Request Method:", req.method);
     console.log("Request Path:", req.path);
-    console.log("Request Body:", JSON.stringify(req.body, null, 2));
+    console.log("Request Body:", req.body);
     console.log("Content-Type:", req.headers['content-type']);
+    
+    // IMMEDIATE RETURN FOR TESTING
+    return res.status(201).json({
+      success: true,
+      message: "Test successful - endpoint is working",
+      receivedData: req.body
+    });
     
     try {
       // Note: For user creation, we should check if current user is admin
