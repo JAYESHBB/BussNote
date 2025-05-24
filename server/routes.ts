@@ -284,39 +284,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete user endpoint
   app.delete(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
+    console.log("=== DELETE USER REQUEST RECEIVED ===");
+    console.log("Request params:", req.params);
+    
     try {
       const userId = parseInt(req.params.id);
+      console.log("Parsed userId:", userId);
       
       if (isNaN(userId)) {
+        console.log("Invalid user ID provided");
         return res.status(400).json({ message: "Invalid user ID" });
       }
 
       // Check if user has dependencies (invoices)
+      console.log("Checking user dependencies...");
       const hasDependencies = await storage.userHasDependencies(userId);
       console.log("User has dependencies:", hasDependencies);
       
       if (hasDependencies) {
+        console.log("User has dependencies, cannot delete");
         return res.status(400).json({ message: "Unable to Delete User" });
       }
 
       // Get user to check if they exist
+      console.log("Getting user details...");
       const existingUser = await storage.getUser(userId);
+      console.log("Existing user:", existingUser);
+      
       if (!existingUser) {
+        console.log("User not found");
         return res.status(404).json({ message: "User not found" });
       }
 
       // Prevent deletion of admin users
       if (existingUser.role === 'admin') {
+        console.log("Cannot delete admin user");
         return res.status(400).json({ message: "Cannot delete administrator account" });
       }
 
       // Actually delete the user from database
+      console.log("Attempting to delete user...");
       const deleteSuccess = await storage.deleteUser(userId);
+      console.log("Delete operation result:", deleteSuccess);
       
       if (!deleteSuccess) {
+        console.log("Delete operation failed");
         return res.status(500).json({ message: "Failed to delete user from database" });
       }
       
+      console.log("User successfully deleted");
       res.json({ message: "User deleted successfully" });
     } catch (error) {
       console.error("Error deleting user:", error);
