@@ -36,7 +36,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sets up /api/register, /api/login, /api/logout, /api/user  
   setupAuth(app);
 
+  // User Management API - Create New User
+  app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    console.log("🚀 CREATE USER API CALLED");
+    console.log("Request Body:", JSON.stringify(req.body, null, 2));
+    
+    try {
+      // Check authentication
+      if (!req.isAuthenticated()) {
+        console.log("❌ User not authenticated");
+        return res.status(401).json({ error: "Authentication required" });
+      }
 
+      const { username, fullName, email, password, role } = req.body;
+      
+      // Validate required fields
+      if (!username || !fullName || !email || !password) {
+        console.log("❌ Missing required fields");
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      // Check if username already exists
+      console.log("Checking username availability...");
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        console.log("❌ Username already exists");
+        return res.status(409).json({ error: "Username already exists" });
+      }
+
+      // Hash password using the same method as auth
+      console.log("Hashing password...");
+      const crypto = require('crypto');
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex') + '.' + salt;
+
+      // Create user data
+      const userData = {
+        username,
+        fullName,
+        email,
+        password: hashedPassword,
+        role: role || 'user'
+      };
+
+      console.log("Creating user in database...");
+      const newUser = await storage.createUser(userData);
+      
+      console.log("✅ User created successfully with ID:", newUser.id);
+      
+      // Return user without password
+      const { password: _, ...userResponse } = newUser;
+      return res.status(201).json(userResponse);
+      
+    } catch (error) {
+      console.error("❌ Error creating user:", error);
+      return res.status(500).json({ error: "Failed to create user" });
+    }
+  });
   
   // Username availability check
   app.get(`${apiPrefix}/check-username`, async (req: Request, res: Response) => {
