@@ -14,7 +14,7 @@ interface AddUserFormProps {
   user?: any; // User to edit (null/undefined for create mode)
 }
 
-export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
+export function AddUserForm({ open, onOpenChange, user }: AddUserFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -27,6 +27,33 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
     confirmPassword: "",
     role: "user"
   });
+
+  const isEditMode = !!user;
+
+  // Populate form with user data in edit mode
+  useEffect(() => {
+    if (user && open) {
+      setFormData({
+        username: user.username || "",
+        fullName: user.fullName || user.full_name || "",
+        email: user.email || "",
+        mobile: user.mobile || "",
+        password: "",
+        confirmPassword: "",
+        role: user.role || "user"
+      });
+    } else if (!user && open) {
+      setFormData({
+        username: "",
+        fullName: "",
+        email: "",
+        mobile: "",
+        password: "",
+        confirmPassword: "",
+        role: "user"
+      });
+    }
+  }, [user, open]);
 
   // Validation states
   const [validations, setValidations] = useState({
@@ -309,22 +336,49 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
       console.log("🟢 Form: Starting user creation");
       console.log("🟢 Form: Data to send:", formData);
       
-      const response = await fetch("/api/create-user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          username: formData.username,
+      let response;
+      
+      if (isEditMode) {
+        // Update existing user
+        const updateData: any = {
           fullName: formData.fullName,
           email: formData.email,
           mobile: formData.mobile,
-          password: formData.password,
-          role: formData.role,
-          status: "active"
-        }),
-      });
+          role: formData.role
+        };
+        
+        // Only include password if it's provided
+        if (formData.password.trim()) {
+          updateData.password = formData.password;
+        }
+        
+        response = await fetch(`/api/users/${user.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(updateData),
+        });
+      } else {
+        // Create new user
+        response = await fetch("/api/create-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            username: formData.username,
+            fullName: formData.fullName,
+            email: formData.email,
+            mobile: formData.mobile,
+            password: formData.password,
+            role: formData.role,
+            status: "active"
+          }),
+        });
+      }
 
       console.log("🟢 Form: Response status:", response.status);
       console.log("🟢 Form: Response content-type:", response.headers.get("content-type"));
@@ -333,7 +387,7 @@ export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {
       console.log("🟢 Form: Raw response:", responseText);
 
       if (!response.ok) {
-        throw new Error(responseText || "Failed to create user");
+        throw new Error(responseText || `Failed to ${isEditMode ? 'update' : 'create'} user`);
       }
 
       let result;
