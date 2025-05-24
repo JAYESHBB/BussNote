@@ -138,11 +138,43 @@ export const activitiesInsertSchema = createInsertSchema(activities);
 export type InsertActivity = z.infer<typeof activitiesInsertSchema>;
 export type Activity = typeof activities.$inferSelect;
 
+// Roles table
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  permissions: text("permissions").notNull(), // JSON string of permission array
+  isSystem: boolean("is_system").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const rolesInsertSchema = createInsertSchema(roles, {
+  name: (schema) => schema.min(2, "Role name must be at least 2 characters"),
+  description: (schema) => schema.min(5, "Description must be at least 5 characters"),
+});
+export type InsertRole = z.infer<typeof rolesInsertSchema>;
+export type Role = typeof roles.$inferSelect;
+
+// User-Role junction table
+export const userRoles = pgTable("user_roles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  roleId: integer("role_id").references(() => roles.id).notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id),
+});
+
+export type UserRole = typeof userRoles.$inferSelect;
+export type InsertUserRole = typeof userRoles.$inferInsert;
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   invoices: many(invoices),
   activities: many(activities),
   transactions: many(transactions),
+  userRoles: many(userRoles),
+  assignedRoles: many(userRoles, { relationName: "assignedBy" }),
 }));
 
 export const partiesRelations = relations(parties, ({ many }) => ({
