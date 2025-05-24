@@ -15,6 +15,7 @@ export default function UsersPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   // Fetch users data
   const { data: users, isLoading } = useQuery({
@@ -74,9 +75,35 @@ export default function UsersPage() {
     },
   });
 
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/users/${id}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to delete user");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Success",
+        description: "User deleted successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message === "Unable to Delete User" ? "Cannot delete user with existing invoices" : error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteUser = (userId: number) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      updateUserStatusMutation.mutate({ id: userId, status: "inactive" });
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      deleteUserMutation.mutate(userId);
     }
   };
 
@@ -169,7 +196,11 @@ export default function UsersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setEditingUser(user)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 

@@ -11,6 +11,7 @@ import { CheckCircle, AlertCircle, Check } from "lucide-react";
 interface AddUserFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  user?: any; // User to edit (null/undefined for create mode)
 }
 
 export function AddUserForm({ open, onOpenChange }: AddUserFormProps) {

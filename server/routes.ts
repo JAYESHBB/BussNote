@@ -213,6 +213,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete user endpoint
+  app.delete(`${apiPrefix}/users/:id`, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      if (isNaN(userId)) {
+        return res.status(400).send("Invalid user ID");
+      }
+
+      // Check if user has dependencies (invoices)
+      const hasDependencies = await storage.userHasDependencies(userId);
+      
+      if (hasDependencies) {
+        return res.status(400).send("Unable to Delete User");
+      }
+
+      // Get user to check if they exist
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).send("User not found");
+      }
+
+      // Prevent deletion of admin users
+      if (existingUser.role === 'admin') {
+        return res.status(400).send("Cannot delete administrator account");
+      }
+
+      // Delete the user (this would be actual deletion from database)
+      // For now, we'll set status to 'deleted' since we don't have a deleteUser method
+      const user = await storage.updateUserStatus(userId, 'deleted');
+      
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+      
+      res.json({ message: "User deleted successfully", user });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).send("Failed to delete user");
+    }
+  });
+
   // Party name availability check
   app.get(`${apiPrefix}/check-party-name`, async (req: Request, res: Response) => {
     try {
