@@ -45,19 +45,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already exists" });
       }
       
-      // Create password hash
-      const crypto = await import('crypto');
-      const salt = crypto.randomBytes(16).toString('hex');
-      const hashedPassword = crypto.scryptSync('temp123', salt, 64).toString('hex') + '.' + salt;
-      
-      // Create user
+      // Create user without password - users will set their own on first login
       const userData = {
         username,
         fullName,
         email,
         mobile,
         address: address || null,
-        password: hashedPassword,
+        password: '', // Empty password - users will set on first login
         role: role || 'user',
         status: status || 'active'
       };
@@ -181,6 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Check if user already has a password set
       if (user.password && user.password.trim().length > 0) {
         return res.status(400).json({ message: "User already has a password set" });
       }
