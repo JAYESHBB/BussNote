@@ -117,21 +117,27 @@ export default function RoleManagement() {
   const createRoleMutation = useMutation({
     mutationFn: async (roleData: { name: string; description: string; permissions: string[] }) => {
       const res = await apiRequest("POST", "/api/roles", roleData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to create role");
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
       setIsRoleDialogOpen(false);
       setSelectedRole(null);
+      resetForm();
       toast({
         title: "Success",
         description: "Role created successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Role creation error:", error);
       toast({
         title: "Error",
-        description: "Failed to create role",
+        description: error.message || "Failed to create role",
         variant: "destructive",
       });
     },
