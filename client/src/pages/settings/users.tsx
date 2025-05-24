@@ -152,7 +152,7 @@ export default function UserManagementPage() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
-      const res = await apiRequest("POST", "/api/users", userData);
+      const res = await apiRequest("POST", "/api/create-user", userData);
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "Failed to create user");

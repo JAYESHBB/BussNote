@@ -24,8 +24,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log("Registering API routes with prefix:", apiPrefix);
 
-  // User Management API - Create New User (MUST BE FIRST!)
-  app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+  // User Management API - Create New User (DIFFERENT ROUTE TO AVOID CONFLICTS!)
+  app.post(`${apiPrefix}/create-user`, async (req: Request, res: Response) => {
     console.log("🚀🚀🚀 CREATE USER API ENDPOINT HIT 🚀🚀🚀");
     console.log("Request Method:", req.method);
     console.log("Request Path:", req.path);
