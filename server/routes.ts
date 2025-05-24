@@ -288,25 +288,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       
       if (isNaN(userId)) {
-        return res.status(400).send("Invalid user ID");
+        return res.status(400).json({ message: "Invalid user ID" });
       }
 
       // Check if user has dependencies (invoices)
       const hasDependencies = await storage.userHasDependencies(userId);
       
       if (hasDependencies) {
-        return res.status(400).send("Unable to Delete User");
+        return res.status(400).json({ message: "Unable to Delete User" });
       }
 
       // Get user to check if they exist
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
-        return res.status(404).send("User not found");
+        return res.status(404).json({ message: "User not found" });
       }
 
       // Prevent deletion of admin users
       if (existingUser.role === 'admin') {
-        return res.status(400).send("Cannot delete administrator account");
+        return res.status(400).json({ message: "Cannot delete administrator account" });
       }
 
       // Delete the user (this would be actual deletion from database)
@@ -314,13 +314,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.updateUserStatus(userId, 'deleted');
       
       if (!user) {
-        return res.status(404).send("User not found");
+        return res.status(404).json({ message: "User not found" });
       }
       
       res.json({ message: "User deleted successfully", user });
     } catch (error) {
       console.error("Error deleting user:", error);
-      res.status(500).send("Failed to delete user");
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 
