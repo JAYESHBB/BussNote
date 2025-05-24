@@ -78,20 +78,18 @@ export default function UsersPage() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (id: number) => {
+      console.log("Frontend: Attempting to delete user ID:", id);
       const res = await apiRequest("DELETE", `/api/users/${id}`);
+      console.log("Frontend: Delete response status:", res.status);
+      
       if (!res.ok) {
         const errorText = await res.text();
+        console.log("Frontend: Delete error:", errorText);
         throw new Error(errorText || "Failed to delete user");
       }
       
-      // Check if response has content and is JSON
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return await res.json();
-      } else {
-        // If not JSON, return a success message
-        return { message: "User deleted successfully" };
-      }
+      console.log("Frontend: Delete successful");
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
