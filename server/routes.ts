@@ -55,9 +55,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password using the same method as auth
       console.log("Hashing password...");
-      const crypto = require('crypto');
-      const salt = crypto.randomBytes(16).toString('hex');
-      const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex') + '.' + salt;
+      const { randomBytes, scryptSync } = await import('crypto');
+      const salt = randomBytes(16).toString('hex');
+      const hashedPassword = scryptSync(password, salt, 64).toString('hex') + '.' + salt;
 
       // Create user data
       const userData = {
