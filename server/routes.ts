@@ -24,8 +24,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log("Registering API routes with prefix:", apiPrefix);
 
+  // Add global middleware to catch all requests
+  app.use((req, res, next) => {
+    if (req.method === 'POST' && req.path === '/api/users') {
+      console.log("🔥 INTERCEPTED POST /api/users request");
+      console.log("Request body:", req.body);
+      console.log("Headers:", req.headers);
+    }
+    next();
+  });
+
   // Add User endpoint - MUST be before auth setup
   app.post(`${apiPrefix}/users`, async (req: Request, res: Response) => {
+    console.log("🎯 REACHED POST /api/users endpoint");
+    
     try {
       console.log("POST /api/users called with body:", req.body);
       console.log("Is authenticated:", req.isAuthenticated());
