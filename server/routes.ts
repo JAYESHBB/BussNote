@@ -68,11 +68,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const userData = req.body;
+      
+      // Validate required fields
+      if (!userData.username || !userData.fullName || !userData.email || !userData.password) {
+        return res.status(400).json({ message: "All required fields must be provided" });
+      }
+      
       const user = await storage.createUser(userData);
       res.status(201).json(user);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating user:", error);
-      res.status(500).json({ message: "Failed to create user" });
+      res.status(500).json({ message: error.message || "Failed to create user" });
     }
   });
 
